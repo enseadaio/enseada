@@ -6,6 +6,16 @@ defmodule EnseadaWeb.Router do
   end
 
   plug(Plug.RequestId)
+
+  plug :redirect_ui
+  plug(EnseadaWeb.ServeIndex, at: "/ui")
+
+  plug(
+    Plug.Static,
+    at: "/ui",
+    from: :enseada
+  )
+
   plug(Plug.Logger)
 
   plug(
@@ -26,4 +36,11 @@ defmodule EnseadaWeb.Router do
   match _ do
     send_resp(conn, 404, "Not Found")
   end
+
+  defp redirect_ui(%{request_path: "/ui"} = conn, _) do
+    conn
+    |> put_resp_header("location", "/ui/")
+    |> send_resp(301, "")
+  end
+  defp redirect_ui(conn, _), do: conn
 end
