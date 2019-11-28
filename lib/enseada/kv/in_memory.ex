@@ -7,14 +7,21 @@ defmodule Enseada.KV.InMemory do
   end
 
   @impl true
-  def init(opts) do
-    :users = :ets.new(:users, [:set, :protected, :named_table])
-    {:ok, opts}
+  def init(buckets: buckets) do
+    for bucket <- buckets do
+      :ets.new(bucket, [:set, :protected, :named_table])
+    end
+    {:ok, %{}}
   end
 
   @impl true
   def get(bucket, key) do
     GenServer.call(__MODULE__, {:get, {bucket, key}})
+  end
+
+  @impl true
+  def find(bucket, match) do
+    GenServer.call(__MODULE__, {:find, {bucket, match}})
   end
 
   @impl true
@@ -29,6 +36,13 @@ defmodule Enseada.KV.InMemory do
         [{^key, value}] -> {:ok, value}
         [] -> {:ok, nil}
       end
+
+    {:reply, res, state}
+  end
+
+  @impl true
+  def handle_call({:find, {bucket, match}}, _, state) do
+    res = :ets.match_object(bucket, match)
 
     {:reply, res, state}
   end

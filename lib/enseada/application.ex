@@ -6,16 +6,11 @@ defmodule Enseada.Application do
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
     children = [
-      # Start the endpoint when the application starts
-      EnseadaWeb.Endpoint
-      # Starts a worker by calling: Enseada.Worker.start_link(arg)
-      # {Enseada.Worker, arg},
+      EnseadaWeb.Endpoint,
+      Enseada.KV.Supervisor
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Enseada.Supervisor]
     Supervisor.start_link(children, opts)
   end

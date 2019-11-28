@@ -3,13 +3,14 @@ defmodule EnseadaWeb.MavenController do
 
   alias Enseada.Maven
 
+  require Logger
+
   def resolve(conn, %{"glob" => glob}) do
     {filename, rest} = List.pop_at(glob, -1)
     scope = Enum.join(rest, "/")
     url = Maven.Storage.url({filename, scope})
-    path = Application.app_dir(:enseada, url)
-    IO.inspect(url)
-    send_download(conn, {:file, path})
+    Logger.info("Sending file #{url}")
+    redirect(conn, to: url)
   end
 
   def store(conn, %{"glob" => glob}) do

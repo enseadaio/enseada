@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId><%= group_id %></groupId>
+  <artifactId><%= artifact_id %></artifactId>
+  <versioning>
+    <versions>
+    </versions>
+    <lastUpdated><%= last_updated_timestamp %></lastUpdated>
+  </versioning>
+</metadata>

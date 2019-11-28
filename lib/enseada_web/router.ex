@@ -24,8 +24,11 @@ defmodule EnseadaWeb.Router do
     put "/*glob", MavenController, :store
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", EnseadaWeb do
-  #   pipe_through :api
-  # end
+   scope "/api", EnseadaWeb.Api do
+     pipe_through :api
+
+     get "/test", RepoController, :test
+     get "/repositories", RepoController, :index
+     post "/repositories", RepoController, :create
+   end
 end

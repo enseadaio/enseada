@@ -67,4 +67,5 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 config :arc,
-  storage: Arc.Storage.Local
+  storage: Arc.Storage.Local,
+  storage_dir: "uploads"
