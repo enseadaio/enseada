@@ -1,46 +1,31 @@
 defmodule EnseadaWeb.Router do
-  use Plug.Router
+  use EnseadaWeb, :router
 
-  if Mix.env() == :dev do
-    use Plug.Debugger
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
   end
 
-  plug(Plug.RequestId)
-
-  plug :redirect_ui
-  plug(EnseadaWeb.ServeIndex, at: "/ui")
-
-  plug(
-    Plug.Static,
-    at: "/ui",
-    from: :enseada
-  )
-
-  plug(Plug.Logger)
-
-  plug(
-    Plug.Parsers,
-    parsers: [:json],
-    pass: ["*/*"],
-    json_decoder: Jason
-  )
-
-  plug(Corsica, Application.get_env(:enseada, :cors))
-  plug(:match)
-  plug(:dispatch)
-
-  get "/health" do
-    send_resp(conn, 200, "ok")
+  pipeline :api do
+    plug :accepts, ["json"]
   end
 
-  match _ do
-    send_resp(conn, 404, "Not Found")
+  scope "/ui", EnseadaWeb do
+    pipe_through :browser
+
+    get "/*_rest", UIController, :index
   end
 
-  defp redirect_ui(%{request_path: "/ui"} = conn, _) do
-    conn
-    |> put_resp_header("location", "/ui/")
-    |> send_resp(301, "")
+  scope "/maven2", EnseadaWeb do
+    get "/*glob", MavenController, :resolve
+    put "/*glob", MavenController, :store
   end
-  defp redirect_ui(conn, _), do: conn
+
+  # Other scopes may use custom stacks.
+  # scope "/api", EnseadaWeb do
+  #   pipe_through :api
+  # end
 end

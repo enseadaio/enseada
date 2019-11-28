@@ -5,17 +5,25 @@ defmodule Enseada.Application do
 
   use Application
 
-  require Logger
-
   def start(_type, _args) do
-    port = Application.get_env(:enseada, :port, 3000)
-
+    # List all child processes to be supervised
     children = [
-      {Plug.Cowboy, scheme: :http, plug: EnseadaWeb.Router, options: [port: port]}
+      # Start the endpoint when the application starts
+      EnseadaWeb.Endpoint
+      # Starts a worker by calling: Enseada.Worker.start_link(arg)
+      # {Enseada.Worker, arg},
     ]
 
+    # See https://hexdocs.pm/elixir/Supervisor.html
+    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Enseada.Supervisor]
-    Logger.info("Started Enseada on port #{port}")
     Supervisor.start_link(children, opts)
+  end
+
+  # Tell Phoenix to update the endpoint configuration
+  # whenever the application is updated.
+  def config_change(changed, _new, removed) do
+    EnseadaWeb.Endpoint.config_change(changed, removed)
+    :ok
   end
 end

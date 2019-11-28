@@ -6,33 +6,40 @@ defmodule Enseada.MixProject do
       app: :enseada,
       version: "0.1.0",
       elixir: "~> 1.9",
+      elixirc_paths: elixirc_paths(Mix.env()),
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      aliases: aliases()
+      deps: deps()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
+  # Configuration for the OTP application.
+  #
+  # Type `mix help compile.app` for more information.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {Enseada.Application, []}
+      mod: {Enseada.Application, []},
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  # Specifies your project dependencies.
+  #
+  # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:phoenix, "~> 1.4.10"},
+      {:phoenix_pubsub, "~> 1.1"},
+      {:phoenix_html, "~> 2.11"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:gettext, "~> 0.11"},
+      {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:jason, "~> 1.1"},
-      {:corsica, "~> 1.1"},
-      {:ex_doc, "~> 0.20", only: :dev, runtime: false}
-    ]
-  end
-
-  defp aliases do
-    [
-      start: "run --no-halt"
+      {:arc, "~> 0.11.0"}
     ]
   end
 end
