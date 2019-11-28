@@ -1,0 +1,13 @@
+version: '3'
+services:
+  couchdb:
+    image: couchdb:2
+    environment:
+      COUCHDB_USER: enseada
+      COUCHDB_PASSWORD: enseada
+    ports:
+      - 5984:5984
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+volumes:
+  couchdb_data:
