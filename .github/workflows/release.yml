@@ -18,4 +18,5 @@ jobs:
           # Strip "v" prefix from tag name
           docker pull enseada/enseada:latest || true
           docker build . --file Dockerfile --tag enseada/enseada:$VERSION --tag enseada/enseada:latest
+          docker push enseada/enseada:$VERSION
           docker push enseada/enseada:latest
