@@ -18,7 +18,8 @@ jobs:
         run: |
           mix local.rebar --force
           mix local.hex --force
-          mix format --check-formatted
           mix deps.get
       - name: Run Linter
-        run: mix credo
+        run: |
+          mix format --check-formatted
+          mix credo
