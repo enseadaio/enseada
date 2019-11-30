@@ -24,6 +24,7 @@ COPY lib ./lib
 COPY priv ./priv
 COPY assets ./assets
 
+RUN mkdir -p ./priv/static
 RUN mix phx.digest
 
 RUN mix release
