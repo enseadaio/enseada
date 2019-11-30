@@ -1,5 +1,7 @@
 # Enseada
-*A Cloud native multi-package registry*
+![logo](./.github/logo-white.png)
+
+*A Cloud native multi-package registry*  
 
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 
@@ -33,7 +35,7 @@ Enseada uses the wonderful library [Waffle](https://github.com/stavro/arc) to im
 its storage layer, and is therefore compatible with any provider supported by Waffle.
 See [Configuration](#configuration) for how to setup the storage layer.
 
-At the moment, only two providers are supported:
+At the moment, only these providers are supported:
 
 - Local disk
 - S3 compatible (AWS S3, Minio, DigitalOcean Spaces, Scaleway Object Storage, Ceph, etc)
