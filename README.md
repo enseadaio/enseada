@@ -24,10 +24,10 @@ formats and registry APIs.
 
 At the moment, the following formats are supported:
 
-- [Maven 2/3]()
-- [NPM]() (planned, coming soon)
-- [Docker]() (planned, coming soon)
-- [RubyGems]() (planned, coming soon)
+- [Maven 2/3](https://maven.apache.org/guides/introduction/introduction-to-repositories.html)
+- [NPM](https://github.com/npm/registry/blob/master/docs/REGISTRY-API.md) (planned, coming soon)
+- [Docker](https://docs.docker.com/registry/spec/api/) (planned, coming soon)
+- [RubyGems](https://rubygems.org) (planned, coming soon)
 
 ## Supported storage providers
 
