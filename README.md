@@ -1,4 +1,6 @@
 # Enseada
+*A Cloud native multi-package registry*
+  
 [![version](https://img.shields.io/github/v/release/enseadaio/enseada?sort=semver)](https://github.com/enseadaio/enseada/releases/latest)
 ![build status](https://github.com/enseadaio/enseada/workflows/master/badge.svg)
 [![docker pulls](https://img.shields.io/docker/pulls/enseada/enseada)](https://hub.docker.com/r/enseada/enseada)
@@ -6,7 +8,6 @@
 
 ![logo](./.github/logo-white.png)
 
-*A Cloud native multi-package registry*  
 
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 
