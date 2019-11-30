@@ -1,4 +1,9 @@
 # Enseada
+![version](https://img.shields.io/github/v/release/enseadaio/enseada?sort=semver)
+![build status](https://github.com/enseadaio/enseada/workflows/master/badge.svg)
+![docker pulls](https://img.shields.io/docker/pulls/enseada/enseada)
+![license](https://img.shields.io/github/license/enseadaio/enseada)
+
 ![logo](./.github/logo-white.png)
 
 *A Cloud native multi-package registry*  

@@ -1,4 +1,4 @@
-name: Elixir Linting
+name: linting
 
 on:
   push:
