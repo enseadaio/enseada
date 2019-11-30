@@ -17,11 +17,7 @@ defmodule EnseadaWeb.Endpoint do
     only: ~w(css fonts images js favicon.ico robots.txt)
 
   # If using local we must serve the files ourselves
-  if Application.get_env(:arc, :storage) == Arc.Storage.Local do
-    plug Plug.Static,
-      at: "/uploads",
-      from: "uploads"
-  end
+  plug :local_storage
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
@@ -51,4 +47,18 @@ defmodule EnseadaWeb.Endpoint do
     signing_salt: "7jF4kLpb"
 
   plug EnseadaWeb.Router
+
+  def local_storage(conn, _) do
+    if Application.get_env(:waffle, :storage) == Waffle.Storage.Local do
+      opts =
+        Plug.Static.init(
+          at: "/uploads",
+          from: Application.get_env(:waffle, :storage_dir_prefix)
+        )
+
+      Plug.Static.call(conn, opts)
+    else
+      conn
+    end
+  end
 end

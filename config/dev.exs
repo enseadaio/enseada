@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -70,9 +70,11 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
-config :arc,
-  storage: Arc.Storage.Local,
-  storage_dir: "uploads"
+config :waffle,
+  storage: Waffle.Storage.Local,
+  storage_dir_prefix: "uploads",
+  storage_dir: "uploads",
+  asset_host: "http://localhost:4000"
 
 config :enseada, :database,
   url: "http://localhost:5984",

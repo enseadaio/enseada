@@ -1,6 +1,8 @@
 defmodule Enseada.Maven.Storage do
-  use Arc.Definition
-  @storage_dir Application.get_env(:arc, :storage_dir)
+  use Waffle.Definition
 
-  def storage_dir(_, {_, scope}), do: "#{@storage_dir}/maven2/#{scope}"
+  def storage_dir(_, {_, scope}) do
+    dir = Application.get_env(:waffle, :storage_dir)
+    "#{dir}/maven2/#{scope}"
+  end
 end

@@ -1,5 +1,6 @@
 defmodule EnseadaWeb.Api.RepoController do
   use EnseadaWeb, :controller
+  require Logger
 
   alias Enseada.Mapper
   alias Enseada.Repositories
@@ -17,6 +18,8 @@ defmodule EnseadaWeb.Api.RepoController do
     case create_repo(type, params) do
       {:ok, repo} ->
         body = Templates.metadata(repo.group_id, repo.artifact_id)
+        Logger.info("Uploading file #{scope(params)}/maven-metadata.xml")
+        Logger.debug("Body: #{inspect(body)}")
         Storage.store({%{filename: "maven-metadata.xml", binary: body}, scope(params)})
 
         conn
