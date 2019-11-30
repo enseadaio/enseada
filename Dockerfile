@@ -1,3 +1,36 @@
+FROM elixir:1.9-alpine as dependencies
+
+WORKDIR /app
+
+# Set environment variables for building the application
+ENV MIX_ENV=prod \
+    LANG=C.UTF-8
+
+# Install hex and rebar
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+COPY mix.exs .
+COPY mix.lock .
+
+RUN mix deps.get
+
+FROM node:12-alpine as assets
+
+WORKDIR /app
+
+ENV NODE_ENV=prod
+
+COPY --from=dependencies /app .
+COPY assets/package.json assets/*yarn* ./assets/
+
+RUN cd assets && yarn install
+
+COPY assets ./assets
+COPY priv ./priv
+
+RUN cd assets && yarn build
+
 FROM elixir:1.9-alpine as builder
 
 WORKDIR /app
@@ -9,22 +42,17 @@ ENV MIX_ENV=prod \
 # Install system dependencies
 RUN apk update && apk add build-base
 
+COPY --from=assets /app .
+
 # Install hex and rebar
 RUN mix local.hex --force && \
     mix local.rebar --force
 
-COPY mix.exs .
-COPY mix.lock .
-
-RUN mix deps.get
 RUN mix deps.compile
 
 COPY config ./config
 COPY lib ./lib
-COPY priv ./priv
-COPY assets ./assets
 
-RUN mkdir -p ./priv/static
 RUN mix phx.digest
 
 RUN mix release
