@@ -8,7 +8,8 @@ defmodule Enseada.Application do
   def start(_type, _args) do
     children = [
       EnseadaWeb.Endpoint,
-      Enseada.KV.Supervisor
+      Enseada.Database,
+      Enseada.Database.Initialzer
     ]
 
     opts = [strategy: :one_for_one, name: Enseada.Supervisor]

@@ -40,7 +40,8 @@ defmodule Enseada.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:arc, "~> 0.11.0"},
-      {:couchdb, "~> 2.1.0-beta"}
+      {:couchdb, "~> 2.1.0-beta"},
+      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false}
     ]
   end
 end
