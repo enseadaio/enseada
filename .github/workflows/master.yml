@@ -72,7 +72,8 @@ jobs:
           echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
       - name: Build the Docker image
         run: |
-          VERSION=${{ github.event.name }}
-#          docker pull enseada/enseada:latest || true
-#          docker build . --file Dockerfile --tag enseada/enseada:$VERSION --tag enseada/enseada:latest
-#          docker push enseada/enseada:latest
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
+          # Strip "v" prefix from tag name
+          docker pull enseada/enseada:latest || true
+          docker build . --file Dockerfile --tag enseada/enseada:$VERSION --tag enseada/enseada:latest
+          docker push enseada/enseada:latest
