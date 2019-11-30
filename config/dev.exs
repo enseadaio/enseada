@@ -6,20 +6,23 @@ use Mix.Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
-config :enseada, EnseadaWeb.Endpoint,
-  http: [port: 4000],
-  debug_errors: true,
-  code_reloader: true,
-  check_origin: false,
-  watchers: [
-    node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      "development",
-      "--watch-stdin",
-      cd: Path.expand("../assets", __DIR__)
-    ]
-  ]
+config :enseada,
+       EnseadaWeb.Endpoint,
+       http: [
+         port: 4000
+       ],
+       debug_errors: true,
+       code_reloader: true,
+       check_origin: false,
+       watchers: [
+         node: [
+           "node_modules/webpack/bin/webpack.js",
+           "--mode",
+           "development",
+           "--watch-stdin",
+           cd: Path.expand("../assets", __DIR__)
+         ]
+       ]
 
 # ## SSL Support
 #
@@ -46,15 +49,16 @@ config :enseada, EnseadaWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :enseada, EnseadaWeb.Endpoint,
-  live_reload: [
-    patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
-      ~r"priv/gettext/.*(po)$",
-      ~r"lib/enseada_web/{live,views}/.*(ex)$",
-      ~r"lib/enseada_web/templates/.*(eex)$"
-    ]
-  ]
+config :enseada,
+       EnseadaWeb.Endpoint,
+       live_reload: [
+         patterns: [
+           ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+           ~r"priv/gettext/.*(po)$",
+           ~r"lib/enseada_web/{live,views}/.*(ex)$",
+           ~r"lib/enseada_web/templates/.*(eex)$"
+         ]
+       ]
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
@@ -69,3 +73,8 @@ config :phoenix, :plug_init_mode, :runtime
 config :arc,
   storage: Arc.Storage.Local,
   storage_dir: "uploads"
+
+config :enseada, :database,
+  url: "http://localhost:5984",
+  username: "enseada",
+  password: "enseada"

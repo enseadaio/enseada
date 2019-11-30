@@ -11,16 +11,16 @@ defmodule EnseadaWeb.Endpoint do
   # You should set gzip to true if you are running phx.digest
   # when deploying your static files in production.
   plug Plug.Static,
-       at: "/",
-       from: :enseada,
-       gzip: Mix.env() == :prod,
-       only: ~w(css fonts images js favicon.ico robots.txt)
+    at: "/",
+    from: :enseada,
+    gzip: Mix.env() == :prod,
+    only: ~w(css fonts images js favicon.ico robots.txt)
 
   # If using local we must serve the files ourselves
-  if  Application.get_env(:arc, :storage) == Arc.Storage.Local do
+  if Application.get_env(:arc, :storage) == Arc.Storage.Local do
     plug Plug.Static,
-         at: "/uploads",
-         from: "uploads"
+      at: "/uploads",
+      from: "uploads"
   end
 
   # Code reloading can be explicitly enabled under the
@@ -35,9 +35,9 @@ defmodule EnseadaWeb.Endpoint do
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
   plug Plug.Parsers,
-       parsers: [:urlencoded, :multipart, :json],
-       pass: ["*/*"],
-       json_decoder: Phoenix.json_library()
+    parsers: [:urlencoded, :multipart, :json],
+    pass: ["*/*"],
+    json_decoder: Phoenix.json_library()
 
   plug Plug.MethodOverride
   plug Plug.Head
@@ -46,9 +46,9 @@ defmodule EnseadaWeb.Endpoint do
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
   plug Plug.Session,
-       store: :cookie,
-       key: "_enseada_key",
-       signing_salt: "7jF4kLpb"
+    store: :cookie,
+    key: "_enseada_key",
+    signing_salt: "7jF4kLpb"
 
   plug EnseadaWeb.Router
 end

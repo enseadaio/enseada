@@ -24,11 +24,11 @@ defmodule EnseadaWeb.Router do
     put "/*glob", MavenController, :store
   end
 
-   scope "/api", EnseadaWeb.Api do
-     pipe_through :api
+  scope "/api", EnseadaWeb.Api do
+    pipe_through :api
 
-     get "/test", RepoController, :test
-     get "/repositories", RepoController, :index
-     post "/repositories", RepoController, :create
-   end
+    get "/test", RepoController, :test
+    get "/repositories", RepoController, :index
+    post "/repositories", RepoController, :create
+  end
 end
