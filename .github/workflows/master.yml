@@ -1,0 +1,76 @@
+name: Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: elixir:1.9.2-slim
+    services:
+      couchdb:
+        image: couchdb:2
+        env:
+          COUCHDB_USER: enseada
+          COUCHDB_PASSWORD: enseada
+        ports:
+          - 5984:5984
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+          mix deps.compile
+      - name: Run Tests
+        run: mix test
+        env:
+          COUCHDB_URL: http://couchdb:${{ job.services.couchdb.ports[5984] }}
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: elixir:1.9.2-slim
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - name: Install Dependencies
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+      - name: Run Linter
+        run: |
+          mix format --check-formatted
+#          mix credo
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+      - name: Build the Docker image
+        run: |
+          VERSION=${{ github.event.name }}
+#          docker pull enseada/enseada:latest || true
+#          docker build . --file Dockerfile --tag enseada/enseada:$VERSION --tag enseada/enseada:latest
+#          docker push enseada/enseada:latest
