@@ -99,7 +99,7 @@ case System.get_env("STORAGE_PROVIDER") do
       access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
       secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role],
       region: System.get_env("AWS_REGION"),
-      debug_requests: true
+      json_codec: Jason
 
     s3_url = System.get_env("AWS_S3_ENDPOINT")
 

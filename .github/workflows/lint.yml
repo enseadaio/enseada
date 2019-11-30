@@ -1,0 +1,24 @@
+name: Elixir Linting
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - develop
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: elixir:1.9.2-slim
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install Dependencies
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix format --check-formatted
+          mix deps.get
+      - name: Run Linter
+        run: mix credo

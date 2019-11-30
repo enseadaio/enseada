@@ -1,0 +1,33 @@
+name: Elixir Tests
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - develop
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: elixir:1.9.2-slim
+    services:
+      couchdb:
+        image: couchdb:2
+        env:
+          COUCHDB_USER: enseada
+          COUCHDB_PASSWORD: enseada
+        ports:
+          - 5984:5984
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install Dependencies
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+      - name: Run Tests
+        run: mix test
+        env:
+          COUCHDB_URL: http://couchdb:${{ job.services.couchdb.ports[5984] }}
