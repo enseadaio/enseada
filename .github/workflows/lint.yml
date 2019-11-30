@@ -22,4 +22,4 @@ jobs:
       - name: Run Linter
         run: |
           mix format --check-formatted
-          mix credo
+#          mix credo
