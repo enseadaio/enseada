@@ -32,6 +32,8 @@ func Init(provider string, opts ...Option) (storage.Backend, error) {
 	}
 
 	switch provider {
+	//case "s3":
+	//	return storage.NewAmazonS3Backend()
 	case "local":
 		return storage.NewLocalFilesystemBackend(options.storageDir), nil
 	default:

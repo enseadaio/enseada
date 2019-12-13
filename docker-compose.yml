@@ -1,5 +1,15 @@
 version: '3'
 services:
+  enseada:
+    image: enseada/enseada:edge
+    build:
+      context: .
+    environment:
+      COUCHDB_URL: http://couchdb:5984/
+      COUCHDB_USER: enseada
+      COUCHDB_PASSWORD: enseada
+    ports:
+      - "9623:9623"
   couchdb:
     image: couchdb:2
     environment:

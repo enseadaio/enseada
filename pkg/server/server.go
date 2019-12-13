@@ -16,10 +16,10 @@ func handleErrors(err error, c echo.Context) {
 	}
 }
 
-func Create() *echo.Echo {
+func Create(level log.Lvl) *echo.Echo {
 	e := echo.New()
 
-	e.Logger.SetLevel(log.INFO)
+	e.Logger.SetLevel(level)
 	e.HideBanner = true
 	e.HTTPErrorHandler = handleErrors
 
