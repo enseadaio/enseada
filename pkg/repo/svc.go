@@ -48,3 +48,17 @@ func (r *Service) ListRepos(ctx context.Context) ([]R, error) {
 	r.Logger.Infof("Found %d repositories", len(repos))
 	return repos, nil
 }
+
+func (r *Service) GetRepo(ctx context.Context, id string) (R, error) {
+	db := r.Data.DB(ctx, "repositories")
+	var repo R
+	row := db.Get(ctx, id)
+	if err := row.ScanDoc(&repo); err != nil {
+		if kivik.StatusCode(err) == kivik.StatusNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return repo, nil
+}
