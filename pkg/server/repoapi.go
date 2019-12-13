@@ -13,6 +13,7 @@ func mountRepoV1(e *echo.Echo, r *repo.Service, mvn *maven.Maven) {
 
 	v1.GET("/repositories", getReposV1(r))
 	v1.POST("/repositories", createRepoV1(mvn))
+	v1.GET("/repositories/:id", getRepoV1(r))
 }
 
 func getReposV1(r *repo.Service) echo.HandlerFunc {
@@ -52,5 +53,22 @@ func createRepoV1(mvn *maven.Maven) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, HTTPError(http.StatusBadRequest, "Unsupported repository type: %s", body["type"]))
 		}
 
+	}
+}
+
+func getRepoV1(r *repo.Service) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+		id := c.Param("id")
+		re, err := r.GetRepo(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if re != nil {
+			return c.JSON(http.StatusOK, re)
+		}
+
+		return c.NoContent(http.StatusNotFound)
 	}
 }

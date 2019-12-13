@@ -44,7 +44,7 @@ function(doc) {
 
 	_, err := db.Put(ctx, "_design/files", doc)
 
-	if kivik.StatusCode(err) == http.StatusConflict {
+	if kivik.StatusCode(err) == kivik.StatusConflict {
 		log.Info("repo_files_index view already exists")
 		return nil
 	} else {
