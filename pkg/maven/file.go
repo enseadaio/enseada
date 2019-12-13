@@ -3,6 +3,7 @@ package maven
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -131,6 +132,17 @@ func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*
 	}
 
 	repo.Files = append(repo.Files, spath)
+	in := repo.Files
+	sort.Strings(in)
+	j := 0
+	for i := 1; i < len(in); i++ {
+		if in[j] == in[i] {
+			continue
+		}
+		j++
+		in[j] = in[i]
+	}
+	repo.Files = in[:j+1]
 	return file, m.SaveRepo(ctx, &repo)
 }
 

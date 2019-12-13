@@ -3,6 +3,9 @@ package maven
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"crypto/sha1"
+	"fmt"
 	"github.com/enseadaio/enseada/pkg/couch"
 	"github.com/go-kivik/kivik"
 	"net/http"
@@ -121,9 +124,35 @@ func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 		Content:  buf.Bytes(),
 	}
 
+	md5sum := &RepoFile{
+		Repo:     repo,
+		Filename: fmt.Sprintf("%s.md5", t.ParseName),
+		Content:  []byte(fmt.Sprintf("%x", md5.Sum(file.Content))),
+	}
+
+	sha1sum := &RepoFile{
+		Repo:     repo,
+		Filename: fmt.Sprintf("%s.sha1", t.ParseName),
+		Content:  []byte(fmt.Sprintf("%x", sha1.Sum(file.Content))),
+	}
+
 	path := filePath(file)
 	repo.Files = append(repo.Files, path)
 	err = m.PutFile(ctx, path, file.Content)
+	if err != nil {
+		return err
+	}
+
+	path = filePath(md5sum)
+	repo.Files = append(repo.Files, path)
+	err = m.PutFile(ctx, path, md5sum.Content)
+	if err != nil {
+		return err
+	}
+
+	path = filePath(sha1sum)
+	repo.Files = append(repo.Files, path)
+	err = m.PutFile(ctx, path, sha1sum.Content)
 	if err != nil {
 		return err
 	}
