@@ -13,8 +13,8 @@ Enseada is a modern, fast and scalable package registry, designed from the groun
 
 It leverages scalability by using natively distributed technologies
 
-The registry itself is written in [Elixir](https://elixir-lang.org), an [Erlang](https://www.erlang.org/) compatible,
-functional and process-based programming language that is both fast and resource efficient.
+The registry itself is written in [Golang](https://golang.org/), a fast and resource efficient, statically compiled programming language
+built for the Cloud.
 
 [CouchDB](https://couchdb.apache.org/) is used as the primary datastore, containing information about
 repositories, users and access control. CouchDB is a web-native database written in Erlang and based on web technologies
@@ -37,8 +37,8 @@ At the moment, the following formats are supported:
 
 ## Supported storage providers
 
-Enseada uses the wonderful library [Waffle](https://github.com/stavro/arc) to implement
-its storage layer, and is therefore compatible with any provider supported by Waffle.
+The storage layer used by Enseada provides pluggable backends, allowing to easily support
+multiple storage providers.
 See [Configuration](#configuration) for how to setup the storage layer.
 
 At the moment, only these providers are supported:
@@ -49,13 +49,15 @@ At the moment, only these providers are supported:
 
 Local disk is only supported in single-node mode. To support [cluster mode](#cluster-mode) use an object storage provider.
 
-## Run
-Enseada is built with [Phoenix](https://www.phoenixframework.org/), a powerful Elixir web framework.
-When running from sources, Enseada can be started as any Phoenix application using Mix:
-`mix phx.server`
+## Build
 
-When running from an Elixir release (see [build](#build)), it can be started from the control script:
-`_build/prod/rel/enseada/bin/enseada start`
+Enseada is built as a statically linked executable.
+If you have [Mage](https://magefile.org/) installed, you can build a new executable
+from sources by simply running `mage` from the root folder and then running `bin/enseada`.
+
+Enseada is also packaged as a [Docker image](https://www.docker.com/). Build one with `docker build -t myname/enseada:latest .`
+
+## Local Database
 
 A local CouchDB instance can be started using the provided [docker-compose.yml](./docker-compose.yml) file.
 Simply run `docker-compose up -d` to start it in background, it will be available on `http://localhost:5984` and will
@@ -64,24 +66,12 @@ persist data in a Docker volume.
 Upon first run, the database server is uninitialized. Please run the initialization setup for 
 single node deployment by visiting http://localhost:5984/_utils/#setup and following the instructions.
 
-## Build
-Enseada is packaged as an [Elixir release](https://hexdocs.pm/mix/Mix.Tasks.Release.html).
-To build one for production, run `MIX_ENV=production mix release`.
-
-Enseada is also packaged as a [Docker image](https://www.docker.com/). Build one with `docker build -t myname/enseada:latest .`
-
 ## Configuration
 Enseada is primarily configured via environment variables. Here is a list of the supported configuration.
 Variables without a default value are required.
 
 ### Application config
 ```.env
-## Random generated value
-SECRET_KEY_BASE
-
-## Internet accessible hostname
-PUBLIC_HOST
-
 ## Application port
 PORT=4000
 

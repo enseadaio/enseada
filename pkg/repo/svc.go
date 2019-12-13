@@ -11,9 +11,7 @@ type Service struct {
 	Data   *kivik.Client
 }
 
-type R map[string]interface{}
-
-func (r *Service) ListRepos(ctx context.Context) ([]R, error) {
+func (r *Service) ListRepos(ctx context.Context) ([]HTTPRepo, error) {
 	r.Logger.Infof("Listing repositories")
 	db := r.Data.DB(ctx, "repositories")
 	rows, err := db.Find(ctx, map[string]interface{}{
@@ -26,20 +24,15 @@ func (r *Service) ListRepos(ctx context.Context) ([]R, error) {
 		return nil, err
 	}
 
-	repos := make([]R, 0)
+	repos := make([]HTTPRepo, 0)
 	for rows.Next() {
-		repo := make(R)
+		repo := make(HTTPRepo)
 		if err := rows.ScanDoc(&repo); err != nil {
 			return nil, err
 		}
 
-		repo["id"] = repo["_id"]
-		delete(repo, "_id")
-		delete(repo, "_rev")
-		delete(repo, "storage_path")
-
+		repo = ToHTTPJson(repo)
 		repos = append(repos, repo)
-		r.Logger.Warnf("%+v", repo)
 	}
 	if rows.Err() != nil {
 		return nil, rows.Err()
@@ -49,9 +42,9 @@ func (r *Service) ListRepos(ctx context.Context) ([]R, error) {
 	return repos, nil
 }
 
-func (r *Service) GetRepo(ctx context.Context, id string) (R, error) {
+func (r *Service) GetRepo(ctx context.Context, id string) (HTTPRepo, error) {
 	db := r.Data.DB(ctx, "repositories")
-	var repo R
+	var repo HTTPRepo
 	row := db.Get(ctx, id)
 	if err := row.ScanDoc(&repo); err != nil {
 		if kivik.StatusCode(err) == kivik.StatusNotFound {
@@ -59,6 +52,8 @@ func (r *Service) GetRepo(ctx context.Context, id string) (R, error) {
 		}
 		return nil, err
 	}
+
+	repo = ToHTTPJson(repo)
 
 	return repo, nil
 }

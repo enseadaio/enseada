@@ -18,6 +18,7 @@ require (
 	github.com/otiai10/copy v1.0.2 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/viper v1.6.1
+	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
 	gitlab.com/flimzy/testy v0.0.0-20191030154103-8f78296a3383 // indirect
 	go.uber.org/zap v1.13.0 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect

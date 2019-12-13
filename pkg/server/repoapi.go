@@ -37,9 +37,11 @@ func createRepoV1(mvn *maven.Maven) echo.HandlerFunc {
 		}
 
 		switch strings.ToLower(body["type"]) {
+		case "":
+			return c.JSON(http.StatusBadRequest, HTTPError(http.StatusBadRequest, "Repository type is required"))
 		case "maven":
-			repo := maven.NewRepo(body["group_id"], body["artifact_id"])
-			err := mvn.InitRepo(ctx, &repo)
+			r := maven.NewRepo(body["group_id"], body["artifact_id"])
+			err := mvn.InitRepo(ctx, &r)
 			if err != nil {
 				switch err {
 				case maven.ErrorRepoAlreadyPresent:
@@ -48,7 +50,7 @@ func createRepoV1(mvn *maven.Maven) echo.HandlerFunc {
 					return err
 				}
 			}
-			return c.JSON(http.StatusCreated, maven.RepoToHTTPJson(&repo))
+			return c.JSON(http.StatusCreated, maven.RepoToHTTPJson(&r))
 		default:
 			return c.JSON(http.StatusBadRequest, HTTPError(http.StatusBadRequest, "Unsupported repository type: %s", body["type"]))
 		}

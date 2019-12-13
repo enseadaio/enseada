@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/enseadaio/enseada/pkg/couch"
 	"github.com/enseadaio/enseada/pkg/maven"
 	"github.com/enseadaio/enseada/pkg/repo"
@@ -23,11 +24,19 @@ func init() {
 		}
 	}
 
+	viper.SetDefault("log.level", "info")
+	viper.SetDefault("port", "9623")
+	viper.SetDefault("storage.provider", "local")
+	viper.SetDefault("storage.dir", "uploads")
+
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 }
 
 func main() {
+	logLvl := getLogLvl(viper.GetString("log.level"))
+	log.SetLevel(logLvl)
+
 	provider := viper.GetString("storage.provider")
 	localDir := viper.GetString("storage.dir")
 	store, err := storage.Init(provider, storage.LocalDir(localDir))
@@ -47,7 +56,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	srv := server.Create()
+	srv := server.Create(logLvl)
 
 	r := &repo.Service{
 		Logger: srv.Logger,
@@ -60,5 +69,24 @@ func main() {
 		Storage: store,
 	}
 	server.Init(srv, r, mvn)
-	srv.Logger.Fatal(srv.Start(":9623"))
+
+	port := viper.GetString("port")
+	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%s", port)))
+}
+
+func getLogLvl(lvl string) log.Lvl {
+	switch strings.ToUpper(lvl) {
+	case "DEBUG":
+		return log.DEBUG
+	case "INFO":
+		return log.INFO
+	case "WARN":
+		return log.WARN
+	case "ERROR":
+		return log.ERROR
+	case "OFF":
+		return log.OFF
+	default:
+		return log.INFO
+	}
 }
