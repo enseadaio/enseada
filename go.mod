@@ -3,10 +3,12 @@ module github.com/enseadaio/enseada
 go 1.13
 
 require (
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/chartmuseum/storage v0.5.0
 	github.com/flimzy/diff v0.1.6 // indirect
 	github.com/flimzy/kivik v1.8.1 // indirect
 	github.com/flimzy/testy v0.1.16 // indirect
+	github.com/foolin/goview v0.2.0
 	github.com/go-kivik/couchdb v2.0.0-pre3+incompatible
 	github.com/go-kivik/kivik v2.0.0-pre2+incompatible
 	github.com/go-kivik/kiviktest v1.1.2 // indirect

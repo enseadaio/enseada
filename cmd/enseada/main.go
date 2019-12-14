@@ -71,7 +71,18 @@ func main() {
 	server.Init(srv, r, mvn)
 
 	port := viper.GetString("port")
-	srv.Logger.Fatal(srv.Start(fmt.Sprintf(":%s", port)))
+	sslVar := viper.GetString("ssl")
+	ssl := sslVar != "" && sslVar != "false" && sslVar != "no"
+
+	address := fmt.Sprintf(":%s", port)
+	if ssl {
+		cert := viper.GetString("ssl.cert.path")
+		key := viper.GetString("ssl.key.path")
+		err = srv.StartTLS(address, cert, key)
+	} else {
+		err = srv.Start(address)
+	}
+	srv.Logger.Fatal(err)
 }
 
 func getLogLvl(lvl string) log.Lvl {
