@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.title}}</title>
+    {{include "layouts/head"}}
+</head>
+<body>
+<main id="main">
+    {{template "navbar" .}}
+    {{template "content" .}}
+</main>
+</body>
+</html>

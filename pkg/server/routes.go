@@ -9,4 +9,6 @@ import (
 func routes(e *echo.Echo, r *repo.Service, mvn *maven.Maven) {
 	mountRepoV1(e, r, mvn)
 	mountMaven(e, mvn)
+	mountHealthCheck(e)
+	mountUI(e, r)
 }

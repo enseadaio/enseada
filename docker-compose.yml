@@ -10,6 +10,8 @@ services:
       COUCHDB_PASSWORD: enseada
     ports:
       - "9623:9623"
+    depends_on:
+      - couchdb
   couchdb:
     image: couchdb:2
     environment:

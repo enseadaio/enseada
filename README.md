@@ -55,8 +55,44 @@ Enseada is built as a statically linked executable.
 If you have [Mage](https://magefile.org/) installed, you can build a new executable
 from sources by simply running `mage` from the root folder and then running `bin/enseada`.
 
+If you don't want to install Mage, that's perfectly fine.
+Running `go run tools/mage.go` will use the vendored version of Mage and works exactly like the standalone executable.
+
 Enseada is also packaged as a [Docker image](https://www.docker.com/). Build one with `docker build -t myname/enseada:latest .`
 
+## Web UI
+
+Enseada comes with a management web UI. To build it from sources, NodeJS and Yarn are required.
+
+Execute the following commands to build the static assets.
+
+```bash
+# Go the the web directory
+cd web
+
+# Install all dependencies
+yarn install
+
+# Build for development (all stylesheets, no minification)
+yarn build
+
+# Build for production (minimal stylesheets, minification)
+yarn build:prod
+```
+
+Enseada will pick them up on its own. To embed them into the final executable use [go.rice](http://github.com/GeertJohan/go.rice):
+```bash
+# Install the CLI tool
+go get github.com/GeertJohan/go.rice/rice
+
+# Build the executable
+go run tools/mage.go
+
+# Embed the static assets
+rice append --exec bin/enseada -i ./pkg/server
+
+# Now bin/enseada is fully self-contained
+```
 ## Local Database
 
 A local CouchDB instance can be started using the provided [docker-compose.yml](./docker-compose.yml) file.
@@ -106,7 +142,7 @@ STORAGE_PROVIDER=local
 #### Local
 ```.env
 # Storage directory
-STORAGE_DIR=./uploads
+STORAGE_DIR=uploads
 ```
 
 #### S3

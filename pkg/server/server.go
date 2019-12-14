@@ -22,11 +22,19 @@ func Create(level log.Lvl) *echo.Echo {
 	e.Logger.SetLevel(level)
 	e.HideBanner = true
 	e.HTTPErrorHandler = handleErrors
+	e.Renderer = NewGoViewRenderer()
 
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Logger())
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
+	e.Pre(middleware.RemoveTrailingSlashWithConfig(
+		middleware.TrailingSlashConfig{
+			RedirectCode: http.StatusMovedPermanently,
+		}))
 
 	return e
 }
