@@ -2,13 +2,12 @@ package server
 
 import (
 	rice "github.com/GeertJohan/go.rice"
-	"github.com/enseadaio/enseada/pkg/repo"
 	"github.com/labstack/echo"
 	"net/http"
 	"time"
 )
 
-func mountUI(e *echo.Echo, r *repo.Service) {
+func mountUI(e *echo.Echo) {
 	staticHandler := http.FileServer(rice.MustFindBox("../../web/static").HTTPBox())
 	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", staticHandler)))
 
@@ -18,7 +17,7 @@ func mountUI(e *echo.Echo, r *repo.Service) {
 	u := e.Group("/ui")
 
 	u.GET("", home)
-	u.GET("/repositories", repos(r))
+	u.GET("/repositories", repos())
 }
 
 func home(c echo.Context) error {
@@ -27,18 +26,9 @@ func home(c echo.Context) error {
 	})
 }
 
-func repos(r *repo.Service) echo.HandlerFunc {
-
+func repos() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := c.Request().Context()
-		repos, err := r.ListRepos(ctx)
-		if err != nil {
-			return err
-		}
-
-		return renderPage(c, "repos", echo.Map{
-			"repos": repos,
-		})
+		return renderPage(c, "repos", echo.Map{})
 	}
 }
 

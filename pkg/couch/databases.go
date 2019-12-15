@@ -7,7 +7,7 @@ import (
 )
 
 func initDbs(ctx context.Context, client *kivik.Client) error {
-	if err := initDb(ctx, client, "repositories"); err != nil {
+	if err := initDb(ctx, client, "maven2"); err != nil {
 		return err
 	}
 	return nil

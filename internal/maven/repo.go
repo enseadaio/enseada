@@ -34,7 +34,6 @@ type Repo struct {
 	StorePath  string     `json:"storage_path"`
 	Files      []string   `json:"files"`
 	Kind       couch.Kind `json:"kind"`
-	Type       string     `json:"type"`
 }
 
 func (r *Repo) ID() string {
@@ -53,13 +52,39 @@ func NewRepo(groupID string, artifactID string) Repo {
 		ArtifactID: artifactID,
 		StorePath:  strings.Join([]string{group, artifactID}, "/"),
 		Kind:       couch.KindRepository,
-		Type:       "maven",
 	}
 }
 
-func (m *Maven) GetRepo(ctx context.Context, groupID string, artifactID string) (*Repo, error) {
-	db := m.Data.DB(ctx, "repositories")
-	row := db.Get(ctx, repoID(groupID, artifactID))
+func (m *Maven) ListRepos(ctx context.Context) ([]*Repo, error) {
+	db := m.Data.DB(ctx, "maven2")
+	rows, err := db.Find(ctx, map[string]interface{}{
+		"selector": map[string]interface{}{
+			"kind": "repository",
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	repos := make([]*Repo, 0)
+	for rows.Next() {
+		var repo Repo
+		if err := rows.ScanDoc(&repo); err != nil {
+			return nil, err
+		}
+		repos = append(repos, &repo)
+	}
+	if rows.Err() != nil {
+		return nil, err
+	}
+
+	return repos, nil
+}
+
+func (m *Maven) GetRepo(ctx context.Context, id string) (*Repo, error) {
+	db := m.Data.DB(ctx, "maven2")
+	row := db.Get(ctx, id)
 	repo := &Repo{}
 	if err := row.ScanDoc(repo); err != nil {
 		if kivik.StatusCode(err) == kivik.StatusNotFound {
@@ -70,14 +95,34 @@ func (m *Maven) GetRepo(ctx context.Context, groupID string, artifactID string) 
 	return repo, nil
 }
 
+func (m *Maven) FindRepo(ctx context.Context, groupID string, artifactID string) (*Repo, error) {
+	return m.GetRepo(ctx, repoID(groupID, artifactID))
+}
+
 func (m *Maven) SaveRepo(ctx context.Context, repo *Repo) error {
-	db := m.Data.DB(ctx, "repositories")
+	db := m.Data.DB(ctx, "maven2")
 	rev, err := db.Put(ctx, repo.Id, repo)
 	if err != nil {
 		return err
 	}
 	repo.Rev = rev
 	return err
+}
+
+func (m *Maven) DeleteRepo(ctx context.Context, id string) (*Repo, error) {
+	db := m.Data.DB(ctx, "maven2")
+	repo, err := m.GetRepo(ctx, id)
+	if err != nil || repo == nil {
+		return nil, err
+	}
+
+	rev, err := db.Delete(ctx, repo.Id, repo.Rev)
+	if err != nil {
+		return nil, err
+	}
+
+	repo.Rev = rev
+	return repo, nil
 }
 
 func repoID(groupID string, artifactID string) string {
@@ -93,7 +138,7 @@ func fromId(id string) (Repo, error) {
 }
 
 func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
-	db := m.Data.DB(ctx, "repositories")
+	db := m.Data.DB(ctx, "maven2")
 
 	m.Logger.Infof("Initializing repo %s", repo.ID)
 	err := save(ctx, db, repo)

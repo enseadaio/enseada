@@ -1,0 +1,73 @@
+// Copyright 2019 Enseada authors
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+syntax = "proto3";
+
+package maven.v1beta1;
+
+option csharp_namespace = "Maven.V1Beta1";
+option go_package = "mavenv1beta1";
+option java_multiple_files = true;
+option java_outer_classname = "MavenApiProto";
+option java_package = "io.enseada.maven.v1beta1";
+option objc_class_prefix = "MXX";
+option php_namespace = "Maven\\V1Beta1";
+
+import "maven/v1beta1/repo.proto";
+
+// RPC API for interacting with Maven repositories.
+service MavenAPI {
+  // List all available Maven repositories.
+  rpc ListRepos(ListReposRequest) returns (ListReposResponse);
+  // Retrieve a Maven repository.
+  rpc GetRepo(GetRepoRequest) returns (GetRepoResponse);
+  // Create a new Maven repository.
+  rpc CreateRepo(CreateRepoRequest) returns (CreateRepoResponse);
+  // Delete a Maven repository.
+  rpc DeleteRepo(DeleteRepoRequest) returns (DeleteRepoResponse);
+}
+
+// Request body to list all available Maven repositories.
+message ListReposRequest {}
+
+// Response body with a list of all available Maven repositories.
+message ListReposResponse {
+  repeated maven.v1beta1.Repo repos = 1;
+}
+
+// Request body to retrieve a Maven repository.
+message GetRepoRequest {
+  // ID of the repository to retrieve. Required.
+  string id = 1;
+}
+
+// Response body with the requested Maven repository.
+message GetRepoResponse {
+  maven.v1beta1.Repo repo = 1;
+}
+
+// Request body to create a new Maven repository.
+message CreateRepoRequest {
+  // The repository Group ID. Required.
+  string group_id = 1;
+  // The repository Artifact ID. Required.
+  string artifact_id = 2;
+}
+
+// Response body with the newly created Maven repository.
+message CreateRepoResponse {
+  maven.v1beta1.Repo repo = 1;
+}
+
+// Request body to retrieve a Maven repository.
+message DeleteRepoRequest {
+  // ID of the repository to retrieve. Required.
+  string id = 1;
+}
+
+// Response body with the requested Maven repository.
+message DeleteRepoResponse {
+  maven.v1beta1.Repo repo = 1;
+}

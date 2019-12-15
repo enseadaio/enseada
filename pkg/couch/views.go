@@ -15,7 +15,7 @@ func initViews(ctx context.Context, client *kivik.Client) error {
 }
 
 func initFilesIndexView(ctx context.Context, client *kivik.Client) error {
-	db := client.DB(ctx, "repositories")
+	db := client.DB(ctx, "maven2")
 	row := db.Get(ctx, "_design/files")
 	if row.Err != nil && kivik.StatusCode(row.Err) != http.StatusNotFound {
 		return row.Err
