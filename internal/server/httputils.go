@@ -17,7 +17,7 @@ func HTTPError(status int, format string, args ...interface{}) HTTPErrorBody {
 	err = strings.ReplaceAll(err, " ", "_")
 	msg := format
 	if len(args) > 0 {
-		msg = fmt.Sprintf(format, args)
+		msg = fmt.Sprintf(format, args...)
 	}
 
 	return HTTPErrorBody{
