@@ -30,13 +30,13 @@ jobs:
           go test ./...
   protocols-check:
     runs-on: ubuntu-latest
-      container:
-        image: uber/prototool:1.8.1
-      steps:
-        - uses: actions/checkout@v1
-        - name: Check protocols
-          run: |
-            prototool files ./rpc
-            prototool compile ./rpc
-            prototool lint ./rpc
-            prototool break check ./rpc --git-branch master
+    container:
+      image: uber/prototool:1.8.1
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check protocols
+        run: |
+          prototool files ./rpc
+          prototool compile ./rpc
+          prototool lint ./rpc
+          prototool break check ./rpc --git-branch master
