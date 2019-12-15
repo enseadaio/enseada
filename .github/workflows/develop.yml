@@ -20,6 +20,7 @@ jobs:
             ${{ runner.os }}-go-
       - name: Install Dependencies
         run: |
+          apk update && apk add build-base
           go mod vendor
       - name: Lint code
         run: |
