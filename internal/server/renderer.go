@@ -10,7 +10,7 @@ import (
 )
 
 type TemplateRenderer struct {
-	goview.ViewEngine
+	*goview.ViewEngine
 }
 
 func NewGoViewRenderer() *TemplateRenderer {
@@ -24,7 +24,7 @@ func NewGoViewRenderer() *TemplateRenderer {
 		DisableCache: false,
 		Delims:       goview.Delims{Left: "{{", Right: "}}"},
 	})
-	return &TemplateRenderer{ViewEngine: *gv}
+	return &TemplateRenderer{ViewEngine: gv}
 
 }
 
