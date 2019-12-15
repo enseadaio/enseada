@@ -17,8 +17,8 @@ type RepoFile struct {
 }
 
 func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
-	m.Logger.Infof("looking up file with path %s", fmt.Sprintf(`"%s"`, path))
-	db := m.Data.DB(ctx, "maven2")
+	m.logger.Infof("looking up file with path %s", fmt.Sprintf(`"%s"`, path))
+	db := m.client.DB(ctx, "maven2")
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"files": map[string]interface{}{
@@ -33,7 +33,7 @@ func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 		return nil, err
 	}
 
-	m.Logger.Infof("found %d files with path %s", rows.TotalRows(), path)
+	m.logger.Infof("found %d files with path %s", rows.TotalRows(), path)
 
 	var repoId string
 	fileCount := 0
@@ -47,20 +47,20 @@ func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 			return nil, err
 		}
 		repoId = d["_id"].(string)
-		m.Logger.Infof("found matching repo %s", repoId)
+		m.logger.Infof("found matching repo %s", repoId)
 		fileCount++
 	}
 	if fileCount == 0 {
-		m.Logger.Warnf("no file found with path %s", path)
+		m.logger.Warnf("no file found with path %s", path)
 		return nil, nil
 	}
 
 	if fileCount > 1 {
-		m.Logger.Warnf("too many files found with path %s, actual %d", path, fileCount)
+		m.logger.Warnf("too many files found with path %s, actual %d", path, fileCount)
 		return nil, ErrorTooManyFilesForKey(1, fileCount)
 	}
 
-	obj, err := m.Storage.GetObject(path)
+	obj, err := m.storage.GetObject(path)
 	if err != nil {
 		return nil, err
 	}
@@ -79,11 +79,11 @@ func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 }
 
 func (m *Maven) PutFile(ctx context.Context, path string, content []byte) error {
-	return m.Storage.PutObject(path, content)
+	return m.storage.PutObject(path, content)
 }
 
 func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*RepoFile, error) {
-	db := m.Data.DB(ctx, "maven2")
+	db := m.client.DB(ctx, "maven2")
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"kind": "repository",
@@ -124,7 +124,7 @@ func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*
 		Version:  version,
 		Content:  content,
 	}
-	m.Logger.Infof("storing file %+v", file)
+	m.logger.Infof("storing file %+v", file)
 	spath := filePath(file)
 	err = m.PutFile(ctx, spath, file.Content)
 	if err != nil {

@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/GeertJohan/go.rice v1.0.0
+	github.com/casbin/casbin/v2 v2.1.2
 	github.com/chartmuseum/storage v0.5.0
 	github.com/flimzy/diff v0.1.6 // indirect
 	github.com/flimzy/kivik v1.8.1 // indirect
@@ -25,6 +26,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.6.1
+	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
 	github.com/twitchtv/twirp v5.9.0+incompatible
 	gitlab.com/flimzy/testy v0.0.0-20191030154103-8f78296a3383 // indirect

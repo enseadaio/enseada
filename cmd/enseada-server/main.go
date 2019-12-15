@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/enseadaio/enseada/internal/maven"
+	rice "github.com/GeertJohan/go.rice"
+	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/model"
+	"github.com/enseadaio/enseada/internal/acl"
+	enseada "github.com/enseadaio/enseada/pkg"
 	"github.com/enseadaio/enseada/pkg/couch"
-	"github.com/enseadaio/enseada/pkg/server"
 	"github.com/enseadaio/enseada/pkg/storage"
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
@@ -38,10 +41,8 @@ func main() {
 
 	provider := viper.GetString("storage.provider")
 	localDir := viper.GetString("storage.dir")
-	store, err := storage.Init(provider, storage.LocalDir(localDir))
-	if err != nil {
-		log.Fatal(err)
-	}
+	store, err := storage.NewBackend(provider, storage.LocalDir(localDir))
+	exitOnErr(err)
 
 	url := viper.GetString("couchdb.url")
 	user := viper.GetString("couchdb.user")
@@ -50,19 +51,25 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
-	db, err := couch.Init(ctx, url, user, pwd)
-	if err != nil {
-		log.Fatal(err)
-	}
+	db, err := couch.NewClient(ctx, url, user, pwd)
+	exitOnErr(err)
 
-	srv := server.Create(logLvl)
+	box := rice.MustFindBox("../../conf/")
+	models, err := model.NewModelFromString(box.MustString("casbin_model.conf"))
+	exitOnErr(err)
 
-	mvn := &maven.Maven{
-		Logger:  srv.Logger,
-		Data:    db,
-		Storage: store,
-	}
-	server.Init(srv, mvn)
+	casbinLog := log.New("casbin")
+	casbinLog.SetLevel(logLvl)
+	a, err := acl.NewAdapter(db, "casbin", casbinLog)
+	exitOnErr(err)
+
+	e, err := casbin.NewEnforcer(models, a)
+	exitOnErr(err)
+
+	srv, err := enseada.NewServer(db, store, e, enseada.ServerLogLevel(logLvl))
+	exitOnErr(err)
+
+	srv.Init()
 
 	port := viper.GetString("port")
 	sslVar := viper.GetString("ssl")
@@ -93,5 +100,11 @@ func getLogLvl(lvl string) log.Lvl {
 		return log.OFF
 	default:
 		return log.INFO
+	}
+}
+
+func exitOnErr(err error) {
+	if err != nil {
+		log.Fatal(err)
 	}
 }
