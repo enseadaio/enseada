@@ -1,9 +1,7 @@
-name: Develop
+name: Check Pull Request
 
 on:
-  push:
-    branches:
-      - develop
+  pull_request:
 
 jobs:
   lint-and-test:
@@ -39,17 +37,4 @@ jobs:
             prototool files ./rpc
             prototool compile ./rpc
             prototool lint ./rpc
-  #            prototool break check ./rpc --git-branch master
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint-and-test, protocols-check]
-    steps:
-      - uses: actions/checkout@v1
-      - name: Login to Docker Hub
-        run: |
-          echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
-      - name: Build the Docker image
-        run: |
-          docker pull enseada/enseada:edge || true
-          docker build . --file Dockerfile --tag enseada/enseada:edge
-          docker push enseada/enseada:edge
+#            prototool break check ./rpc --git-branch master
