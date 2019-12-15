@@ -33,16 +33,16 @@ COPY . .
 
 COPY --from=assets /web/static ./web
 
-RUN go build -o bin/enseada ./cmd/enseada
-RUN rice append --exec bin/enseada -i ./pkg/server
+RUN go build -o bin/enseada-server ./cmd/enseada-server
+RUN rice append --exec bin/enseada-server -i ./pkg/server
 
 # final stage
 FROM scratch
 
 ENV ENSEADA_ENV=production
 
-COPY --from=builder /app/bin/enseada /app/enseada
+COPY --from=builder /app/bin/enseada-server /app/enseada-server
 
 EXPOSE 9623
 
-ENTRYPOINT ["/app/enseada"]
+ENTRYPOINT ["/app/enseada-server"]

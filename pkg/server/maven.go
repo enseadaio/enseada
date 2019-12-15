@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/enseadaio/enseada/pkg/maven"
+	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/labstack/echo"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +13,7 @@ func mountMaven(e *echo.Echo, mvn *maven.Maven) {
 
 	m.GET("/*", getMaven(mvn))
 	m.PUT("/*", storeMaven(mvn))
+
 }
 
 func getMaven(mvn *maven.Maven) echo.HandlerFunc {

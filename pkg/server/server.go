@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/enseadaio/enseada/pkg/maven"
-	"github.com/enseadaio/enseada/pkg/repo"
+	"github.com/enseadaio/enseada/internal/maven"
+	mavensvcv1beta1 "github.com/enseadaio/enseada/internal/mavensvc/v1beta1"
+	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
@@ -39,6 +40,10 @@ func Create(level log.Lvl) *echo.Echo {
 	return e
 }
 
-func Init(e *echo.Echo, r *repo.Service, mvn *maven.Maven) {
-	routes(e, r, mvn)
+func Init(e *echo.Echo, mvn *maven.Maven) {
+	mvnsvc := mavensvcv1beta1.Service{Maven: mvn}
+	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
+	e.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
+
+	routes(e, mvn)
 }

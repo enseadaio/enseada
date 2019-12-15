@@ -1,0 +1,22 @@
+// Copyright 2019 Enseada authors
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+syntax = "proto3";
+
+package meta.v1beta1;
+
+option csharp_namespace = "Meta.V1Beta1";
+option go_package = "metav1beta1";
+option java_multiple_files = true;
+option java_outer_classname = "MetadataProto";
+option java_package = "io.enseada.meta.v1beta1";
+option objc_class_prefix = "MXX";
+option php_namespace = "Meta\\V1Beta1";
+
+// Generic object metadata.
+message Metadata {
+  // The object name.
+  string name = 1;
+}

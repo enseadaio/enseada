@@ -8,21 +8,14 @@ import (
 )
 
 func initIndexes(ctx context.Context, client *kivik.Client) error {
-	err := initIndex(ctx, client, "repositories", "kind_index", map[string]interface{}{
+	err := initIndex(ctx, client, "maven2", "kind_index", map[string]interface{}{
 		"fields": []string{"kind"},
 	})
 	if err != nil {
 		return err
 	}
 
-	err = initIndex(ctx, client, "repositories", "type_index", map[string]interface{}{
-		"fields": []string{"type"},
-	})
-	if err != nil {
-		return err
-	}
-
-	err = initIndex(ctx, client, "repositories", "file_index", map[string]interface{}{
+	err = initIndex(ctx, client, "maven2", "file_index", map[string]interface{}{
 		"fields": []string{"files"},
 	})
 	if err != nil {
