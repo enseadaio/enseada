@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-func routes(e *echo.Echo, mvn *maven.Maven) {
+func MountRoutes(e *echo.Echo, mvn *maven.Maven) {
 	mountMaven(e, mvn)
 	mountHealthCheck(e)
 	mountUI(e)

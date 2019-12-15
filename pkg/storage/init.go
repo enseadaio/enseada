@@ -19,7 +19,7 @@ func LocalDir(dir string) Option {
 	}
 }
 
-func Init(provider string, opts ...Option) (storage.Backend, error) {
+func NewBackend(provider string, opts ...Option) (storage.Backend, error) {
 	options := &Options{
 		storageDir: "uploads",
 	}
