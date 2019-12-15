@@ -19,12 +19,13 @@ import (
 )
 
 func init() {
-	if os.Getenv("ENSEADA_ENV") != "production" {
+	if info, err := os.Stat("./.env"); err == nil && !info.IsDir() {
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatal("HTTPError loading .env file")
 		}
 	}
+
 
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("port", "9623")

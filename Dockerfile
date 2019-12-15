@@ -34,7 +34,7 @@ COPY . .
 COPY --from=assets /web/static ./web
 
 RUN go build -o bin/enseada-server ./cmd/enseada-server
-RUN rice append --exec bin/enseada-server -i ./pkg/server
+RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server -i ./internal/server
 
 # final stage
 FROM scratch

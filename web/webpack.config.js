@@ -36,11 +36,10 @@ module.exports = (env, { mode }) => {
               options: {
                 ident: 'postcss',
                 plugins: [
-                  require('tailwindcss'),
-                  mode === 'production'
-                    ? purgecss
-                    : false
-                ]
+                  require('tailwindcss')
+                ].concat(mode === 'production'
+                  ? [purgecss]
+                  : [])
               }
             }
           ]
@@ -52,6 +51,6 @@ module.exports = (env, { mode }) => {
         filename: '[name].css',
         chunkFilename: '[id].css'
       })
-    ],
+    ]
   }
 }
