@@ -39,7 +39,7 @@ RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server -i ./internal/
 # final stage
 FROM scratch
 
-ENV ENSEADA_ENV=production
+ENV STORAGE_DIR=/var/lib/enseada/data
 
 COPY --from=builder /app/bin/enseada-server /app/enseada-server
 
