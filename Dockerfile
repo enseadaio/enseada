@@ -1,7 +1,5 @@
 FROM node:12-alpine as assets
 
-ENV NODE_ENV=production
-
 WORKDIR /web
 
 COPY web/package.json .
@@ -12,6 +10,8 @@ RUN yarn install
 COPY web .
 
 RUN yarn build:prod
+
+RUN ls static
 
 FROM golang:1.13-alpine as builder
 
@@ -32,6 +32,9 @@ RUN go mod download
 COPY . .
 
 COPY --from=assets /web/static ./web
+
+RUN ls ./web
+RUN ls ./web/static
 
 RUN go build -o bin/enseada-server ./cmd/enseada-server
 RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server -i ./internal/server

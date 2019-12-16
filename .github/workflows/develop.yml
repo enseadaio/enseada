@@ -6,44 +6,44 @@ on:
       - develop
 
 jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
-    container:
-      image: golang:1.13-alpine
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: vendor
-          key: ${{ runner.os }}-go-${{ hashFiles(format('{0}{1}', github.workspace, '/go.sum')) }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Install Dependencies
-        run: |
-          apk update && apk add build-base
-          go mod vendor
-      - name: Lint code
-        run: |
-          go vet ./...
-          go build -o /dev/null ./...
-      - name: Run tests
-        run: |
-          go test ./...
-  protocols-check:
-    runs-on: ubuntu-latest
-    container:
-      image: uber/prototool:1.8.1
-    steps:
-      - uses: actions/checkout@v1
-      - name: Check protocols
-        run: |
-          prototool files ./rpc
-          prototool compile ./rpc
-          prototool lint ./rpc
+#  lint-and-test:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: golang:1.13-alpine
+#    steps:
+#      - uses: actions/checkout@v1
+#      - uses: actions/cache@v1
+#        with:
+#          path: vendor
+#          key: ${{ runner.os }}-go-${{ hashFiles(format('{0}{1}', github.workspace, '/go.sum')) }}
+#          restore-keys: |
+#            ${{ runner.os }}-go-
+#      - name: Install Dependencies
+#        run: |
+#          apk update && apk add build-base
+#          go mod vendor
+#      - name: Lint code
+#        run: |
+#          go vet ./...
+#          go build -o /dev/null ./...
+#      - name: Run tests
+#        run: |
+#          go test ./...
+#  protocols-check:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: uber/prototool:1.8.1
+#    steps:
+#      - uses: actions/checkout@v1
+#      - name: Check protocols
+#        run: |
+#          prototool files ./rpc
+#          prototool compile ./rpc
+#          prototool lint ./rpc
 #            prototool break check ./rpc --git-branch master
   build:
     runs-on: ubuntu-latest
-    needs: [lint-and-test, protocols-check]
+#    needs: [lint-and-test, protocols-check]
     steps:
       - uses: actions/checkout@v1
       - name: Login to Docker Hub
