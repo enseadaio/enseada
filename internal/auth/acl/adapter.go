@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
+	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
 )
@@ -22,29 +23,13 @@ type CasbinRule struct {
 
 type Adapter struct {
 	logger echo.Logger
-	client *kivik.Client
-	dbname string
+	data   *kivik.Client
 	policy []CasbinRule
 }
 
-func NewAdapter(client *kivik.Client, dbname string, logger echo.Logger) (*Adapter, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	exist, err := client.DBExists(ctx, dbname)
-	if err != nil {
-		return nil, err
-	}
-	if !exist {
-		err = client.CreateDB(ctx, dbname)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+func NewAdapter(client *kivik.Client, logger echo.Logger) (*Adapter, error) {
 	return &Adapter{
-		client: client,
-		dbname: dbname,
+		data:   client,
 		logger: logger,
 	}, nil
 }
@@ -68,12 +53,12 @@ func (a *Adapter) SavePolicy(model model.Model) error {
 	}
 
 	ctx := context.Background()
-	err = a.client.DestroyDB(ctx, a.dbname)
+	err = a.data.DestroyDB(ctx, couch.AclDB)
 	if err != nil {
 		return err
 	}
 
-	err = a.client.CreateDB(ctx, a.dbname)
+	err = a.data.CreateDB(ctx, couch.AclDB)
 	if err != nil {
 		return err
 	}
@@ -104,7 +89,7 @@ func (a *Adapter) AddPolicy(sec string, ptype string, rule []string) error {
 	ctx := context.Background()
 	line := savePolicyLine(ptype, rule)
 	a.logger.Debugf("%+v", line)
-	db := a.client.DB(ctx, a.dbname)
+	db := a.data.DB(ctx, couch.AclDB)
 	_, err := db.Put(ctx, line.Id, line)
 	if err != nil {
 		return err
@@ -157,7 +142,7 @@ func (a *Adapter) loadFromDatabase() error {
 	a.logger.Debug("loading rules from database")
 	var policy []CasbinRule
 	ctx := context.Background()
-	db := a.client.DB(ctx, a.dbname)
+	db := a.data.DB(ctx, couch.AclDB)
 	rows, err := db.AllDocs(ctx, kivik.Options{
 		"include_docs": true,
 	})
@@ -181,7 +166,7 @@ func (a *Adapter) loadFromDatabase() error {
 
 func (a *Adapter) saveToDatabase() error {
 	ctx := context.Background()
-	db := a.client.DB(ctx, a.dbname)
+	db := a.data.DB(ctx, couch.AclDB)
 	for i, line := range a.policy {
 		if line.Id == "" {
 			line.Id = lineToText(line)
@@ -258,7 +243,7 @@ func (a *Adapter) deleteLineFromDatabase(line CasbinRule) error {
 		line.Id = lineToText(line)
 	}
 
-	db := a.client.DB(ctx, a.dbname)
+	db := a.data.DB(ctx, couch.AclDB)
 	_, rev, err := db.GetMeta(ctx, line.Id)
 	if err != nil {
 		return err

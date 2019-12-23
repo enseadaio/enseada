@@ -38,6 +38,12 @@ func init() {
 }
 
 func main() {
+	setupctx, cancelSetup := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancelSetup()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	logLvl := getLogLvl(viper.GetString("log.level"))
 	log.SetLevel(logLvl)
 
@@ -50,10 +56,7 @@ func main() {
 	user := viper.GetString("couchdb.user")
 	pwd := viper.GetString("couchdb.password")
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
-	defer cancel()
-
-	db, err := couch.NewClient(ctx, url, user, pwd)
+	db, err := couch.NewClient(setupctx, url, user, pwd)
 	exitOnErr(err)
 
 	box := rice.MustFindBox("../../conf/")
@@ -62,17 +65,22 @@ func main() {
 
 	casbinLog := log.New("casbin")
 	casbinLog.SetLevel(logLvl)
-	a, err := acl.NewAdapter(db, "casbin", casbinLog)
+	a, err := acl.NewAdapter(db, casbinLog)
 	exitOnErr(err)
 
+	w := acl.NewWatcher(ctx, db, casbinLog)
+
 	e, err := casbin.NewEnforcer(models, a)
+	exitOnErr(err)
+
+	err = e.SetWatcher(w)
 	exitOnErr(err)
 
 	userLog := log.New("users")
 	rootPwd := viper.GetString("root.password")
 
 	usvc := users.NewSvc(db, userLog)
-	err = usvc.Save(ctx, users.Root(rootPwd))
+	err = usvc.Save(setupctx, users.Root(rootPwd))
 	exitOnErr(err)
 
 	publicHost := viper.GetString("public.host")

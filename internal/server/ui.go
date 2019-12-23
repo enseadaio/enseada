@@ -18,17 +18,6 @@ import (
 )
 
 func mountUI(e *echo.Echo, oc oauth2.Config, skb []byte) {
-	exp := (time.Hour * 720).Seconds()
-	store := cookie.NewCookieStore(
-		cookie.SetCookieName("enseada-session"),
-		cookie.SetHashKey(skb),
-	)
-	e.Use(echosession.New(
-		session.SetCookieName("enseada-session-id"),
-		session.SetExpired(int64(exp)),
-		session.SetStore(store),
-	))
-
 	staticHandler := http.FileServer(rice.MustFindBox("../../web/static").HTTPBox())
 	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", staticHandler)))
 
@@ -36,6 +25,17 @@ func mountUI(e *echo.Echo, oc oauth2.Config, skb []byte) {
 	e.GET("/assets/*", echo.WrapHandler(http.StripPrefix("/assets/", assetHandler)))
 
 	u := e.Group("/ui")
+
+	exp := (time.Hour * 720).Seconds()
+	store := cookie.NewCookieStore(
+		cookie.SetCookieName("enseada-session"),
+		cookie.SetHashKey(skb),
+	)
+	u.Use(echosession.New(
+		session.SetCookieName("enseada-session-id"),
+		session.SetExpired(int64(exp)),
+		session.SetStore(store),
+	))
 
 	u.GET("", home(oc))
 	u.GET("/profile", profile(oc))

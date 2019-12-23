@@ -10,33 +10,37 @@ const (
 	MavenDB = "maven2"
 	OAuthDB = "oauth"
 	UsersDB = "users"
+	AclDB   = "acl"
 )
 
 func Migrate(ctx context.Context, client *kivik.Client) error {
-	if err := maven(ctx, client); err != nil {
-		e := client.DestroyDB(ctx, MavenDB)
+	if err := transact(ctx, client, maven, MavenDB); err != nil {
+		return err
+	}
+
+	if err := transact(ctx, client, oauth, OAuthDB); err != nil {
+		return err
+	}
+
+	if err := transact(ctx, client, users, UsersDB); err != nil {
+		return err
+	}
+
+	if err := transact(ctx, client, acl, AclDB); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func transact(ctx context.Context, client *kivik.Client, f func(context.Context, *kivik.Client) error, dbname string) error {
+	if err := f(ctx, client); err != nil {
+		e := client.DestroyDB(ctx, dbname)
 		if e != nil {
 			return errors.Wrap(err, e.Error())
 		}
 		return err
 	}
-
-	if err := oauth(ctx, client); err != nil {
-		e := client.DestroyDB(ctx, OAuthDB)
-		if e != nil {
-			return errors.Wrap(err, e.Error())
-		}
-		return err
-	}
-
-	if err := users(ctx, client); err != nil {
-		e := client.DestroyDB(ctx, UsersDB)
-		if e != nil {
-			return errors.Wrap(err, e.Error())
-		}
-		return err
-	}
-
 	return nil
 }
 
@@ -95,6 +99,14 @@ func oauth(ctx context.Context, client *kivik.Client) error {
 
 func users(ctx context.Context, client *kivik.Client) error {
 	if err := InitDb(ctx, client, UsersDB); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func acl(ctx context.Context, client *kivik.Client) error {
+	if err := InitDb(ctx, client, AclDB); err != nil {
 		return err
 	}
 
