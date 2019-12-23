@@ -5,7 +5,5 @@
     {{with $u := .CurrentUser }}
 	    <h1>Hello {{$u.Username}}!</h1>
 	    <p>Your are user <i>{{$u.ID}}</i></p>
-    {{else}}
-	    <h1>You are not logged in</h1>
     {{end}}
 {{end}}

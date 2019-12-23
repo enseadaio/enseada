@@ -6,7 +6,8 @@ import (
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
-	"github.com/enseadaio/enseada/internal/acl"
+	"github.com/enseadaio/enseada/internal/auth/acl"
+	"github.com/enseadaio/enseada/internal/users"
 	enseada "github.com/enseadaio/enseada/pkg"
 	"github.com/enseadaio/enseada/pkg/couch"
 	"github.com/enseadaio/enseada/pkg/storage"
@@ -22,15 +23,15 @@ func init() {
 	if info, err := os.Stat("./.env"); err == nil && !info.IsDir() {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatal("HTTPError loading .env file")
+			log.Fatalf("Error loading .env file: %s", err.Error())
 		}
 	}
-
 
 	viper.SetDefault("log.level", "info")
 	viper.SetDefault("port", "9623")
 	viper.SetDefault("storage.provider", "local")
 	viper.SetDefault("storage.dir", "uploads")
+	viper.SetDefault("root.password", "root")
 
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -67,7 +68,22 @@ func main() {
 	e, err := casbin.NewEnforcer(models, a)
 	exitOnErr(err)
 
-	srv, err := enseada.NewServer(db, store, e, enseada.ServerLogLevel(logLvl))
+	userLog := log.New("users")
+	rootPwd := viper.GetString("root.password")
+
+	usvc := users.NewSvc(db, userLog)
+	err = usvc.Save(ctx, users.Root(rootPwd))
+	exitOnErr(err)
+
+	publicHost := viper.GetString("public.host")
+	sec := viper.GetString("default.oauth.client.secret")
+	skb := viper.GetString("secret.key.base")
+	srv, err := enseada.NewServer(db, store, e, usvc,
+		enseada.ServerLogLevel(logLvl),
+		enseada.ServerDefaultOAuthClientSecret(sec),
+		enseada.ServerPublicHost(publicHost),
+		enseada.ServerSecretKeyBase(skb),
+	)
 	exitOnErr(err)
 
 	srv.Init()

@@ -1,0 +1,28 @@
+{{define "head"}}{{end}}
+{{define "content"}}
+    {{with $e := .Error}}
+		<span class="bg-red-500 text-white">{{$e}}</span>
+    {{end}}
+	<h1 class="">Login</h1>
+	<form action="/oauth/authorize" method="post">
+		<div>
+			<label for="username">
+				Username
+				<input type="text" name="username">
+			</label>
+		</div>
+		<div>
+			<label for="password">
+				Password
+				<input type="password" name="password">
+			</label>
+		</div>
+		<input type="hidden" name="client_id" value="{{.ClientID}}">
+		<input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
+		<input type="hidden" name="state" value="{{.State}}">
+		<input type="hidden" name="scope" value="{{.Scope}}">
+		<input type="hidden" name="audience" value="{{.Audience}}">
+		<input type="hidden" name="response_type" value="{{.ResponseType}}">
+		<input type="submit" value="Login">
+	</form>
+{{end}}

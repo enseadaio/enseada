@@ -12,10 +12,15 @@ const path = require('path')
 
 module.exports = (env, { mode }) => {
   return {
-    entry: './app/js/app.js',
+    entry: {
+      app: './app/js/app.js',
+    },
     output: {
-      filename: 'app.js',
+      filename: '[name].js',
       path: path.resolve(__dirname, 'static')
+    },
+    optimization: {
+      runtimeChunk: 'single',
     },
     module: {
       rules: [

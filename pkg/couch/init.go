@@ -2,6 +2,7 @@ package couch
 
 import (
 	"context"
+	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/couchdb"
 	"github.com/go-kivik/kivik"
 )
@@ -13,5 +14,10 @@ func NewClient(ctx context.Context, url string, user string, pwd string) (*kivik
 	}
 
 	err = client.Authenticate(context.Background(), couchdb.BasicAuth(user, pwd))
+	if err != nil {
+		return nil, err
+	}
+
+	err = couch.Migrate(ctx, client)
 	return client, err
 }

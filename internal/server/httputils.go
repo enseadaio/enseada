@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/labstack/echo"
 	"net/http"
 	"strings"
 )
@@ -24,4 +25,13 @@ func HTTPError(status int, format string, args ...interface{}) HTTPErrorBody {
 		Error:   err,
 		Message: msg,
 	}
+}
+
+func QueryWithDefault(c echo.Context, name string, def string) string {
+	p := c.QueryParam(name)
+	if p == "" {
+		return def
+	}
+
+	return p
 }

@@ -2,29 +2,33 @@ package guid
 
 import (
 	"errors"
+	"github.com/enseadaio/enseada/internal/couch"
 	"net/url"
 	"strings"
 )
 
 type GUID struct {
-	db  string
-	id  string
-	rev string
-	s   string
+	db   string
+	id   string
+	rev  string
+	kind couch.Kind
+	s    string
 }
 
-func New(db string, id string) GUID {
+func New(db string, id string, kind couch.Kind) GUID {
 	return GUID{
-		db: db,
-		id: id,
+		db:   db,
+		id:   id,
+		kind: kind,
 	}
 }
 
-func NewWithRev(db string, id string, rev string) GUID {
+func NewWithRev(db string, id string, kind couch.Kind, rev string) GUID {
 	return GUID{
-		db:  db,
-		id:  id,
-		rev: rev,
+		db:   db,
+		id:   id,
+		kind: kind,
+		rev:  rev,
 	}
 }
 
@@ -55,10 +59,17 @@ func Parse(guid string) (GUID, error) {
 		query = q
 	}
 
-	if rev := query.Get("rev"); rev != "" {
-		return NewWithRev(db, id, rev), nil
+	k := query.Get("kind")
+	if k == "" {
+		return GUID{}, errors.New("is missing kind")
 	}
-	return New(db, id), nil
+
+	kind := couch.Kind(k)
+
+	if rev := query.Get("rev"); rev != "" {
+		return NewWithRev(db, id, kind, rev), nil
+	}
+	return New(db, id, kind), nil
 }
 
 func (g GUID) DB() string {
@@ -67,6 +78,10 @@ func (g GUID) DB() string {
 
 func (g GUID) ID() string {
 	return g.id
+}
+
+func (g GUID) Kind() couch.Kind {
+	return g.kind
 }
 
 func (g GUID) Rev() string {
@@ -79,8 +94,10 @@ func (g GUID) String() string {
 		s.WriteString(g.db)
 		s.WriteString("://")
 		s.WriteString(g.id)
+		s.WriteString("?kind=")
+		s.WriteString(string(g.kind))
 		if g.rev != "" {
-			s.WriteString("?rev=")
+			s.WriteString("&rev=")
 			s.WriteString(g.rev)
 		}
 		g.s = s.String()

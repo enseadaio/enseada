@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{.title}}</title>
-    {{include "layouts/head"}}
+	<meta charset="UTF-8">
+	<title>{{with $t := .title}}{{$t}}{{else}}Enseada{{end}}</title>
+	<link rel="icon" type="image/x-icon" href="/assets/favicon.ico"/>
+	<script src="/static/runtime.js"></script>
+	<script src="/static/app.js"></script>
+	<link rel="stylesheet" href="/static/app.css">
+    {{template "head" .}}
 </head>
 <body>
 <main id="main">
