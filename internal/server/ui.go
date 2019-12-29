@@ -3,7 +3,7 @@ package server
 import (
 	"encoding/json"
 	rice "github.com/GeertJohan/go.rice"
-	"github.com/enseadaio/enseada/internal/users"
+	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/go-session/cookie"
 	"github.com/go-session/echo-session"
 	"github.com/go-session/session"
@@ -156,7 +156,7 @@ func addCurrentUser(s session.Store, params echo.Map) {
 	i, iok := s.Get("current_user_id")
 	u, uok := s.Get("current_user_name")
 	if iok && uok {
-		params["CurrentUser"] = users.User{
+		params["CurrentUser"] = auth.User{
 			ID:       i.(string),
 			Username: u.(string),
 		}

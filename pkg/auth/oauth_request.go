@@ -1,4 +1,4 @@
-package oauth
+package auth
 
 import (
 	"github.com/enseadaio/enseada/internal/couch"
@@ -8,19 +8,19 @@ import (
 	"time"
 )
 
-type RequestWrapper struct {
-	ID      string     `json:"_id,omitempty"`
-	Rev     string     `json:"_rev,omitempty"`
-	Kind    couch.Kind `json:"kind"`
-	Req     *Request   `json:"req"`
-	Revoked bool       `json:"revoked,omitempty"`
-	Sig     string     `json:"sig,omitempty"`
+type OAuthRequestWrapper struct {
+	ID      string        `json:"_id,omitempty"`
+	Rev     string        `json:"_rev,omitempty"`
+	Kind    couch.Kind    `json:"kind"`
+	Req     *OAuthRequest `json:"req"`
+	Revoked bool          `json:"revoked,omitempty"`
+	Sig     string        `json:"sig,omitempty"`
 }
 
-type Request struct {
+type OAuthRequest struct {
 	ID                string                 `json:"id"`
 	RequestedAt       time.Time              `json:"requested_at"`
-	Client            *Client                `json:"client"`
+	Client            *OAuthClient           `json:"client"`
 	RequestedScopes   fosite.Arguments       `json:"scopes"`
 	GrantedScopes     fosite.Arguments       `json:"granted_scopes"`
 	Form              url.Values             `json:"form"`
@@ -29,39 +29,39 @@ type Request struct {
 	GrantedAudience   fosite.Arguments       `json:"granted_audience"`
 }
 
-func (r *Request) SetID(id string) {
+func (r *OAuthRequest) SetID(id string) {
 	r.ID = id
 }
 
-func (r *Request) GetID() string {
+func (r *OAuthRequest) GetID() string {
 	return r.ID
 }
 
-func (r *Request) GetRequestedAt() time.Time {
+func (r *OAuthRequest) GetRequestedAt() time.Time {
 	return r.RequestedAt
 }
 
-func (r *Request) GetClient() fosite.Client {
+func (r *OAuthRequest) GetClient() fosite.Client {
 	return r.Client
 }
 
-func (r *Request) GetRequestedScopes() fosite.Arguments {
+func (r *OAuthRequest) GetRequestedScopes() fosite.Arguments {
 	return r.RequestedScopes
 }
 
-func (r *Request) GetRequestedAudience() fosite.Arguments {
+func (r *OAuthRequest) GetRequestedAudience() fosite.Arguments {
 	return r.RequestedAudience
 }
 
-func (r *Request) SetRequestedScopes(scopes fosite.Arguments) {
+func (r *OAuthRequest) SetRequestedScopes(scopes fosite.Arguments) {
 	r.RequestedScopes = scopes
 }
 
-func (r *Request) SetRequestedAudience(audience fosite.Arguments) {
+func (r *OAuthRequest) SetRequestedAudience(audience fosite.Arguments) {
 	r.RequestedAudience = audience
 }
 
-func (r *Request) AppendRequestedScope(scope string) {
+func (r *OAuthRequest) AppendRequestedScope(scope string) {
 	for _, has := range r.RequestedScopes {
 		if scope == has {
 			return
@@ -70,15 +70,15 @@ func (r *Request) AppendRequestedScope(scope string) {
 	r.RequestedScopes = append(r.RequestedScopes, scope)
 }
 
-func (r *Request) GetGrantedScopes() fosite.Arguments {
+func (r *OAuthRequest) GetGrantedScopes() fosite.Arguments {
 	return r.GrantedScopes
 }
 
-func (r *Request) GetGrantedAudience() fosite.Arguments {
+func (r *OAuthRequest) GetGrantedAudience() fosite.Arguments {
 	return r.GrantedAudience
 }
 
-func (r *Request) GrantScope(scope string) {
+func (r *OAuthRequest) GrantScope(scope string) {
 	for _, has := range r.GrantedScopes {
 		if scope == has {
 			return
@@ -87,7 +87,7 @@ func (r *Request) GrantScope(scope string) {
 	r.GrantedScopes = append(r.GrantedScopes, scope)
 }
 
-func (r *Request) GrantAudience(audience string) {
+func (r *OAuthRequest) GrantAudience(audience string) {
 	for _, has := range r.GrantedAudience {
 		if audience == has {
 			return
@@ -96,29 +96,29 @@ func (r *Request) GrantAudience(audience string) {
 	r.GrantedAudience = append(r.GrantedAudience, audience)
 }
 
-func (r *Request) GetSession() fosite.Session {
+func (r *OAuthRequest) GetSession() fosite.Session {
 	return r.Session
 }
 
-func (r *Request) SetSession(session fosite.Session) {
+func (r *OAuthRequest) SetSession(session fosite.Session) {
 	r.Session = session.(*openid.DefaultSession)
 }
 
-func (r *Request) GetRequestForm() url.Values {
+func (r *OAuthRequest) GetRequestForm() url.Values {
 	return r.Form
 }
 
-func (r *Request) Merge(request fosite.Requester) {
+func (r *OAuthRequest) Merge(request fosite.Requester) {
 	r.RequestedScopes = request.GetRequestedScopes()
 	r.GrantedScopes = request.GetGrantedScopes()
 	r.RequestedAudience = request.GetRequestedAudience()
 	r.GrantedAudience = request.GetGrantedAudience()
 	r.RequestedAt = request.GetRequestedAt()
-	r.Client = request.GetClient().(*Client)
+	r.Client = request.GetClient().(*OAuthClient)
 	r.SetSession(request.GetSession())
 	r.Form = request.GetRequestForm()
 }
 
-func (r *Request) Sanitize(allowedParameters []string) fosite.Requester {
+func (r *OAuthRequest) Sanitize(allowedParameters []string) fosite.Requester {
 	return r
 }

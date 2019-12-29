@@ -1,4 +1,4 @@
-package users
+package auth
 
 type User struct {
 	ID             string `json:"_id,omitempty"`

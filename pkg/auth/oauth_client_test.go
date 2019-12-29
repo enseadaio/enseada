@@ -1,4 +1,4 @@
-package oauth
+package auth
 
 import (
 	"github.com/enseadaio/enseada/internal/couch"
@@ -10,8 +10,8 @@ import (
 
 const secret = "test"
 
-func TestNewPrivateClient(t *testing.T) {
-	client, err := NewClient("test", secret)
+func TestNewPrivateOAuthClient(t *testing.T) {
+	client, err := NewOAuthClient("test", secret)
 	assert.NoError(t, err)
 
 	assert.Equal(t, couch.KindOAuthClient, client.Kind)
@@ -30,20 +30,20 @@ func TestNewPrivateClient(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestNewPrivateClientNoID(t *testing.T) {
-	client, err := NewClient("", "")
+func TestNewPrivateOAuthClientNoID(t *testing.T) {
+	client, err := NewOAuthClient("", "")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "client ID cannot be empty")
 }
 
-func TestNewPrivateClientNoSecret(t *testing.T) {
-	client, err := NewClient("test", "")
+func TestNewPrivateOAuthClientNoSecret(t *testing.T) {
+	client, err := NewOAuthClient("test", "")
 	assert.Nil(t, client)
 	assert.EqualError(t, err, "client secret cannot be empty for non-public clients")
 }
 
-func TestNewPublicClient(t *testing.T) {
-	client, err := NewClient("test", secret, Public(true))
+func TestNewPublicOAuthClient(t *testing.T) {
+	client, err := NewOAuthClient("test", secret, OIDCPublic(true))
 	assert.NoError(t, err)
 	assert.Nil(t, client.HashedSecret)
 }

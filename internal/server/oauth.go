@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/enseadaio/enseada/internal/users"
+	"github.com/enseadaio/enseada/pkg/auth"
 	echosession "github.com/go-session/echo-session"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/random"
@@ -9,14 +9,13 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
 	"net/http"
-	"strings"
 	"time"
 )
 
-func mountOauth(e *echo.Echo, usvc *users.UserSvc, oauth fosite.OAuth2Provider) {
+func mountOauth(e *echo.Echo, oauth fosite.OAuth2Provider) {
 	g := e.Group("/oauth")
 	g.GET("/authorize", authorizationPage())
-	g.POST("/authorize", authorize(usvc, oauth))
+	g.POST("/authorize", authorize(oauth))
 	g.POST("/token", token(oauth))
 	g.POST("/token/introspect", introspect(oauth))
 }
@@ -41,33 +40,33 @@ func authorizationPage() echo.HandlerFunc {
 	}
 }
 
-func authorize(usvc *users.UserSvc, oauth fosite.OAuth2Provider) echo.HandlerFunc {
+func authorize(oauth fosite.OAuth2Provider) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 		resw := c.Response()
 		ctx := req.Context()
 
-		username := strings.TrimSpace(req.FormValue("username"))
-		password := strings.TrimSpace(req.FormValue("password"))
+		//username := strings.TrimSpace(req.FormValue("username"))
+		//password := strings.TrimSpace(req.FormValue("password"))
 
-		u, err := usvc.Authenticate(ctx, username, password)
-		if err != nil {
-			if strings.Contains(req.Header.Get("accept"), "html") {
-				session := echosession.FromContext(c)
-				session.Set("error", "Invalid username of password")
-				if err := session.Save(); err != nil {
-					return err
-				}
-				return c.Redirect(http.StatusSeeOther, c.Request().Header.Get("Referer"))
-			}
+		//u, err := oauth.Authenticate(ctx, username, password)
+		//if err != nil {
+		//	if strings.Contains(req.Header.Get("accept"), "html") {
+		//		session := echosession.FromContext(c)
+		//		session.Set("error", "Invalid username of password")
+		//		if err := session.Save(); err != nil {
+		//			return err
+		//		}
+		//		return c.Redirect(http.StatusSeeOther, c.Request().Header.Get("Referer"))
+		//	}
+		//
+		//	return c.JSON(http.StatusUnauthorized, echo.Map{
+		//		"error":   "unauthorized",
+		//		"message": "invalid username or password",
+		//	})
+		//}
 
-			return c.JSON(http.StatusUnauthorized, echo.Map{
-				"error":   "unauthorized",
-				"message": "invalid username or password",
-			})
-		}
-
-		session := newSession(u)
+		session := newSession(&auth.User{})
 		ar, err := oauth.NewAuthorizeRequest(ctx, req)
 		if err != nil {
 			c.Logger().Error(err)
@@ -140,7 +139,7 @@ func introspect(oauth fosite.OAuth2Provider) echo.HandlerFunc {
 		return nil
 	}
 }
-func newSession(u *users.User) fosite.Session {
+func newSession(u *auth.User) fosite.Session {
 	if u == nil {
 		return &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{

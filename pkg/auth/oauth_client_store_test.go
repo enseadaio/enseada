@@ -1,4 +1,4 @@
-package oauth
+package auth
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-func TestClientStore_GetByID(t *testing.T) {
-	client, err := NewClient("test", "test")
+func TestOAuthClientStore_GetByID(t *testing.T) {
+	client, err := NewOAuthClient("test", "test")
 	assert.NoError(t, err)
 	client.Rev = "1"
 
@@ -29,7 +29,7 @@ func TestClientStore_GetByID(t *testing.T) {
 		"audiences":      client.Audiences,
 		"public":         client.Public,
 	}))
-	store, err := NewClientStore(data, log.New("test"))
+	store, err := NewOAuthClientStore(data, log.New("test"))
 	assert.NoError(t, err)
 
 	got, err := store.GetClient(context.Background(), client.ID)

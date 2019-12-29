@@ -19,13 +19,14 @@ require (
 	github.com/go-session/echo-session v3.0.0+incompatible
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/golang/protobuf v1.3.2
+	github.com/google/wire v0.4.0
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/joho/godotenv v1.3.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0
-	github.com/magefile/mage v1.9.0
+	github.com/magefile/mage v1.9.0 // indirect
 	github.com/mattn/go-runewidth v0.0.7 // indirect
 	github.com/ory/fosite v0.30.2
 	github.com/otiai10/copy v1.0.2 // indirect

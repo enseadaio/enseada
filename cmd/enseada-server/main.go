@@ -3,129 +3,66 @@ package main
 import (
 	"context"
 	"fmt"
-	rice "github.com/GeertJohan/go.rice"
-	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/model"
-	"github.com/enseadaio/enseada/internal/auth/acl"
-	"github.com/enseadaio/enseada/internal/users"
+	"github.com/enseadaio/enseada/cmd/enseada-server/boot"
 	enseada "github.com/enseadaio/enseada/pkg"
-	"github.com/enseadaio/enseada/pkg/couch"
-	"github.com/enseadaio/enseada/pkg/storage"
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 	"os"
 	"strings"
-	"time"
 )
 
 func init() {
 	if info, err := os.Stat("./.env"); err == nil && !info.IsDir() {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatalf("Error loading .env file: %s", err.Error())
+			panic(err)
 		}
 	}
-
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("port", "9623")
-	viper.SetDefault("storage.provider", "local")
-	viper.SetDefault("storage.dir", "uploads")
-	viper.SetDefault("root.password", "root")
-
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 }
 
-func main() {
-	setupctx, cancelSetup := context.WithTimeout(context.Background(), time.Second*60)
-	defer cancelSetup()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	logLvl := getLogLvl(viper.GetString("log.level"))
-	log.SetLevel(logLvl)
-
-	provider := viper.GetString("storage.provider")
-	localDir := viper.GetString("storage.dir")
-	store, err := storage.NewBackend(provider, storage.LocalDir(localDir))
-	exitOnErr(err)
-
-	url := viper.GetString("couchdb.url")
-	user := viper.GetString("couchdb.user")
-	pwd := viper.GetString("couchdb.password")
-
-	db, err := couch.NewClient(setupctx, url, user, pwd)
-	exitOnErr(err)
-
-	box := rice.MustFindBox("../../conf/")
-	models, err := model.NewModelFromString(box.MustString("casbin_model.conf"))
-	exitOnErr(err)
-
-	casbinLog := log.New("casbin")
-	casbinLog.SetLevel(logLvl)
-	a, err := acl.NewAdapter(db, casbinLog)
-	exitOnErr(err)
-
-	w := acl.NewWatcher(ctx, db, casbinLog)
-
-	e, err := casbin.NewEnforcer(models, a)
-	exitOnErr(err)
-
-	err = e.SetWatcher(w)
-	exitOnErr(err)
-
-	userLog := log.New("users")
-	rootPwd := viper.GetString("root.password")
-
-	usvc := users.NewSvc(db, userLog)
-	err = usvc.Save(setupctx, users.Root(rootPwd))
-	exitOnErr(err)
-
-	publicHost := viper.GetString("public.host")
-	sec := viper.GetString("default.oauth.client.secret")
-	skb := viper.GetString("secret.key.base")
-	srv, err := enseada.NewServer(db, store, e, usvc,
-		enseada.ServerLogLevel(logLvl),
-		enseada.ServerDefaultOAuthClientSecret(sec),
-		enseada.ServerPublicHost(publicHost),
-		enseada.ServerSecretKeyBase(skb),
+func conf() (*viper.Viper, error) {
+	c := viper.NewWithOptions(
+		viper.EnvKeyReplacer(strings.NewReplacer(".", "_")),
 	)
-	exitOnErr(err)
 
-	srv.Init()
+	c.SetDefault("log.level", "info")
+	c.SetDefault("port", "9623")
+	c.SetDefault("storage.provider", "local")
+	c.SetDefault("storage.dir", "uploads")
+	c.SetDefault("root.password", "root")
 
-	port := viper.GetString("port")
-	sslVar := viper.GetString("ssl")
+	c.AutomaticEnv()
+	return c, nil
+}
+
+func run(srv *enseada.Server, conf *viper.Viper) error {
+	port := conf.GetString("port")
+	sslVar := conf.GetString("ssl")
 	ssl := sslVar != "" && sslVar != "false" && sslVar != "no"
 
 	address := fmt.Sprintf(":%s", port)
 	if ssl {
-		cert := viper.GetString("ssl.cert.path")
-		key := viper.GetString("ssl.key.path")
-		err = srv.StartTLS(address, cert, key)
+		cert := conf.GetString("ssl.cert.path")
+		key := conf.GetString("ssl.key.path")
+		return srv.StartTLS(address, cert, key)
 	} else {
-		err = srv.Start(address)
+		return srv.Start(address)
 	}
-	srv.Logger.Fatal(err)
 }
 
-func getLogLvl(lvl string) log.Lvl {
-	switch strings.ToUpper(lvl) {
-	case "DEBUG":
-		return log.DEBUG
-	case "INFO":
-		return log.INFO
-	case "WARN":
-		return log.WARN
-	case "ERROR":
-		return log.ERROR
-	case "OFF":
-		return log.OFF
-	default:
-		return log.INFO
-	}
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	c, err := conf()
+	exitOnErr(err)
+
+	srv, err := boot.Boot(ctx, c)
+	exitOnErr(err)
+
+	err = run(srv, c)
+	exitOnErr(err)
 }
 
 func exitOnErr(err error) {

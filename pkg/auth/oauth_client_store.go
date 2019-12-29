@@ -1,4 +1,4 @@
-package oauth
+package auth
 
 import (
 	"context"
@@ -11,21 +11,21 @@ import (
 	"github.com/ory/fosite"
 )
 
-type ClientStore struct {
-	logger echo.Logger
-	data   *kivik.Client
+type OAuthClientStore struct {
+	Logger echo.Logger
+	Data   *kivik.Client
 }
 
-func NewClientStore(db *kivik.Client, logger echo.Logger) (*ClientStore, error) {
-	return &ClientStore{data: db, logger: logger}, nil
+func NewOAuthClientStore(data *kivik.Client, logger echo.Logger) *OAuthClientStore {
+	return &OAuthClientStore{Logger: logger, Data: data}
 }
 
-func (c *ClientStore) GetClient(ctx context.Context, id string) (fosite.Client, error) {
+func (c *OAuthClientStore) GetClient(ctx context.Context, id string) (fosite.Client, error) {
 	log.Debugf("Getting client with id %s", id)
-	db := c.data.DB(ctx, couch.OAuthDB)
+	db := c.Data.DB(ctx, couch.OAuthDB)
 	row := db.Get(ctx, id)
 
-	var client Client
+	var client OAuthClient
 	if err := row.ScanDoc(&client); err != nil {
 		log.Error(err)
 		return nil, err
@@ -34,12 +34,12 @@ func (c *ClientStore) GetClient(ctx context.Context, id string) (fosite.Client, 
 	return &client, nil
 }
 
-func (c *ClientStore) RegisterClient(ctx context.Context, client fosite.Client) error {
+func (c *OAuthClientStore) RegisterClient(ctx context.Context, client fosite.Client) error {
 	cl, ok := client.(couch.Storable)
 	if !ok {
 		return errors.New(fmt.Sprintf("client %s does not implement couch.Storable", client.GetID()))
 	}
-	db := c.data.DB(ctx, couch.OAuthDB)
+	db := c.Data.DB(ctx, couch.OAuthDB)
 	rev, err := db.Put(ctx, cl.GetID(), client)
 	if err != nil {
 		return err
@@ -49,8 +49,8 @@ func (c *ClientStore) RegisterClient(ctx context.Context, client fosite.Client) 
 	return nil
 }
 
-func (c *ClientStore) InitDefaultClient(ctx context.Context, publicHost string, secret string) error {
-	db := c.data.DB(ctx, couch.OAuthDB)
+func (c *OAuthClientStore) InitDefaultClient(ctx context.Context, publicHost string, secret string) error {
+	db := c.Data.DB(ctx, couch.OAuthDB)
 	_, _, err := db.GetMeta(ctx, "enseada")
 	if err == nil {
 		return nil
@@ -59,18 +59,19 @@ func (c *ClientStore) InitDefaultClient(ctx context.Context, publicHost string, 
 		return err
 	}
 
-	client, err := NewClient("enseada", secret,
-		RedirectURIs(publicHost+"/ui/callback"),
-		Scopes("openid"),
+	client, err := NewOAuthClient("enseada", secret,
+		OAuthRedirectURIs(publicHost+"/ui/callback"),
+		OAuthScopes("openid"),
 	)
 	if err != nil {
 		return err
 	}
+
 	err = c.RegisterClient(ctx, client)
 	if err != nil {
 		return err
 	}
 
-	c.logger.Infof("Created default OAuthServer client. client_id: %s client_secret: %s", "enseada", secret)
+	c.Logger.Infof("Created default OAuthProvider client. client_id: %s client_secret: %s", "enseada", secret)
 	return nil
 }

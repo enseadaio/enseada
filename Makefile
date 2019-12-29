@@ -21,17 +21,20 @@ all: fmt lint build-server ## Build server binary (default)
 
 # Build
 
-build-server: | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
+.PHONY: build-server
+build-server: wire | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
 	$Q $(GO) build \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
 		-o $(BIN)/enseada-server ./cmd/enseada-server
 
+.PHONY: build-client
 build-client: | $(BIN); $(info $(M) building client executable…) @ ## Build client binary
 	$Q $(GO) build \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
 		-o $(BIN)/enseada ./cmd/enseada
+
 
 # Tools
 
@@ -54,6 +57,9 @@ $(BIN)/gocov-xml: PACKAGE=github.com/AlekSi/gocov-xml
 
 GO2XUNIT = $(BIN)/go2xunit
 $(BIN)/go2xunit: PACKAGE=github.com/tebeka/go2xunit
+
+WIRE = $(BIN)/wire
+$(BIN)/wire: PACKAGE=github.com/google/wire/cmd/wire
 
 # Tests
 
@@ -98,6 +104,12 @@ lint: | $(GOLINT) ; $(info $(M) running golint…) @ ## Run golint
 .PHONY: fmt
 fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 	$Q $(GO) fmt $(PKGS)
+
+# Codegen
+
+.PHONY: wire
+wire: | $(WIRE) ; $(info $(M) generating dependency injectors…) @ ## Generate Wire code
+	$(Q) cd ./cmd/enseada-server/boot && $(WIRE)
 
 # Misc
 

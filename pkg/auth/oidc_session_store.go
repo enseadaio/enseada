@@ -1,27 +1,28 @@
-package oidc
+package auth
 
 import (
 	"context"
-	"github.com/enseadaio/enseada/internal/auth/oauth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
+	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 )
 
-type SessionStore struct {
-	data *kivik.Client
+type OIDCSessionStore struct {
+	data   *kivik.Client
+	logger echo.Logger
 }
 
-func NewStore(db *kivik.Client) (*SessionStore, error) {
-	return &SessionStore{data: db}, nil
+func NewOIDCSessionStore(data *kivik.Client, logger echo.Logger) *OIDCSessionStore {
+	return &OIDCSessionStore{data: data, logger: logger}
 }
 
-func (s *SessionStore) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) error {
-	req := &oauth.Request{}
+func (s *OIDCSessionStore) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) error {
+	req := &OAuthRequest{}
 	req.Merge(requester)
 	db := s.data.DB(ctx, couch.OAuthDB)
-	_, _, err := db.CreateDoc(ctx, &Session{
+	_, _, err := db.CreateDoc(ctx, &OIDCSession{
 		Kind:     couch.KindOpenIDSession,
 		AuthCode: authorizeCode,
 		Req:      req,
@@ -29,7 +30,7 @@ func (s *SessionStore) CreateOpenIDConnectSession(ctx context.Context, authorize
 	return err
 }
 
-func (s *SessionStore) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
+func (s *OIDCSessionStore) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) (fosite.Requester, error) {
 	db := s.data.DB(ctx, couch.OAuthDB)
 	rows, err := db.Find(ctx, couch.Query{
 		"selector": couch.Query{
@@ -41,7 +42,7 @@ func (s *SessionStore) GetOpenIDConnectSession(ctx context.Context, authorizeCod
 		return nil, err
 	}
 
-	var session Session
+	var session OIDCSession
 	if rows.Next() {
 		if err := rows.ScanDoc(&session); err != nil {
 			return nil, err
@@ -53,7 +54,7 @@ func (s *SessionStore) GetOpenIDConnectSession(ctx context.Context, authorizeCod
 	return nil, openid.ErrNoSessionFound
 }
 
-func (s *SessionStore) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) error {
+func (s *OIDCSessionStore) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) error {
 	db := s.data.DB(ctx, couch.OAuthDB)
 	rows, err := db.Find(ctx, couch.Query{
 		"selector": couch.Query{
@@ -65,7 +66,7 @@ func (s *SessionStore) DeleteOpenIDConnectSession(ctx context.Context, authorize
 		return err
 	}
 
-	var session Session
+	var session OIDCSession
 	if rows.Next() {
 		if err := rows.ScanDoc(&session); err != nil {
 			return err

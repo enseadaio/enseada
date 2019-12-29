@@ -1,4 +1,4 @@
-package acl
+package auth
 
 import (
 	"context"
@@ -21,20 +21,20 @@ type CasbinRule struct {
 	V5    string `json:"V5,omitempty"`
 }
 
-type Adapter struct {
+type CasbinAdapter struct {
 	logger echo.Logger
 	data   *kivik.Client
 	policy []CasbinRule
 }
 
-func NewAdapter(client *kivik.Client, logger echo.Logger) (*Adapter, error) {
-	return &Adapter{
-		data:   client,
+func NewCasbinAdapter(data *kivik.Client, logger echo.Logger) (*CasbinAdapter, error) {
+	return &CasbinAdapter{
+		data:   data,
 		logger: logger,
 	}, nil
 }
 
-func (a *Adapter) LoadPolicy(model model.Model) error {
+func (a *CasbinAdapter) LoadPolicy(model model.Model) error {
 	err := a.loadFromDatabase()
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (a *Adapter) LoadPolicy(model model.Model) error {
 	return nil
 }
 
-func (a *Adapter) SavePolicy(model model.Model) error {
+func (a *CasbinAdapter) SavePolicy(model model.Model) error {
 	err := a.loadFromDatabase()
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (a *Adapter) SavePolicy(model model.Model) error {
 	return err
 }
 
-func (a *Adapter) AddPolicy(sec string, ptype string, rule []string) error {
+func (a *CasbinAdapter) AddPolicy(sec string, ptype string, rule []string) error {
 	a.logger.Infof("adding new policy sec: %s, ptype: %s, rule: %v", sec, ptype, rule)
 	ctx := context.Background()
 	line := savePolicyLine(ptype, rule)
@@ -98,7 +98,7 @@ func (a *Adapter) AddPolicy(sec string, ptype string, rule []string) error {
 	return a.loadFromDatabase()
 }
 
-func (a *Adapter) RemovePolicy(sec string, ptype string, rule []string) error {
+func (a *CasbinAdapter) RemovePolicy(sec string, ptype string, rule []string) error {
 	line := savePolicyLine(ptype, rule)
 	err := a.deleteLineFromDatabase(line)
 	if err != nil {
@@ -107,7 +107,7 @@ func (a *Adapter) RemovePolicy(sec string, ptype string, rule []string) error {
 	return a.loadFromDatabase()
 }
 
-func (a *Adapter) RemoveFilteredPolicy(sec string, ptype string, fieldIndex int, fieldValues ...string) error {
+func (a *CasbinAdapter) RemoveFilteredPolicy(sec string, ptype string, fieldIndex int, fieldValues ...string) error {
 	line := CasbinRule{PType: ptype}
 
 	idx := fieldIndex + len(fieldValues)
@@ -138,7 +138,7 @@ func (a *Adapter) RemoveFilteredPolicy(sec string, ptype string, fieldIndex int,
 	return a.loadFromDatabase()
 }
 
-func (a *Adapter) loadFromDatabase() error {
+func (a *CasbinAdapter) loadFromDatabase() error {
 	a.logger.Debug("loading rules from database")
 	var policy []CasbinRule
 	ctx := context.Background()
@@ -164,7 +164,7 @@ func (a *Adapter) loadFromDatabase() error {
 	return nil
 }
 
-func (a *Adapter) saveToDatabase() error {
+func (a *CasbinAdapter) saveToDatabase() error {
 	ctx := context.Background()
 	db := a.data.DB(ctx, couch.AclDB)
 	for i, line := range a.policy {
@@ -237,7 +237,7 @@ func lineToText(line CasbinRule) string {
 	return lineText
 }
 
-func (a *Adapter) deleteLineFromDatabase(line CasbinRule) error {
+func (a *CasbinAdapter) deleteLineFromDatabase(line CasbinRule) error {
 	ctx := context.Background()
 	if line.Id == "" {
 		line.Id = lineToText(line)

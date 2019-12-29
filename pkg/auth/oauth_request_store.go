@@ -1,32 +1,34 @@
-package oauth
+package auth
 
 import (
 	"context"
 	"errors"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
+	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 )
 
-type AuthRequestStore struct {
-	data *kivik.Client
+type OAuthRequestStore struct {
+	data   *kivik.Client
+	logger echo.Logger
 }
 
-func NewRequestStore(db *kivik.Client) (*AuthRequestStore, error) {
-	return &AuthRequestStore{data: db}, nil
+func NewOAuthRequestStore(data *kivik.Client, logger echo.Logger) *OAuthRequestStore {
+	return &OAuthRequestStore{data: data, logger: logger}
 }
 
-func (t *AuthRequestStore) CreateAuthorizeCodeSession(ctx context.Context, signature string, request fosite.Requester) error {
-	req := &Request{}
+func (t *OAuthRequestStore) CreateAuthorizeCodeSession(ctx context.Context, signature string, request fosite.Requester) error {
+	req := &OAuthRequest{}
 	req.Merge(request)
-	return t.store(ctx, &RequestWrapper{
+	return t.store(ctx, &OAuthRequestWrapper{
 		Kind: couch.KindOAuthAuthorizeCode,
 		Sig:  signature,
 		Req:  req,
 	})
 }
 
-func (t *AuthRequestStore) GetAuthorizeCodeSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+func (t *OAuthRequestStore) GetAuthorizeCodeSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"kind": couch.KindOAuthAuthorizeCode,
@@ -45,7 +47,7 @@ func (t *AuthRequestStore) GetAuthorizeCodeSession(ctx context.Context, signatur
 	return token.Req, nil
 }
 
-func (t *AuthRequestStore) InvalidateAuthorizeCodeSession(ctx context.Context, signature string) error {
+func (t *OAuthRequestStore) InvalidateAuthorizeCodeSession(ctx context.Context, signature string) error {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"kind": couch.KindOAuthAuthorizeCode,
@@ -59,17 +61,17 @@ func (t *AuthRequestStore) InvalidateAuthorizeCodeSession(ctx context.Context, s
 	return t.delete(ctx, token.ID, token.Rev)
 }
 
-func (t *AuthRequestStore) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) error {
-	req := &Request{}
+func (t *OAuthRequestStore) CreateAccessTokenSession(ctx context.Context, signature string, request fosite.Requester) error {
+	req := &OAuthRequest{}
 	req.Merge(request)
-	return t.store(ctx, &RequestWrapper{
+	return t.store(ctx, &OAuthRequestWrapper{
 		Kind: couch.KindOAuthAccessToken,
 		Sig:  signature,
 		Req:  req,
 	})
 }
 
-func (t *AuthRequestStore) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+func (t *OAuthRequestStore) GetAccessTokenSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"kind": couch.KindOAuthAccessToken,
@@ -88,7 +90,7 @@ func (t *AuthRequestStore) GetAccessTokenSession(ctx context.Context, signature 
 	return token.Req, nil
 }
 
-func (t *AuthRequestStore) DeleteAccessTokenSession(ctx context.Context, signature string) error {
+func (t *OAuthRequestStore) DeleteAccessTokenSession(ctx context.Context, signature string) error {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"kind": couch.KindOAuthAccessToken,
@@ -102,17 +104,17 @@ func (t *AuthRequestStore) DeleteAccessTokenSession(ctx context.Context, signatu
 	return t.delete(ctx, token.ID, token.Rev)
 }
 
-func (t *AuthRequestStore) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) error {
-	req := &Request{}
+func (t *OAuthRequestStore) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) error {
+	req := &OAuthRequest{}
 	req.Merge(request)
-	return t.store(ctx, &RequestWrapper{
+	return t.store(ctx, &OAuthRequestWrapper{
 		Kind: couch.KindOAuthRefreshToken,
 		Sig:  signature,
 		Req:  req,
 	})
 }
 
-func (t *AuthRequestStore) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+func (t *OAuthRequestStore) GetRefreshTokenSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"kind": couch.KindOAuthRefreshToken,
@@ -131,7 +133,7 @@ func (t *AuthRequestStore) GetRefreshTokenSession(ctx context.Context, signature
 	return token.Req, nil
 }
 
-func (t *AuthRequestStore) DeleteRefreshTokenSession(ctx context.Context, signature string) error {
+func (t *OAuthRequestStore) DeleteRefreshTokenSession(ctx context.Context, signature string) error {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"kind": couch.KindOAuthRefreshToken,
@@ -145,7 +147,7 @@ func (t *AuthRequestStore) DeleteRefreshTokenSession(ctx context.Context, signat
 	return t.delete(ctx, token.ID, token.Rev)
 }
 
-func (t *AuthRequestStore) RevokeAccessToken(ctx context.Context, requestID string) error {
+func (t *OAuthRequestStore) RevokeAccessToken(ctx context.Context, requestID string) error {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"req.id": requestID,
@@ -160,7 +162,7 @@ func (t *AuthRequestStore) RevokeAccessToken(ctx context.Context, requestID stri
 	return t.store(ctx, token)
 }
 
-func (t *AuthRequestStore) RevokeRefreshToken(ctx context.Context, requestID string) error {
+func (t *OAuthRequestStore) RevokeRefreshToken(ctx context.Context, requestID string) error {
 	token, err := t.findOne(ctx, couch.Query{
 		"selector": couch.Query{
 			"req.id": requestID,
@@ -175,7 +177,7 @@ func (t *AuthRequestStore) RevokeRefreshToken(ctx context.Context, requestID str
 	return t.store(ctx, token)
 }
 
-func (t *AuthRequestStore) store(ctx context.Context, token *RequestWrapper) error {
+func (t *OAuthRequestStore) store(ctx context.Context, token *OAuthRequestWrapper) error {
 	db := t.data.DB(ctx, couch.OAuthDB)
 	if token.ID != "" && token.Rev == "" {
 		_, rev, err := db.GetMeta(ctx, token.ID)
@@ -206,10 +208,10 @@ func (t *AuthRequestStore) store(ctx context.Context, token *RequestWrapper) err
 	}
 }
 
-func (t *AuthRequestStore) get(ctx context.Context, id string) (*RequestWrapper, error) {
+func (t *OAuthRequestStore) get(ctx context.Context, id string) (*OAuthRequestWrapper, error) {
 	db := t.data.DB(ctx, couch.OAuthDB)
 	row := db.Get(ctx, id)
-	var token RequestWrapper
+	var token OAuthRequestWrapper
 	if err := row.ScanDoc(&token); err != nil {
 		if kivik.StatusCode(err) == kivik.StatusNotFound {
 			return nil, fosite.ErrNotFound
@@ -219,8 +221,8 @@ func (t *AuthRequestStore) get(ctx context.Context, id string) (*RequestWrapper,
 	return &token, nil
 }
 
-func (t *AuthRequestStore) find(ctx context.Context, query interface{}) ([]*RequestWrapper, error) {
-	var tokens []*RequestWrapper
+func (t *OAuthRequestStore) find(ctx context.Context, query interface{}) ([]*OAuthRequestWrapper, error) {
+	var tokens []*OAuthRequestWrapper
 
 	db := t.data.DB(ctx, couch.OAuthDB)
 	rows, err := db.Find(ctx, query)
@@ -229,7 +231,7 @@ func (t *AuthRequestStore) find(ctx context.Context, query interface{}) ([]*Requ
 	}
 
 	for rows.Next() {
-		var token RequestWrapper
+		var token OAuthRequestWrapper
 		if err := rows.ScanDoc(&token); err != nil {
 			return tokens, err
 		}
@@ -243,7 +245,7 @@ func (t *AuthRequestStore) find(ctx context.Context, query interface{}) ([]*Requ
 	return tokens, nil
 }
 
-func (t *AuthRequestStore) findOne(ctx context.Context, query interface{}) (*RequestWrapper, error) {
+func (t *OAuthRequestStore) findOne(ctx context.Context, query interface{}) (*OAuthRequestWrapper, error) {
 	tokens, err := t.find(ctx, query)
 	if err != nil {
 		return nil, err
@@ -260,7 +262,7 @@ func (t *AuthRequestStore) findOne(ctx context.Context, query interface{}) (*Req
 	return tokens[0], nil
 }
 
-func (t *AuthRequestStore) delete(ctx context.Context, id string, rev string) error {
+func (t *OAuthRequestStore) delete(ctx context.Context, id string, rev string) error {
 	db := t.data.DB(ctx, couch.OAuthDB)
 	if rev == "" {
 		_, r, err := db.GetMeta(ctx, id)

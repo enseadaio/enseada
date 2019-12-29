@@ -1,27 +1,28 @@
-package pkce
+package auth
 
 import (
 	"context"
 	"errors"
-	"github.com/enseadaio/enseada/internal/auth/oauth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
+	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 )
 
-type RequestStore struct {
-	data *kivik.Client
+type PKCERequestStore struct {
+	data   *kivik.Client
+	logger echo.Logger
 }
 
-func NewRequestStore(db *kivik.Client) (*RequestStore, error) {
-	return &RequestStore{data: db}, nil
+func NewPKCERequestStore(data *kivik.Client, logger echo.Logger) *PKCERequestStore {
+	return &PKCERequestStore{data: data, logger: logger}
 }
 
-func (r *RequestStore) CreatePKCERequestSession(ctx context.Context, signature string, requester fosite.Requester) error {
-	req := &oauth.Request{}
+func (r *PKCERequestStore) CreatePKCERequestSession(ctx context.Context, signature string, requester fosite.Requester) error {
+	req := &OAuthRequest{}
 	req.Merge(requester)
 	db := r.data.DB(ctx, couch.OAuthDB)
-	_, _, err := db.CreateDoc(ctx, &oauth.RequestWrapper{
+	_, _, err := db.CreateDoc(ctx, &OAuthRequestWrapper{
 		Kind: couch.KindPKCERequest,
 		Sig:  signature,
 		Req:  req,
@@ -29,7 +30,7 @@ func (r *RequestStore) CreatePKCERequestSession(ctx context.Context, signature s
 	return err
 }
 
-func (r *RequestStore) GetPKCERequestSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
+func (r *PKCERequestStore) GetPKCERequestSession(ctx context.Context, signature string, session fosite.Session) (fosite.Requester, error) {
 	db := r.data.DB(ctx, couch.OAuthDB)
 	rows, err := db.Find(ctx, couch.Query{
 		"selector": couch.Query{
@@ -41,7 +42,7 @@ func (r *RequestStore) GetPKCERequestSession(ctx context.Context, signature stri
 		return nil, err
 	}
 
-	var request oauth.RequestWrapper
+	var request OAuthRequestWrapper
 	if rows.Next() {
 		if err := rows.ScanDoc(&request); err != nil {
 			return nil, err
@@ -53,7 +54,7 @@ func (r *RequestStore) GetPKCERequestSession(ctx context.Context, signature stri
 	return nil, errors.New("pkce request not found")
 }
 
-func (r *RequestStore) DeletePKCERequestSession(ctx context.Context, signature string) error {
+func (r *PKCERequestStore) DeletePKCERequestSession(ctx context.Context, signature string) error {
 	db := r.data.DB(ctx, couch.OAuthDB)
 	rows, err := db.Find(ctx, couch.Query{
 		"selector": couch.Query{
@@ -65,7 +66,7 @@ func (r *RequestStore) DeletePKCERequestSession(ctx context.Context, signature s
 		return err
 	}
 
-	var request oauth.RequestWrapper
+	var request OAuthRequestWrapper
 	if rows.Next() {
 		if err := rows.ScanDoc(&request); err != nil {
 			return err

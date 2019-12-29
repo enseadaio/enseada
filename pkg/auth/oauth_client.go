@@ -1,4 +1,4 @@
-package oauth
+package auth
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Client struct {
+type OAuthClient struct {
 	ID            string     `json:"_id,omitempty"`
 	Rev           string     `json:"_rev,omitempty"`
 	Kind          couch.Kind `json:"kind"`
@@ -20,29 +20,39 @@ type Client struct {
 	Public        bool       `json:"public"`
 }
 
-func NewClient(id string, secret string, opts ...ClientOption) (*Client, error) {
+type OAuthClientOptions struct {
+	RedirectURIs  []string
+	GrantTypes    []string
+	ResponseTypes []string
+	Scopes        []string
+	Audiences     []string
+	Public        bool
+}
+
+func NewOAuthClient(id string, secret string, opts ...OAuthClientOption) (*OAuthClient, error) {
 	if id == "" {
 		return nil, errors.New("client ID cannot be empty")
 	}
 
-	options := ClientOptions{
-		redirectURIs:  []string{},
-		grantTypes:    []string{},
-		responseTypes: []string{},
-		scopes:        []string{},
-		audiences:     []string{},
-		public:        false,
-	}
-	for _, opt := range opts {
-		opt(&options)
+	options := &OAuthClientOptions{
+		RedirectURIs:  []string{},
+		GrantTypes:    []string{},
+		ResponseTypes: []string{},
+		Scopes:        []string{},
+		Audiences:     []string{},
+		Public:        false,
 	}
 
-	if !options.public && secret == "" {
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	if !options.Public && secret == "" {
 		return nil, errors.New("client secret cannot be empty for non-public clients")
 	}
 
 	var hashed []byte
-	if !options.public {
+	if !options.Public {
 		h, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
 		if err != nil {
 			return nil, err
@@ -50,71 +60,71 @@ func NewClient(id string, secret string, opts ...ClientOption) (*Client, error) 
 		hashed = h
 	}
 
-	if len(options.grantTypes) == 0 {
-		options.grantTypes = fosite.Arguments{"authorization_code"}
+	if len(options.GrantTypes) == 0 {
+		options.GrantTypes = fosite.Arguments{"authorization_code"}
 	}
 
-	if len(options.responseTypes) == 0 {
-		options.responseTypes = fosite.Arguments{"code"}
+	if len(options.ResponseTypes) == 0 {
+		options.ResponseTypes = fosite.Arguments{"code"}
 	}
 
-	return &Client{
+	return &OAuthClient{
 		ID:            id,
 		Kind:          couch.KindOAuthClient,
 		HashedSecret:  hashed,
-		RedirectURIs:  options.redirectURIs,
-		GrantTypes:    options.grantTypes,
-		ResponseTypes: options.responseTypes,
-		Scopes:        options.scopes,
-		Audiences:     options.audiences,
-		Public:        options.public,
+		RedirectURIs:  options.RedirectURIs,
+		GrantTypes:    options.GrantTypes,
+		ResponseTypes: options.ResponseTypes,
+		Scopes:        options.Scopes,
+		Audiences:     options.Audiences,
+		Public:        options.Public,
 	}, nil
 }
 
 // GetID returns the client ID.
-func (c *Client) GetID() string {
+func (c *OAuthClient) GetID() string {
 	return c.ID
 }
 
-func (c *Client) GetRev() string {
+func (c *OAuthClient) GetRev() string {
 	return c.Rev
 }
 
-func (c *Client) SetRev(rev string) {
+func (c *OAuthClient) SetRev(rev string) {
 	c.Rev = rev
 }
 
 // GetHashedSecret returns the hashed secret as it is stored in the store.
-func (c *Client) GetHashedSecret() []byte {
+func (c *OAuthClient) GetHashedSecret() []byte {
 	return c.HashedSecret
 }
 
 // GetRedirectURIs returns the client's allowed redirect URIs.
-func (c *Client) GetRedirectURIs() []string {
+func (c *OAuthClient) GetRedirectURIs() []string {
 	return c.RedirectURIs
 }
 
 // GetGrantTypes returns the client's allowed grant types.
-func (c *Client) GetGrantTypes() fosite.Arguments {
+func (c *OAuthClient) GetGrantTypes() fosite.Arguments {
 	return c.GrantTypes
 }
 
 // GetResponseTypes returns the client's allowed response types.
-func (c *Client) GetResponseTypes() fosite.Arguments {
+func (c *OAuthClient) GetResponseTypes() fosite.Arguments {
 	return c.ResponseTypes
 }
 
 // GetScopes returns the scopes this client is allowed to request.
-func (c *Client) GetScopes() fosite.Arguments {
+func (c *OAuthClient) GetScopes() fosite.Arguments {
 	return c.Scopes
 }
 
 // IsPublic returns true, if this client is marked as public.
-func (c *Client) IsPublic() bool {
+func (c *OAuthClient) IsPublic() bool {
 	return c.Public
 }
 
 // GetAudience returns the allowed audience(s) for this client.
-func (c *Client) GetAudience() fosite.Arguments {
+func (c *OAuthClient) GetAudience() fosite.Arguments {
 	return c.Audiences
 }
