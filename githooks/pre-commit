@@ -13,4 +13,6 @@ make vet
 make imports
 make update-license
 
+echo "done"
+
 exit 0
