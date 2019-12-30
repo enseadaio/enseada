@@ -1,4 +1,4 @@
-name: develop
+name: Develop
 
 on:
   push:
@@ -6,62 +6,44 @@ on:
       - develop
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    container:
-      image: elixir:1.9.2-slim
-    services:
-      couchdb:
-        image: couchdb:2
-        env:
-          COUCHDB_USER: enseada
-          COUCHDB_PASSWORD: enseada
-        ports:
-          - 5984:5984
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            ${{ runner.os }}-mix-
-      - name: Install Dependencies
-        run: |
-          apt-get update
-          apt-get install -y build-essential
-          mix local.rebar --force
-          mix local.hex --force
-          mix deps.get
-          mix deps.compile
-      - name: Run Tests
-        run: mix test
-        env:
-          COUCHDB_URL: http://couchdb:${{ job.services.couchdb.ports[5984] }}
-  lint:
-    runs-on: ubuntu-latest
-    container:
-      image: elixir:1.9.2-slim
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            ${{ runner.os }}-mix-
-      - name: Install Dependencies
-        run: |
-          mix local.rebar --force
-          mix local.hex --force
-          mix deps.get
-      - name: Run Linter
-        run: |
-          mix format --check-formatted
-#          mix credo
+#  lint-and-test:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: golang:1.13-alpine
+#    steps:
+#      - uses: actions/checkout@v1
+#      - uses: actions/cache@v1
+#        with:
+#          path: vendor
+#          key: ${{ runner.os }}-go-${{ hashFiles(format('{0}{1}', github.workspace, '/go.sum')) }}
+#          restore-keys: |
+#            ${{ runner.os }}-go-
+#      - name: Install Dependencies
+#        run: |
+#          apk update && apk add build-base
+#          go mod vendor
+#      - name: Lint code
+#        run: |
+#          go vet ./...
+#          go build -o /dev/null ./...
+#      - name: Run tests
+#        run: |
+#          go test ./...
+#  protocols-check:
+#    runs-on: ubuntu-latest
+#    container:
+#      image: uber/prototool:1.8.1
+#    steps:
+#      - uses: actions/checkout@v1
+#      - name: Check protocols
+#        run: |
+#          prototool files ./rpc
+#          prototool compile ./rpc
+#          prototool lint ./rpc
+#            prototool break check ./rpc --git-branch master
   build:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+#    needs: [lint-and-test, protocols-check]
     steps:
       - uses: actions/checkout@v1
       - name: Login to Docker Hub

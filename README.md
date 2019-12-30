@@ -1,4 +1,6 @@
 # Enseada
+*A Cloud native multi-package registry*
+  
 [![version](https://img.shields.io/github/v/release/enseadaio/enseada?sort=semver)](https://github.com/enseadaio/enseada/releases/latest)
 ![build status](https://github.com/enseadaio/enseada/workflows/master/badge.svg)
 [![docker pulls](https://img.shields.io/docker/pulls/enseada/enseada)](https://hub.docker.com/r/enseada/enseada)
@@ -6,14 +8,13 @@
 
 ![logo](./.github/logo-white.png)
 
-*A Cloud native multi-package registry*  
 
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 
 It leverages scalability by using natively distributed technologies
 
-The registry itself is written in [Elixir](https://elixir-lang.org), an [Erlang](https://www.erlang.org/) compatible,
-functional and process-based programming language that is both fast and resource efficient.
+The registry itself is written in [Golang](https://golang.org/), a fast and resource efficient, statically compiled programming language
+built for the Cloud.
 
 [CouchDB](https://couchdb.apache.org/) is used as the primary datastore, containing information about
 repositories, users and access control. CouchDB is a web-native database written in Erlang and based on web technologies
@@ -36,8 +37,8 @@ At the moment, the following formats are supported:
 
 ## Supported storage providers
 
-Enseada uses the wonderful library [Waffle](https://github.com/stavro/arc) to implement
-its storage layer, and is therefore compatible with any provider supported by Waffle.
+The storage layer used by Enseada provides pluggable backends, allowing to easily support
+multiple storage providers.
 See [Configuration](#configuration) for how to setup the storage layer.
 
 At the moment, only these providers are supported:
@@ -48,13 +49,68 @@ At the moment, only these providers are supported:
 
 Local disk is only supported in single-node mode. To support [cluster mode](#cluster-mode) use an object storage provider.
 
-## Run
-Enseada is built with [Phoenix](https://www.phoenixframework.org/), a powerful Elixir web framework.
-When running from sources, Enseada can be started as any Phoenix application using Mix:
-`mix phx.server`
+## Build
 
-When running from an Elixir release (see [build](#build)), it can be started from the control script:
-`_build/prod/rel/enseada/bin/enseada start`
+Enseada is built as a statically linked executable.
+If you have [Make](https://www.gnu.org/software/make/) installed, you can build a new executable
+from sources by simply running `make build-server` from the root folder and then running `bin/enseada-server`.
+
+The following tasks are available:
+```bash
+$ make help
+
+all                      Build standalone server binary (default)
+build-server             Build server binary
+build-client             Build client binary
+test-bench               Run benchmarks
+test-short               Run only short tests
+test-verbose             Run tests in verbose mode with coverage reporting
+test-race                Run tests with race detector
+check test tests         Run tests
+test-xml                 Run tests with xUnit output
+test-coverage            Run coverage tests
+lint                     Run golint
+fmt                      Run gofmt on all source files
+vet                      Run go vet on all source files
+imports                  Run goimports on all source files
+build-standalone-server  Build server binary with embedded static assets
+web                      Build web assets with Webpack
+wire                     Generate Wire code
+proto                    Generate RPC code
+deps                     Install dependencies
+clean                    Cleanup everything
+update-license           Update license headers
+install-hooks            Install git hooks
+
+```
+
+Enseada is also packaged as a [Docker image](https://www.docker.com/). Build one with `docker build -t myname/enseada:latest .`
+
+## Web UI
+
+Enseada comes with a management web UI. To build it from sources, NodeJS and Yarn are required.
+
+Execute the following commands to build the static assets.
+
+```bash
+# Go the the web directory
+cd web
+
+# Install all dependencies
+yarn install
+
+# Build for development (all stylesheets, no minification)
+yarn build
+
+# Build for production (minimal stylesheets, minification)
+yarn build:prod
+```
+
+To build assets for production, you can also run `make web` that will do everything for you.
+
+Enseada will pick them up on its own. To embed them into the final executable using [go.rice](http://github.com/GeertJohan/go.rice) run `make build-standalone-server`.
+
+## Local Database
 
 A local CouchDB instance can be started using the provided [docker-compose.yml](./docker-compose.yml) file.
 Simply run `docker-compose up -d` to start it in background, it will be available on `http://localhost:5984` and will
@@ -62,98 +118,6 @@ persist data in a Docker volume.
 
 Upon first run, the database server is uninitialized. Please run the initialization setup for 
 single node deployment by visiting http://localhost:5984/_utils/#setup and following the instructions.
-
-## Build
-Enseada is packaged as an [Elixir release](https://hexdocs.pm/mix/Mix.Tasks.Release.html).
-To build one for production, run `MIX_ENV=production mix release`.
-
-Enseada is also packaged as a [Docker image](https://www.docker.com/). Build one with `docker build -t myname/enseada:latest .`
-
-## Configuration
-Enseada is primarily configured via environment variables. Here is a list of the supported configuration.
-Variables without a default value are required.
-
-### Application config
-```.env
-## Random generated value
-SECRET_KEY_BASE
-
-## Internet accessible hostname
-PUBLIC_HOST
-
-## Application port
-PORT=4000
-
-## Logger level (accepts debug, info, warn, error)
-LOG_LEVEL=info
-
-## Base URL to use when serving packages 
-## e.g. ASSET_HOST=https://d3gav2egqolk5.cloudfront.net
-ASSET_HOST=nil
-```
-
-### Database
-
-```.env
-## CouchDB server URL
-COUCHDB_URL
-
-## CouchDB server username
-COUCHDB_USER=nil
-
-## CouchDB server password
-COUCHDB_PASSWORD=nil
-```
-
-### Storage
-
-```.env
-# Storage provider (accepts gcs, s3, local) 
-STORAGE_PROVIDER=local
-```
-
-#### Local
-```.env
-# Storage directory
-STORAGE_DIR=./uploads
-```
-
-#### S3
-```.env
-## S3 bucket name
-AWS_S3_BUCKET
-
-## S3 bucket region
-AWS_REGION
-
-## S3 client key ID (optional, defaults to instance role)
-AWS_ACCESS_KEY_ID=nil
-
-## S3 client secret key (optional, defaults to instance role)
-AWS_SECRET_ACCESS_KEY=nil
-
-## S3 HTTP endpoint (optional, defaults to Amazon S3 endpoints)
-AWS_S3_ENDPOINT=nil
-
-## Bucket keys prefix
-BUCKET_PREFIX=uploads
-```
-
-#### GCS
-```.env
-## GCS bucket name
-GCS_BUCKET
-
-## GCS json credentials, alternative to GOOGLE_APPLICATION_CREDENTIALS
-GCS_JSON_CREDENTIALS
-
-## Path to a GCP credentials json, alternative to GCS_JSON_CREDENTIALS 
-GOOGLE_APPLICATION_CREDENTIALS
-
-## Bucket keys prefix
-BUCKET_PREFIX=uploads
-```
-
 
 ## HTTPS support
 Enseada has full support for strict HTTPS, enabling it is very simple.
@@ -169,9 +133,6 @@ SSL_KEY_PATH=nil
 ## The path to the certificate file
 SSL_CERT_PATH=nil
 ```
-
-## Cluster mode
-TBD
 
 ## License
 This Source Code Form is subject to the terms of the Mozilla Public

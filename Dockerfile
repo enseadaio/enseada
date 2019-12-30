@@ -1,51 +1,51 @@
-FROM elixir:1.9-alpine as builder
+FROM node:12-alpine as assets
+
+WORKDIR /web
+
+COPY web/package.json .
+COPY web/yarn.lock .
+
+RUN yarn install
+
+COPY web .
+
+RUN yarn build:prod
+
+RUN ls static
+
+FROM golang:1.13-alpine as builder
+
+ENV GO111MODULE=on
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
 
 WORKDIR /app
 
-# Set environment variables for building the application
-ENV MIX_ENV=prod \
-    LANG=C.UTF-8
+RUN go get github.com/GeertJohan/go.rice/rice
 
-# Install system dependencies
-RUN apk update && apk add build-base
+COPY go.mod .
+COPY go.sum .
 
-# Install hex and rebar
-RUN mix local.hex --force && \
-    mix local.rebar --force
+RUN go mod download
 
-COPY mix.exs .
-COPY mix.lock .
+COPY . .
 
-RUN mix deps.get
-RUN mix deps.compile
+COPY --from=assets /web/static ./web
 
-COPY config ./config
-COPY lib ./lib
-COPY priv ./priv
-COPY assets ./assets
+RUN ls ./web
+RUN ls ./web/static
 
-RUN mix phx.digest
+RUN go build -o bin/enseada-server ./cmd/enseada-server
+RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server -i ./internal/server
 
-RUN mix release
+# final stage
+FROM scratch
 
-FROM alpine:3.9
-
-ENV LANG=C.UTF-8
 ENV STORAGE_DIR=/var/lib/enseada/data
 
-RUN apk update && apk add ncurses-libs libstdc++
+COPY --from=builder /app/bin/enseada-server /app/enseada-server
 
-RUN adduser -D app
+EXPOSE 9623
 
-RUN mkdir -p $STORAGE_DIR
-RUN chown -R app: $STORAGE_DIR
-
-WORKDIR /home/app
-
-COPY --from=builder /app/_build/prod/rel/enseada .
-
-RUN chown -R app: .
-
-USER app
-
-CMD ["bin/enseada", "start"]
+ENTRYPOINT ["/app/enseada-server"]

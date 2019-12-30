@@ -1,9 +1,7 @@
-name: Master
+name: Check Pull Request
 
 on:
-  push:
-    branches:
-      - master
+  pull_request:
 
 jobs:
   lint-and-test:
@@ -40,4 +38,4 @@ jobs:
           prototool files ./rpc
           prototool compile ./rpc
           prototool lint ./rpc
-          prototool break check ./rpc --git-branch master
+#            prototool break check ./rpc --git-branch master
