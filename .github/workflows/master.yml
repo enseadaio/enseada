@@ -40,4 +40,3 @@ jobs:
           prototool files ./rpc
           prototool compile ./rpc
           prototool lint ./rpc
-          prototool break check ./rpc --git-branch master
