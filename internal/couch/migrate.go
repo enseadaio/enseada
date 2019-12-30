@@ -8,6 +8,7 @@ package couch
 
 import (
 	"context"
+
 	"github.com/go-kivik/kivik"
 	"github.com/pkg/errors"
 )

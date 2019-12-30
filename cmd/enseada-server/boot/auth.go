@@ -9,6 +9,7 @@ package boot
 import (
 	"crypto/rand"
 	"crypto/rsa"
+
 	enseada "github.com/enseadaio/enseada/pkg"
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/go-kivik/kivik"

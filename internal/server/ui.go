@@ -8,19 +8,20 @@ package server
 
 import (
 	"encoding/json"
-	rice "github.com/GeertJohan/go.rice"
-	"github.com/enseadaio/enseada/pkg/auth"
-	"github.com/go-session/cookie"
-	"github.com/go-session/echo-session"
-	"github.com/go-session/session"
-	"github.com/labstack/echo"
-	"github.com/labstack/gommon/random"
-	"golang.org/x/oauth2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	rice "github.com/GeertJohan/go.rice"
+	"github.com/enseadaio/enseada/pkg/auth"
+	"github.com/go-session/cookie"
+	echosession "github.com/go-session/echo-session"
+	"github.com/go-session/session"
+	"github.com/labstack/echo"
+	"github.com/labstack/gommon/random"
+	"golang.org/x/oauth2"
 )
 
 func mountUI(e *echo.Echo, oc oauth2.Config, skb []byte) {

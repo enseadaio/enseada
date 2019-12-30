@@ -7,11 +7,12 @@
 package auth
 
 import (
+	"net/url"
+	"time"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
-	"net/url"
-	"time"
 )
 
 type OAuthRequestWrapper struct {

@@ -9,6 +9,7 @@ package couch
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/gommon/log"
 )

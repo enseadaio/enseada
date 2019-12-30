@@ -9,13 +9,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/enseadaio/enseada/cmd/enseada-server/boot"
 	enseada "github.com/enseadaio/enseada/pkg"
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
-	"os"
-	"strings"
 )
 
 func init() {

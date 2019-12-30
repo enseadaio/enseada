@@ -11,23 +11,36 @@ It is generated from these files:
 */
 package mavenv1beta1
 
-import bytes "bytes"
-import strings "strings"
-import context "context"
-import fmt "fmt"
-import ioutil "io/ioutil"
-import http "net/http"
-import strconv "strconv"
+import (
+	bytes "bytes"
+	strings "strings"
 
-import jsonpb "github.com/golang/protobuf/jsonpb"
-import proto "github.com/golang/protobuf/proto"
-import twirp "github.com/twitchtv/twirp"
-import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+	context "context"
 
-// Imports only used by utility functions:
-import io "io"
-import json "encoding/json"
-import url "net/url"
+	fmt "fmt"
+
+	ioutil "io/ioutil"
+
+	http "net/http"
+
+	strconv "strconv"
+
+	jsonpb "github.com/golang/protobuf/jsonpb"
+
+	proto "github.com/golang/protobuf/proto"
+
+	twirp "github.com/twitchtv/twirp"
+
+	ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+
+	// Imports only used by utility functions:
+
+	io "io"
+
+	json "encoding/json"
+
+	url "net/url"
+)
 
 // ==================
 // MavenAPI Interface

@@ -7,6 +7,9 @@
 package server
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/enseadaio/enseada/pkg/auth"
 	echosession "github.com/go-session/echo-session"
 	"github.com/labstack/echo"
@@ -14,8 +17,6 @@ import (
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
-	"net/http"
-	"time"
 )
 
 func mountOauth(e *echo.Echo, oauth fosite.OAuth2Provider) {

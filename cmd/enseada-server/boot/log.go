@@ -7,9 +7,10 @@
 package boot
 
 import (
+	"strings"
+
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
-	"strings"
 )
 
 func logLvl(conf *viper.Viper) log.Lvl {

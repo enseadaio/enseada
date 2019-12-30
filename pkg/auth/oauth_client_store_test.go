@@ -8,11 +8,12 @@ package auth
 
 import (
 	"context"
+	"testing"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivikmock"
 	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestOAuthClientStore_GetByID(t *testing.T) {

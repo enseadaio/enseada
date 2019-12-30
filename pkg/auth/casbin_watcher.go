@@ -8,11 +8,12 @@ package auth
 
 import (
 	"context"
+	"runtime"
+	"sync"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
-	"runtime"
-	"sync"
 )
 
 type CallbackFunc func(string)

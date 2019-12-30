@@ -8,9 +8,10 @@ package guid
 
 import (
 	"errors"
-	"github.com/enseadaio/enseada/internal/couch"
 	"net/url"
 	"strings"
+
+	"github.com/enseadaio/enseada/internal/couch"
 )
 
 type GUID struct {

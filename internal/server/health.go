@@ -7,8 +7,9 @@
 package server
 
 import (
-	"github.com/labstack/echo"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 type HealthCheckResponse struct {

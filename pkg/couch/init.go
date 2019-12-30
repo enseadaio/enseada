@@ -8,6 +8,7 @@ package couch
 
 import (
 	"context"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/couchdb"
 	"github.com/go-kivik/kivik"

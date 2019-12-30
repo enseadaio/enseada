@@ -8,6 +8,7 @@ package auth
 
 import (
 	"errors"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/ory/fosite"
 	"golang.org/x/crypto/bcrypt"

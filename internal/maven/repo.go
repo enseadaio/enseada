@@ -12,12 +12,13 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
-	"github.com/enseadaio/enseada/internal/couch"
-	"github.com/go-kivik/kivik"
 	"net/http"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/go-kivik/kivik"
 )
 
 const baseMetadataFile = `

@@ -8,6 +8,7 @@ package boot
 
 import (
 	"context"
+
 	"github.com/enseadaio/enseada/pkg/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/spf13/viper"

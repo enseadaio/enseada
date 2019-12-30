@@ -8,9 +8,10 @@ package server
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"net/http"
 	"strings"
+
+	"github.com/labstack/echo"
 )
 
 type HTTPErrorBody struct {

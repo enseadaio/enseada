@@ -7,11 +7,12 @@
 package server
 
 import (
-	"github.com/enseadaio/enseada/internal/maven"
-	"github.com/labstack/echo"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/enseadaio/enseada/internal/maven"
+	"github.com/labstack/echo"
 )
 
 func mountMaven(e *echo.Echo, mvn *maven.Maven) {

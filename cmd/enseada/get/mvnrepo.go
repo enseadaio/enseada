@@ -10,14 +10,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/twitchtv/twirp"
-	"net/http"
-	"os"
-	"time"
 )
 
 var getMvnRepo = &cobra.Command{

@@ -7,6 +7,8 @@
 package enseada
 
 import (
+	"net/http"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/enseadaio/enseada/internal/server"
@@ -16,7 +18,6 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/ory/fosite"
 	goauth "golang.org/x/oauth2"
-	"net/http"
 )
 
 type SecretKeyBase []byte

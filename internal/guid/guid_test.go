@@ -7,9 +7,10 @@
 package guid
 
 import (
+	"testing"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var testKind = couch.Kind("test")

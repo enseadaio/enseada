@@ -7,7 +7,8 @@ package boot
 
 import (
 	"context"
-	"github.com/enseadaio/enseada/pkg"
+
+	enseada "github.com/enseadaio/enseada/pkg"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 )

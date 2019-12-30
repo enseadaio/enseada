@@ -7,12 +7,13 @@
 package server
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	goauth "golang.org/x/oauth2"
-	"net/http"
-	"strings"
 )
 
 type RouteParams struct {

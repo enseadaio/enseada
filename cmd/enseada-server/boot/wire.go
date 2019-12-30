@@ -11,6 +11,7 @@ package boot
 
 import (
 	"context"
+
 	enseada "github.com/enseadaio/enseada/pkg"
 	"github.com/google/wire"
 	"github.com/spf13/viper"

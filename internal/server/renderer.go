@@ -7,12 +7,13 @@
 package server
 
 import (
+	"html/template"
+	"io"
+
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/foolin/goview"
 	"github.com/foolin/goview/supports/gorice"
 	"github.com/labstack/echo"
-	"html/template"
-	"io"
 )
 
 type TemplateRenderer struct {

@@ -8,6 +8,7 @@ package boot
 
 import (
 	"context"
+
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"

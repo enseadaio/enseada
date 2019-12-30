@@ -8,9 +8,10 @@ package authsvcv1beta1
 
 import (
 	"context"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/guid"
-	"github.com/enseadaio/enseada/rpc/auth/v1beta1"
+	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/labstack/echo"
 	"github.com/twitchtv/twirp"
 )

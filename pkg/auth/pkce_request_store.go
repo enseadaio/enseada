@@ -9,6 +9,7 @@ package auth
 import (
 	"context"
 	"errors"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"

@@ -7,11 +7,12 @@
 package auth
 
 import (
+	"testing"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
-	"testing"
 )
 
 const secret = "test"

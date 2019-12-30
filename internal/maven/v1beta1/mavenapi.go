@@ -9,9 +9,10 @@ package mavensvcv1beta1
 import (
 	"context"
 	"fmt"
+
 	"github.com/enseadaio/enseada/internal/maven"
-	"github.com/enseadaio/enseada/rpc/maven/v1beta1"
-	"github.com/enseadaio/enseada/rpc/meta/v1beta1"
+	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
+	metav1beta1 "github.com/enseadaio/enseada/rpc/meta/v1beta1"
 	"github.com/twitchtv/twirp"
 )
 

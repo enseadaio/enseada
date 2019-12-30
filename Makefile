@@ -49,6 +49,9 @@ $(BIN)/%: | $(BIN) ; $(info $(M) building $(PACKAGE)…)
 GOLINT = $(BIN)/golint
 $(BIN)/golint: PACKAGE=golang.org/x/lint/golint
 
+GOIMPORTS = $(BIN)/goimports
+$(BIN)/goimports: PACKAGE=golang.org/x/tools/cmd/goimports
+
 GOCOV = $(BIN)/gocov
 $(BIN)/gocov: PACKAGE=github.com/axw/gocov/...
 
@@ -115,6 +118,13 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 vet: ; $(info $(M) running go vet…) @ ## Run go vet on all source files
 	$Q $(GO) vet $(PKGS)
 
+.PHONY: imports
+imports: | $(GOIMPORTS) ; $(info $(M) running goimports…) @ ## Run goimports on all source files
+	$Q $(GOIMPORTS) -w ./cmd
+	$Q $(GOIMPORTS) -w ./pkg
+	$Q $(GOIMPORTS) -w ./internal
+	$Q $(GOIMPORTS) -w ./rpc
+
 # Codegen
 
 .PHONY: wire
@@ -152,3 +162,8 @@ update-toc:
 .PHONY: update-license
 update-license: | $(ADDLICENSE) ; $(info $(M) updating license headers…) @ ## Update license headers
 	$(Q) $(ADDLICENSE) -c "Enseada authors" -y 2019 -f ./rpc/copyright.txt **/*.go
+
+.PHONY: install-hooks
+install-hooks: ; $(info $(M) installing git hooks…) @ ## Install git hooks
+	@mkdir -p .git/hooks
+	@cp ./githooks/pre-commit .git/hooks/pre-commit
