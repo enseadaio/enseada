@@ -1,3 +1,9 @@
+// Copyright 2019 Enseada authors
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 package auth
 
 import (
@@ -43,7 +49,7 @@ func TestNewPrivateOAuthClientNoSecret(t *testing.T) {
 }
 
 func TestNewPublicOAuthClient(t *testing.T) {
-	client, err := NewOAuthClient("test", secret, OIDCPublic(true))
+	client, err := NewOAuthClient("test", secret, OAuthPublic(true))
 	assert.NoError(t, err)
 	assert.Nil(t, client.HashedSecret)
 }

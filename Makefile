@@ -17,19 +17,19 @@ M = $(shell printf "\033[34;1m▶\033[0m")
 export GO111MODULE=on
 
 .PHONY: all
-all: fmt lint build-server ## Build server binary (default)
+all: fmt vet build-server ## Build server binary (default)
 
 # Build
 
 .PHONY: build-server
-build-server: wire | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
+build-server: proto wire | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
 	$Q $(GO) build \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
 		-o $(BIN)/enseada-server ./cmd/enseada-server
 
 .PHONY: build-client
-build-client: | $(BIN); $(info $(M) building client executable…) @ ## Build client binary
+build-client: proto | $(BIN); $(info $(M) building client executable…) @ ## Build client binary
 	$Q $(GO) build \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
@@ -61,6 +61,12 @@ $(BIN)/go2xunit: PACKAGE=github.com/tebeka/go2xunit
 WIRE = $(BIN)/wire
 $(BIN)/wire: PACKAGE=github.com/google/wire/cmd/wire
 
+PROTOTOOL = $(BIN)/prototool
+$(BIN)/prototool: PACKAGE=github.com/uber/prototool/cmd/prototool
+
+ADDLICENSE= $(BIN)/addlicense
+$(BIN)/addlicense: PACKAGE=github.com/google/addlicense
+
 # Tests
 
 TEST_TARGETS := test-default test-bench test-short test-verbose test-race
@@ -71,10 +77,10 @@ test-verbose: ARGS=-v            ## Run tests in verbose mode with coverage repo
 test-race:    ARGS=-race         ## Run tests with race detector
 $(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
 $(TEST_TARGETS): test
-check test tests: fmt lint ; $(info $(M) running $(NAME:%=% )tests…) @ ## Run tests
+check test tests: fmt vet ; $(info $(M) running $(NAME:%=% )tests…) @ ## Run tests
 	$Q $(GO) test -timeout $(TIMEOUT)s $(ARGS) $(TESTPKGS)
 
-test-xml: fmt lint | $(GO2XUNIT) ; $(info $(M) running xUnit tests…) @ ## Run tests with xUnit output
+test-xml: fmt vet | $(GO2XUNIT) ; $(info $(M) running xUnit tests…) @ ## Run tests with xUnit output
 	$Q mkdir -p test
 	$Q 2>&1 $(GO) test -timeout $(TIMEOUT)s -v $(TESTPKGS) | tee test/tests.output
 	$(GO2XUNIT) -fail -input test/tests.output -output test/tests.xml
@@ -86,7 +92,7 @@ COVERAGE_HTML    = $(COVERAGE_DIR)/index.html
 .PHONY: test-coverage test-coverage-tools
 test-coverage-tools: | $(GOCOV) $(GOCOVXML)
 test-coverage: COVERAGE_DIR := $(CURDIR)/test/coverage.$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-test-coverage: fmt lint test-coverage-tools ; $(info $(M) running coverage tests…) @ ## Run coverage tests
+test-coverage: fmt vet test-coverage-tools ; $(info $(M) running coverage tests…) @ ## Run coverage tests
 	$Q mkdir -p $(COVERAGE_DIR)
 	$Q $(GO) test \
 		-coverpkg=$$($(GO) list -f '{{ join .Deps "\n" }}' $(TESTPKGS) | \
@@ -105,11 +111,19 @@ lint: | $(GOLINT) ; $(info $(M) running golint…) @ ## Run golint
 fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 	$Q $(GO) fmt $(PKGS)
 
+.PHONY: vet
+vet: ; $(info $(M) running go vet…) @ ## Run go vet on all source files
+	$Q $(GO) vet $(PKGS)
+
 # Codegen
 
 .PHONY: wire
 wire: | $(WIRE) ; $(info $(M) generating dependency injectors…) @ ## Generate Wire code
 	$(Q) cd ./cmd/enseada-server/boot && $(WIRE)
+
+.PHONY: proto
+proto: | $(PROTOTOOL) ; $(info $(M) generating RPC code…) @ ## Generate RPC code
+	$(Q) $(PROTOTOOL) all ./rpc
 
 # Misc
 
@@ -134,3 +148,7 @@ version:
 .PHONY: update-toc
 update-toc:
 	@markdown-toc -i --bullets="-" GUIDELINES.md
+
+.PHONY: update-license
+update-license: | $(ADDLICENSE) ; $(info $(M) updating license headers…) @ ## Update license headers
+	$(Q) $(ADDLICENSE) -c "Enseada authors" -y 2019 -f ./rpc/copyright.txt **/*.go
