@@ -31,7 +31,7 @@ RUN go mod download
 
 COPY . .
 
-COPY --from=assets /web/static ./web
+COPY --from=assets /web/static ./web/static
 
 RUN ls ./web
 RUN ls ./web/static
