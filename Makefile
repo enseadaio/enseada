@@ -17,7 +17,7 @@ M = $(shell printf "\033[34;1m▶\033[0m")
 export GO111MODULE=on
 
 .PHONY: all
-all: fmt vet build-server ## Build server binary (default)
+all: fmt vet build-standalone-server ## Build standalone server binary (default)
 
 # Build
 
@@ -67,8 +67,11 @@ $(BIN)/wire: PACKAGE=github.com/google/wire/cmd/wire
 PROTOTOOL = $(BIN)/prototool
 $(BIN)/prototool: PACKAGE=github.com/uber/prototool/cmd/prototool
 
-ADDLICENSE= $(BIN)/addlicense
+ADDLICENSE = $(BIN)/addlicense
 $(BIN)/addlicense: PACKAGE=github.com/google/addlicense
+
+RICE = $(BIN)/rice
+$(BIN)/rice: PACKAGE=github.com/GeertJohan/go.rice/rice
 
 # Tests
 
@@ -125,6 +128,14 @@ imports: | $(GOIMPORTS) ; $(info $(M) running goimports…) @ ## Run goimports o
 	$Q $(GOIMPORTS) -w ./internal
 	$Q $(GOIMPORTS) -w ./rpc
 
+.PHONY: build-standalone-server
+build-standalone-server: build-server web | $(RICE) ; $(info $(M) building standalone server…) @ ## Build server binary with embedded static assets
+	rice append --exec $(BIN)/enseada-server -i ./internal/server -i ./cmd/enseada-server/boot
+
+.PHONY: web
+web: ; $(info $(M) build web assets…) @ ## Build web assets with Webpack
+	cd web && yarn install && yarn build:prod
+
 # Codegen
 
 .PHONY: wire
@@ -145,6 +156,8 @@ deps: ; $(info $(M) installing dependencies…)	@ ## Install dependencies
 clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
 	@rm -rf $(BIN)
 	@rm -rf test/tests.* test/coverage.*
+	@rm .git/hooks/pre-commit
+	@rm -rf web/static
 
 .PHONY: help
 help:

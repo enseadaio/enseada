@@ -9,6 +9,11 @@ package enseada
 import (
 	"net/http"
 
+	authsvcv1beta1 "github.com/enseadaio/enseada/internal/auth/v1beta1"
+	mavensvcv1beta1 "github.com/enseadaio/enseada/internal/maven/v1beta1"
+	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
+	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/enseadaio/enseada/internal/server"
@@ -74,25 +79,24 @@ func NewServer(oauthProvider fosite.OAuth2Provider, oauthClient *goauth.Config, 
 }
 
 func (s *Server) Init() {
-	//mvnsvc := mavensvcv1beta1.Service{Maven: s.Maven}
-	//mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
-	//s.Echo.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
-	//
-	//authLog := log.New("casbin")
-	//authLog.SetLevel(s.Logger.Level())
-	//authsvc := authsvcv1beta1.Service{
-	//	Logger:   authLog,
-	//	Enforcer: s.Enforcer,
-	//}
-	//authHandler := authv1beta1.NewAclAPIServer(authsvc, nil)
-	//s.Echo.Any(authHandler.PathPrefix()+"*", echo.WrapHandler(authHandler))
-	//
-	//server.MountRoutes(server.RouteParams{
-	//	Echo:          s.Echo,
-	//	Mvn:           s.Maven,
-	//	OAuthProvider: s.OAuthProvider,
-	//	OAuthClient:   s.OAuthClient,
-	//	PublicHost:    s.PublicHost,
-	//	SecretKeyBase: s.SecretKeyBase,
-	//})
+	mvnsvc := mavensvcv1beta1.Service{Maven: s.Maven}
+	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
+	s.Echo.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
+
+	authLog := log.New("casbin")
+	authLog.SetLevel(s.Logger.Level())
+	authsvc := authsvcv1beta1.Service{
+		Logger:   authLog,
+		Enforcer: s.Enforcer,
+	}
+	authHandler := authv1beta1.NewAclAPIServer(authsvc, nil)
+	s.Echo.Any(authHandler.PathPrefix()+"*", echo.WrapHandler(authHandler))
+
+	server.MountRoutes(server.RouteParams{
+		Echo:          s.Echo,
+		Mvn:           s.Maven,
+		OAuthProvider: s.OAuthProvider,
+		OAuthClient:   s.OAuthClient,
+		SecretKeyBase: s.SecretKeyBase,
+	})
 }

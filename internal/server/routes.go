@@ -20,7 +20,7 @@ type RouteParams struct {
 	Echo          *echo.Echo
 	Mvn           *maven.Maven
 	OAuthProvider fosite.OAuth2Provider
-	OAuthClient   goauth.Config
+	OAuthClient   *goauth.Config
 	PublicHost    string
 	SecretKeyBase []byte
 }

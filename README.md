@@ -52,11 +52,37 @@ Local disk is only supported in single-node mode. To support [cluster mode](#clu
 ## Build
 
 Enseada is built as a statically linked executable.
-If you have [Mage](https://magefile.org/) installed, you can build a new executable
-from sources by simply running `mage` from the root folder and then running `bin/enseada`.
+If you have [Make](https://www.gnu.org/software/make/) installed, you can build a new executable
+from sources by simply running `make build-server` from the root folder and then running `bin/enseada-server`.
 
-If you don't want to install Mage, that's perfectly fine.
-Running `go run tools/mage.go` will use the vendored version of Mage and works exactly like the standalone executable.
+The following tasks are available:
+```bash
+$ make help
+
+all                      Build standalone server binary (default)
+build-server             Build server binary
+build-client             Build client binary
+test-bench               Run benchmarks
+test-short               Run only short tests
+test-verbose             Run tests in verbose mode with coverage reporting
+test-race                Run tests with race detector
+check test tests         Run tests
+test-xml                 Run tests with xUnit output
+test-coverage            Run coverage tests
+lint                     Run golint
+fmt                      Run gofmt on all source files
+vet                      Run go vet on all source files
+imports                  Run goimports on all source files
+build-standalone-server  Build server binary with embedded static assets
+web                      Build web assets with Webpack
+wire                     Generate Wire code
+proto                    Generate RPC code
+deps                     Install dependencies
+clean                    Cleanup everything
+update-license           Update license headers
+install-hooks            Install git hooks
+
+```
 
 Enseada is also packaged as a [Docker image](https://www.docker.com/). Build one with `docker build -t myname/enseada:latest .`
 
@@ -80,19 +106,10 @@ yarn build
 yarn build:prod
 ```
 
-Enseada will pick them up on its own. To embed them into the final executable use [go.rice](http://github.com/GeertJohan/go.rice):
-```bash
-# Install the CLI tool
-go get github.com/GeertJohan/go.rice/rice
+To build assets for production, you can also run `make web` that will do everything for you.
 
-# Build the executable
-go run tools/mage.go
+Enseada will pick them up on its own. To embed them into the final executable using [go.rice](http://github.com/GeertJohan/go.rice) run `make build-standalone-server`.
 
-# Embed the static assets
-rice append --exec bin/enseada -i ./pkg/server
-
-# Now bin/enseada is fully self-contained
-```
 ## Local Database
 
 A local CouchDB instance can be started using the provided [docker-compose.yml](./docker-compose.yml) file.
@@ -101,86 +118,6 @@ persist data in a Docker volume.
 
 Upon first run, the database server is uninitialized. Please run the initialization setup for 
 single node deployment by visiting http://localhost:5984/_utils/#setup and following the instructions.
-
-## Configuration
-Enseada is primarily configured via environment variables. Here is a list of the supported configuration.
-Variables without a default value are required.
-
-### Application config
-```.env
-## Application port
-PORT=4000
-
-## Logger level (accepts debug, info, warn, error)
-LOG_LEVEL=info
-
-## Base URL to use when serving packages 
-## e.g. ASSET_HOST=https://d3gav2egqolk5.cloudfront.net
-ASSET_HOST=nil
-```
-
-### Database
-
-```.env
-## CouchDB server URL
-COUCHDB_URL
-
-## CouchDB server username
-COUCHDB_USER=nil
-
-## CouchDB server password
-COUCHDB_PASSWORD=nil
-```
-
-### Storage
-
-```.env
-# Storage provider (accepts gcs, s3, local) 
-STORAGE_PROVIDER=local
-```
-
-#### Local
-```.env
-# Storage directory
-STORAGE_DIR=uploads
-```
-
-#### S3
-```.env
-## S3 bucket name
-AWS_S3_BUCKET
-
-## S3 bucket region
-AWS_REGION
-
-## S3 client key ID (optional, defaults to instance role)
-AWS_ACCESS_KEY_ID=nil
-
-## S3 client secret key (optional, defaults to instance role)
-AWS_SECRET_ACCESS_KEY=nil
-
-## S3 HTTP endpoint (optional, defaults to Amazon S3 endpoints)
-AWS_S3_ENDPOINT=nil
-
-## Bucket keys prefix
-BUCKET_PREFIX=uploads
-```
-
-#### GCS
-```.env
-## GCS bucket name
-GCS_BUCKET
-
-## GCS json credentials, alternative to GOOGLE_APPLICATION_CREDENTIALS
-GCS_JSON_CREDENTIALS
-
-## Path to a GCP credentials json, alternative to GCS_JSON_CREDENTIALS 
-GOOGLE_APPLICATION_CREDENTIALS
-
-## Bucket keys prefix
-BUCKET_PREFIX=uploads
-```
-
 
 ## HTTPS support
 Enseada has full support for strict HTTPS, enabling it is very simple.
@@ -196,9 +133,6 @@ SSL_KEY_PATH=nil
 ## The path to the certificate file
 SSL_CERT_PATH=nil
 ```
-
-## Cluster mode
-TBD
 
 ## License
 This Source Code Form is subject to the terms of the Mozilla Public

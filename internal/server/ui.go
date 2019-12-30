@@ -24,7 +24,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func mountUI(e *echo.Echo, oc oauth2.Config, skb []byte) {
+func mountUI(e *echo.Echo, oc *oauth2.Config, skb []byte) {
 	staticHandler := http.FileServer(rice.MustFindBox("../../web/static").HTTPBox())
 	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", staticHandler)))
 
@@ -50,19 +50,19 @@ func mountUI(e *echo.Echo, oc oauth2.Config, skb []byte) {
 	u.GET("/callback", callback(oc))
 }
 
-func home(oc oauth2.Config) echo.HandlerFunc {
+func home(oc *oauth2.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return renderPage(c, "index", oc, echo.Map{})
 	}
 }
 
-func repos(oc oauth2.Config) echo.HandlerFunc {
+func repos(oc *oauth2.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return renderPage(c, "repos", oc, echo.Map{})
 	}
 }
 
-func profile(oc oauth2.Config) echo.HandlerFunc {
+func profile(oc *oauth2.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		s := echosession.FromContext(c)
 		_, ok := s.Get("current_user_id")
@@ -73,7 +73,7 @@ func profile(oc oauth2.Config) echo.HandlerFunc {
 	}
 }
 
-func callback(oc oauth2.Config) echo.HandlerFunc {
+func callback(oc *oauth2.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		code := c.QueryParam("code")
 		ctx := c.Request().Context()
@@ -139,7 +139,7 @@ func callback(oc oauth2.Config) echo.HandlerFunc {
 	}
 }
 
-func renderPage(c echo.Context, name string, oc oauth2.Config, data echo.Map) error {
+func renderPage(c echo.Context, name string, oc *oauth2.Config, data echo.Map) error {
 	pusher, ok := c.Response().Writer.(http.Pusher)
 	if ok {
 		if err := pusher.Push("/static/main.css", nil); err != nil {
