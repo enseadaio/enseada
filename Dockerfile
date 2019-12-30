@@ -11,8 +11,6 @@ COPY web .
 
 RUN yarn build:prod
 
-RUN ls static
-
 FROM golang:1.13-alpine as builder
 
 ENV GO111MODULE=on
@@ -33,11 +31,8 @@ COPY . .
 
 COPY --from=assets /web/static ./web/static
 
-RUN ls ./web
-RUN ls ./web/static
-
 RUN go build -o bin/enseada-server ./cmd/enseada-server
-RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server -i ./internal/server
+RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server/boot -i ./internal/server
 
 # final stage
 FROM scratch
