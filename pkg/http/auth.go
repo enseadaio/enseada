@@ -1,79 +1,80 @@
-// Copyright 2019 Enseada authors
-//
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
-package server
+package http
 
 import (
-	"net/http"
-	"time"
-
+	"github.com/enseadaio/enseada/internal/utils"
 	"github.com/enseadaio/enseada/pkg/auth"
-	echosession "github.com/go-session/echo-session"
+	session "github.com/ipfans/echo-session"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/random"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
+	"net/http"
+	"strings"
+	"time"
 )
 
-func mountOauth(e *echo.Echo, oauth fosite.OAuth2Provider) {
+func mountAuth(e *echo.Echo, oauth fosite.OAuth2Provider, store *auth.Store, sm echo.MiddlewareFunc) {
 	g := e.Group("/oauth")
+	g.Use(sm)
 	g.GET("/authorize", authorizationPage())
-	g.POST("/authorize", authorize(oauth))
+	g.POST("/authorize", authorize(oauth, store))
 	g.POST("/token", token(oauth))
 	g.POST("/token/introspect", introspect(oauth))
 }
 
 func authorizationPage() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		session := echosession.FromContext(c)
-		e, ok := session.Get("error")
+		s := session.Default(c)
+		e := s.Flashes("errors")
 		params := echo.Map{
-			"ClientID":     QueryWithDefault(c, "client_id", ""),
-			"RedirectURI":  QueryWithDefault(c, "redirect_uri", ""),
-			"State":        QueryWithDefault(c, "state", random.String(32)),
-			"Scope":        QueryWithDefault(c, "scope", ""),
-			"Audience":     QueryWithDefault(c, "audience", ""),
-			"ResponseType": QueryWithDefault(c, "response_type", "code"),
+			"ClientID":     utils.QueryWithDefault(c, "client_id", ""),
+			"RedirectURI":  utils.QueryWithDefault(c, "redirect_uri", ""),
+			"State":        utils.QueryWithDefault(c, "state", random.String(32)),
+			"Scope":        utils.QueryWithDefault(c, "scope", ""),
+			"Audience":     utils.QueryWithDefault(c, "audience", ""),
+			"ResponseType": utils.QueryWithDefault(c, "response_type", "code"),
 		}
-		if ok {
-			params["Error"] = e
+		if len(e) > 0 {
+			params["Errors"] = e
 		}
 
 		return c.Render(http.StatusOK, "login", params)
 	}
 }
 
-func authorize(oauth fosite.OAuth2Provider) echo.HandlerFunc {
+func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
 		resw := c.Response()
 		ctx := req.Context()
 
-		//username := strings.TrimSpace(req.FormValue("username"))
-		//password := strings.TrimSpace(req.FormValue("password"))
+		username := strings.TrimSpace(req.FormValue("username"))
+		password := strings.TrimSpace(req.FormValue("password"))
 
-		//u, err := oauth.Authenticate(ctx, username, password)
-		//if err != nil {
-		//	if strings.Contains(req.Header.Get("accept"), "html") {
-		//		session := echosession.FromContext(c)
-		//		session.Set("error", "Invalid username of password")
-		//		if err := session.Save(); err != nil {
-		//			return err
-		//		}
-		//		return c.Redirect(http.StatusSeeOther, c.Request().Header.Get("Referer"))
-		//	}
-		//
-		//	return c.JSON(http.StatusUnauthorized, echo.Map{
-		//		"error":   "unauthorized",
-		//		"message": "invalid username or password",
-		//	})
-		//}
+		err := store.Authenticate(ctx, username, password)
+		if err != nil {
+			if strings.Contains(req.Header.Get("accept"), "html") {
+				s := session.Default(c)
+				s.AddFlash("Invalid username of password", "errors")
+				if err := s.Save(); err != nil {
+					return err
+				}
+				return c.Redirect(http.StatusSeeOther, c.Request().Header.Get("Referer"))
+			}
 
-		session := newSession(&auth.User{})
+			return c.JSON(http.StatusUnauthorized, echo.Map{
+				"error":   "unauthorized",
+				"message": "invalid username or password",
+			})
+		}
+
+		u, err := store.FindByUsername(ctx, username)
+		if err != nil {
+			return err
+		}
+
+		os := newSession(u)
 		ar, err := oauth.NewAuthorizeRequest(ctx, req)
 		if err != nil {
 			c.Logger().Error(err)
@@ -85,7 +86,7 @@ func authorize(oauth fosite.OAuth2Provider) echo.HandlerFunc {
 			ar.GrantScope(scope)
 		}
 
-		res, err := oauth.NewAuthorizeResponse(ctx, ar, session)
+		res, err := oauth.NewAuthorizeResponse(ctx, ar, os)
 		if err != nil {
 			c.Logger().Error(err)
 			oauth.WriteAuthorizeError(resw, ar, err)
@@ -103,9 +104,9 @@ func token(oauth fosite.OAuth2Provider) echo.HandlerFunc {
 		resw := c.Response()
 		ctx := req.Context()
 
-		session := newSession(nil)
+		os := newSession(nil)
 		c.Logger().Info(req)
-		ar, err := oauth.NewAccessRequest(ctx, req, session)
+		ar, err := oauth.NewAccessRequest(ctx, req, os)
 		if err != nil {
 			c.Logger().Error(err)
 			oauth.WriteAccessError(resw, ar, err)
@@ -133,9 +134,9 @@ func introspect(oauth fosite.OAuth2Provider) echo.HandlerFunc {
 		ctx := c.Request().Context()
 		req := c.Request()
 		resw := c.Response().Writer
-		session := newSession(nil)
+		os := newSession(nil)
 
-		ir, err := oauth.NewIntrospectionRequest(ctx, req, session)
+		ir, err := oauth.NewIntrospectionRequest(ctx, req, os)
 		if err != nil {
 			c.Logger().Error(err)
 			oauth.WriteIntrospectionError(resw, err)

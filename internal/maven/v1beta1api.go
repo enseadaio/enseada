@@ -4,27 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package mavensvcv1beta1
+package maven
 
 import (
 	"context"
-	"fmt"
-
-	"github.com/enseadaio/enseada/internal/maven"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	metav1beta1 "github.com/enseadaio/enseada/rpc/meta/v1beta1"
 	"github.com/twitchtv/twirp"
 )
 
-var RepoNotFoundError = func(id string) twirp.Error {
-	return twirp.NotFoundError(fmt.Sprintf("no Maven repository found by id %s", id))
+type ServiceV1Beta1 struct {
+	Maven *Maven
 }
 
-type Service struct {
-	Maven *maven.Maven
-}
-
-func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
+func (s ServiceV1Beta1) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
 	repos, err := s.Maven.ListRepos(ctx)
 	if err != nil {
 		return nil, err
@@ -47,7 +40,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 	}, nil
 }
 
-func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
+func (s ServiceV1Beta1) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
 	id := req.GetId()
 	if id == "" {
 		return nil, twirp.RequiredArgumentError("id")
@@ -59,7 +52,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 	}
 
 	if repo == nil {
-		return nil, RepoNotFoundError(id)
+		return nil, TwirpRepoNotFoundError(id)
 	}
 
 	return &mavenv1beta1.GetRepoResponse{
@@ -73,7 +66,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 	}, nil
 }
 
-func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
+func (s ServiceV1Beta1) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
 	if req.GetGroupId() == "" {
 		return nil, twirp.RequiredArgumentError("group_id")
 	}
@@ -82,10 +75,10 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 		return nil, twirp.RequiredArgumentError("artifact_id")
 	}
 
-	repo := maven.NewRepo(req.GroupId, req.ArtifactId)
+	repo := NewRepo(req.GroupId, req.ArtifactId)
 	err := s.Maven.InitRepo(ctx, &repo)
 	if err != nil {
-		if err == maven.ErrorRepoAlreadyPresent {
+		if err == ErrorRepoAlreadyPresent {
 			return nil, twirp.NewError(twirp.AlreadyExists, "Maven repository already present")
 		}
 		return nil, err
@@ -102,7 +95,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 	}, nil
 }
 
-func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
+func (s ServiceV1Beta1) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
 	id := req.GetId()
 	if id == "" {
 		return nil, twirp.RequiredArgumentError("id")
@@ -114,7 +107,7 @@ func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReq
 	}
 
 	if repo == nil {
-		return nil, RepoNotFoundError(id)
+		return nil, TwirpRepoNotFoundError(id)
 	}
 
 	return &mavenv1beta1.DeleteRepoResponse{

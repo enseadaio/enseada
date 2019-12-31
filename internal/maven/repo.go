@@ -63,7 +63,7 @@ func NewRepo(groupID string, artifactID string) Repo {
 }
 
 func (m *Maven) ListRepos(ctx context.Context) ([]*Repo, error) {
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"kind": "repository",
@@ -90,7 +90,7 @@ func (m *Maven) ListRepos(ctx context.Context) ([]*Repo, error) {
 }
 
 func (m *Maven) GetRepo(ctx context.Context, id string) (*Repo, error) {
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 	row := db.Get(ctx, id)
 	repo := &Repo{}
 	if err := row.ScanDoc(repo); err != nil {
@@ -107,7 +107,7 @@ func (m *Maven) FindRepo(ctx context.Context, groupID string, artifactID string)
 }
 
 func (m *Maven) SaveRepo(ctx context.Context, repo *Repo) error {
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 	rev, err := db.Put(ctx, repo.Id, repo)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (m *Maven) SaveRepo(ctx context.Context, repo *Repo) error {
 }
 
 func (m *Maven) DeleteRepo(ctx context.Context, id string) (*Repo, error) {
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 	repo, err := m.GetRepo(ctx, id)
 	if err != nil || repo == nil {
 		return nil, err
@@ -145,7 +145,7 @@ func fromId(id string) (Repo, error) {
 }
 
 func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 
 	m.logger.Infof("Initializing repo %s", repo.ID)
 	err := save(ctx, db, repo)
@@ -154,7 +154,7 @@ func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 	}
 
 	m.logger.Infof("Created repo %s", repo.ID)
-	t, err := template.New("maven-metadata.xml").Parse(baseMetadataFile)
+	t, err := template.New("migrateDB-metadata.xml").Parse(baseMetadataFile)
 	if err != nil {
 		return err
 	}

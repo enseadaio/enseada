@@ -14,7 +14,7 @@ type User struct {
 	HashedPassword []byte `json:"hashed_password"`
 }
 
-func Root(pwd string) *User {
+func RootUser(pwd string) *User {
 	return &User{
 		Username: "root",
 		Password: pwd,

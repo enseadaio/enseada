@@ -4,6 +4,8 @@ go 1.13
 
 require (
 	github.com/GeertJohan/go.rice v1.0.0
+	github.com/antonlindstrom/pgstore v0.0.0-20170604072116-a407030ba6d0 // indirect
+	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/casbin/casbin/v2 v2.1.2
 	github.com/chartmuseum/storage v0.5.0
 	github.com/flimzy/diff v0.1.6 // indirect
@@ -15,17 +17,19 @@ require (
 	github.com/go-kivik/kivikmock v2.0.0-pre3+incompatible
 	github.com/go-kivik/kiviktest v1.1.2 // indirect
 	github.com/go-openapi/strfmt v0.19.4 // indirect
-	github.com/go-session/cookie v3.0.1+incompatible
+	github.com/go-session/cookie v3.0.1+incompatible // indirect
 	github.com/go-session/echo-session v3.0.0+incompatible
 	github.com/go-session/session v3.1.2+incompatible
 	github.com/golang/protobuf v1.3.2
-	github.com/google/wire v0.4.0
-	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/google/wire v0.4.0 // indirect
+	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
+	github.com/ipfans/echo-session v3.2.0+incompatible
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/joho/godotenv v1.3.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0
+	github.com/lib/pq v1.3.0 // indirect
 	github.com/magefile/mage v1.9.0 // indirect
 	github.com/mattn/go-runewidth v0.0.7 // indirect
 	github.com/ory/fosite v0.30.2

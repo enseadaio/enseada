@@ -1,8 +1,10 @@
 {{define "head"}}{{end}}
 {{define "content"}}
-    {{with $e := .Error}}
-		<span class="bg-red-500 text-white">{{$e}}</span>
+	<div>
+    {{range .Errors}}
+		<span class="bg-red-500 text-white">{{.}}</span>
     {{end}}
+	</div>
 	<h1 class="">Login</h1>
 	<form action="/oauth/authorize" method="post">
 		<div>

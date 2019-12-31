@@ -7,25 +7,24 @@
 package maven
 
 import (
+	"github.com/casbin/casbin/v2"
 	"github.com/chartmuseum/storage"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
 )
 
 type Maven struct {
-	logger  echo.Logger
-	client  *kivik.Client
-	storage storage.Backend
-	dbname  string
+	logger   echo.Logger
+	data     *kivik.Client
+	storage  storage.Backend
+	enforcer *casbin.Enforcer
 }
 
-const dbname = "maven2"
-
-func New(client *kivik.Client, storage storage.Backend, logger echo.Logger) (*Maven, error) {
+func New(logger echo.Logger, data *kivik.Client, storage storage.Backend, enforcer *casbin.Enforcer) *Maven {
 	return &Maven{
-		logger:  logger,
-		client:  client,
-		storage: storage,
-		dbname:  dbname,
-	}, nil
+		logger:   logger,
+		data:     data,
+		storage:  storage,
+		enforcer: enforcer,
+	}
 }

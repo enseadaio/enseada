@@ -4,26 +4,29 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package server
+package maven
 
 import (
+	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
-	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/labstack/echo"
 )
 
-func mountMaven(e *echo.Echo, mvn *maven.Maven) {
-	m := e.Group("/maven2")
+func (m *Maven) MountRoutes(e *echo.Echo) {
+	g := e.Group("/maven2")
 
-	m.GET("/*", getMaven(mvn))
-	m.PUT("/*", storeMaven(mvn))
+	g.GET("/*", getMaven(m))
+	g.PUT("/*", storeMaven(m))
 
+	mvnsvc := ServiceV1Beta1{Maven: m}
+	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
+	e.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
 }
 
-func getMaven(mvn *maven.Maven) echo.HandlerFunc {
+func getMaven(mvn *Maven) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		path := strings.TrimPrefix(c.Request().RequestURI, "/")
@@ -43,7 +46,7 @@ func getMaven(mvn *maven.Maven) echo.HandlerFunc {
 	}
 }
 
-func storeMaven(mvn *maven.Maven) echo.HandlerFunc {
+func storeMaven(mvn *Maven) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		path := strings.TrimPrefix(c.Request().RequestURI, "/maven2/")
@@ -56,7 +59,7 @@ func storeMaven(mvn *maven.Maven) echo.HandlerFunc {
 		file, err := mvn.PutRepoFile(ctx, path, body)
 		if err != nil {
 			c.Logger().Error(err)
-			if err == maven.ErrorRepoNotFound {
+			if err == ErrorRepoNotFound {
 				return c.NoContent(http.StatusNotFound)
 			}
 			return err

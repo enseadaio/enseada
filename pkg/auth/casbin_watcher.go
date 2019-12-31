@@ -57,31 +57,38 @@ func (w *CasbinWatcher) Close() {
 }
 
 func (w *CasbinWatcher) Start(ctx context.Context) error {
-	w.logger.Info("started acl watcher")
 	db := w.data.DB(ctx, couch.AclDB)
-	ch, err := db.Changes(ctx, kivik.Options{
-		"feed": "continuous",
-	})
-	if err != nil {
-		return err
-	}
-
-	w.ch = ch
-
 	runtime.SetFinalizer(w, finalizer)
 
 	go func() {
-		select {
-		case <-ctx.Done():
-			w.logger.Error(ctx.Err())
-			return
-		default:
-			for ch.Next() {
-				w.logger.Debugf("received change from feed. id: %s", ch.ID())
-				w.callback(ch.ID())
+		w.logger.Info("started ACL watcher")
+		for {
+			ch, err := db.Changes(ctx, kivik.Options{
+				"feed": "continuous",
+			})
+			if err != nil {
+				w.logger.Error(err)
+				return
 			}
 
-			w.logger.Warn("no more changes. Stopping...")
+			w.ch = ch
+
+			select {
+			case <-ctx.Done():
+				w.logger.Info("Shutting down ACL watcher")
+				w.logger.Error(ctx.Err())
+				return
+			default:
+				for ch.Next() {
+					w.logger.Debugf("received change from feed. id: %s", ch.ID())
+					w.callback(ch.ID())
+				}
+
+				if ch.Err() != nil {
+					w.logger.Warn("Stopping watcher. Reason:", ch.Err())
+					return
+				}
+			}
 		}
 	}()
 

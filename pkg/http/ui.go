@@ -4,27 +4,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package server
+package http
 
 import (
 	"encoding/json"
+	rice "github.com/GeertJohan/go.rice"
+	"github.com/enseadaio/enseada/pkg/auth"
+	"github.com/ipfans/echo-session"
+	"github.com/labstack/echo"
+	"github.com/labstack/gommon/random"
+	goauth "golang.org/x/oauth2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
-
-	rice "github.com/GeertJohan/go.rice"
-	"github.com/enseadaio/enseada/pkg/auth"
-	"github.com/go-session/cookie"
-	echosession "github.com/go-session/echo-session"
-	"github.com/go-session/session"
-	"github.com/labstack/echo"
-	"github.com/labstack/gommon/random"
-	"golang.org/x/oauth2"
 )
 
-func mountUI(e *echo.Echo, oc *oauth2.Config, skb []byte) {
+func mountUI(e *echo.Echo, oc *goauth.Config, sm echo.MiddlewareFunc) {
+	e.GET("/", root)
+
 	staticHandler := http.FileServer(rice.MustFindBox("../../web/static").HTTPBox())
 	e.GET("/static/*", echo.WrapHandler(http.StripPrefix("/static/", staticHandler)))
 
@@ -32,48 +30,38 @@ func mountUI(e *echo.Echo, oc *oauth2.Config, skb []byte) {
 	e.GET("/assets/*", echo.WrapHandler(http.StripPrefix("/assets/", assetHandler)))
 
 	u := e.Group("/ui")
-
-	exp := (time.Hour * 720).Seconds()
-	store := cookie.NewCookieStore(
-		cookie.SetCookieName("enseada-session"),
-		cookie.SetHashKey(skb),
-	)
-	u.Use(echosession.New(
-		session.SetCookieName("enseada-session-id"),
-		session.SetExpired(int64(exp)),
-		session.SetStore(store),
-	))
-
+	u.Use(sm)
 	u.GET("", home(oc))
 	u.GET("/profile", profile(oc))
 	u.GET("/repositories", repos(oc))
 	u.GET("/callback", callback(oc))
 }
 
-func home(oc *oauth2.Config) echo.HandlerFunc {
+func home(oc *goauth.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return renderPage(c, "index", oc, echo.Map{})
 	}
 }
 
-func repos(oc *oauth2.Config) echo.HandlerFunc {
+func repos(oc *goauth.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return renderPage(c, "repos", oc, echo.Map{})
 	}
 }
 
-func profile(oc *oauth2.Config) echo.HandlerFunc {
+func profile(oc *goauth.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		s := echosession.FromContext(c)
-		_, ok := s.Get("current_user_id")
-		if !ok {
+		s := session.Default(c)
+		id := s.Get("current_user_id")
+		if id == nil {
 			return c.Redirect(http.StatusSeeOther, oc.AuthCodeURL(random.String(32)))
 		}
+
 		return renderPage(c, "profile", oc, echo.Map{})
 	}
 }
 
-func callback(oc *oauth2.Config) echo.HandlerFunc {
+func callback(oc *goauth.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		code := c.QueryParam("code")
 		ctx := c.Request().Context()
@@ -113,33 +101,38 @@ func callback(oc *oauth2.Config) echo.HandlerFunc {
 			return err
 		}
 
-		store := echosession.FromContext(c)
+		s := session.Default(c)
 		if body["active"] == true {
-			store.Context()
-			store.Set("access_token", t.AccessToken)
-			store.Set("refresh_token", t.RefreshToken)
-			store.Set("current_user_id", body["sub"].(string))
-			store.Set("current_user_name", body["username"].(string))
-			err = store.Save()
+			s.Set("access_token", t.AccessToken)
+			s.Set("refresh_token", t.RefreshToken)
+			s.Set("current_user_id", body["sub"].(string))
+			s.Set("current_user_name", body["username"].(string))
+			err = s.Save()
 			if err != nil {
 				return err
 			}
 		} else {
-			err := store.Flush()
-			if err != nil {
-				return err
-			}
-			err = echosession.Destroy(c)
-			if err != nil {
-				return err
-			}
+			s.Clear()
 		}
 
 		return c.Redirect(http.StatusTemporaryRedirect, "/ui")
 	}
 }
 
-func renderPage(c echo.Context, name string, oc *oauth2.Config, data echo.Map) error {
+func root(c echo.Context) error {
+	acc := c.Request().Header.Get("accept")
+
+	if strings.Contains(acc, "html") {
+		return c.Redirect(http.StatusMovedPermanently, "/ui")
+	}
+
+	return c.JSON(http.StatusNotFound, echo.Map{
+		"error":   "not_found",
+		"message": "NotFound",
+	})
+}
+
+func renderPage(c echo.Context, name string, oc *goauth.Config, data echo.Map) error {
 	pusher, ok := c.Response().Writer.(http.Pusher)
 	if ok {
 		if err := pusher.Push("/static/main.css", nil); err != nil {
@@ -153,16 +146,16 @@ func renderPage(c echo.Context, name string, oc *oauth2.Config, data echo.Map) e
 		}
 	}
 
-	s := echosession.FromContext(c)
+	s := session.Default(c)
 	addCurrentUser(s, data)
 	data["LoginURL"] = oc.AuthCodeURL(random.String(32))
 	return c.Render(http.StatusOK, name, data)
 }
 
-func addCurrentUser(s session.Store, params echo.Map) {
-	i, iok := s.Get("current_user_id")
-	u, uok := s.Get("current_user_name")
-	if iok && uok {
+func addCurrentUser(s session.Session, params echo.Map) {
+	i := s.Get("current_user_id")
+	u := s.Get("current_user_name")
+	if i != nil && u != nil {
 		params["CurrentUser"] = auth.User{
 			ID:       i.(string),
 			Username: u.(string),

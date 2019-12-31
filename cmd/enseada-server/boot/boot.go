@@ -8,18 +8,86 @@ package boot
 
 import (
 	"context"
-
-	enseada "github.com/enseadaio/enseada/pkg"
+	"fmt"
+	"github.com/enseadaio/enseada/pkg/auth"
+	"github.com/enseadaio/enseada/pkg/http"
+	"github.com/enseadaio/enseada/pkg/maven"
 	"github.com/spf13/viper"
+	"strings"
 )
 
-func Boot(ctx context.Context, conf *viper.Viper) (*enseada.Server, error) {
-	s, err := initServer(ctx, conf)
+type StartFunc func(ctx context.Context) error
+type StopFunc func(ctx context.Context) error
+
+func Boot(ctx context.Context) (StartFunc, StopFunc, error) {
+	conf := conf()
+	lvl := logLvl(conf)
+	skb := []byte(conf.GetString("secret.key.base"))
+	ph := conf.GetString("public.host")
+	sec := conf.GetString("default.oauth.client.secret")
+
+	data, err := dbClient(ctx, conf)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	s.Init()
+	storage, err := storageBackend(conf)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return s, nil
+	authLogger := newLogger("auth", lvl)
+	a, err := auth.Boot(ctx, data, authLogger, skb, ph, sec)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	echo, err := http.Boot(ctx, lvl, a.Provider, a.Client, a.Store, skb)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mvnLogger := newLogger("maven2", lvl)
+	if err := maven.Boot(ctx, mvnLogger, echo, data, storage, a.Enforcer); err != nil {
+		return nil, nil, err
+	}
+
+	return func(ctx context.Context) error {
+			if err := a.Watcher.Start(ctx); err != nil {
+				return err
+			}
+
+			port := conf.GetString("port")
+			sslVar := conf.GetString("ssl")
+			ssl := sslVar != "" && sslVar != "false" && sslVar != "no"
+
+			address := fmt.Sprintf(":%s", port)
+			if ssl {
+				cert := conf.GetString("ssl.cert.path")
+				key := conf.GetString("ssl.key.path")
+				return echo.StartTLS(address, cert, key)
+			} else {
+				return echo.Start(address)
+			}
+
+		}, func(ctx context.Context) error {
+			echo.Logger.Info("Shutting down server...")
+			return echo.Shutdown(ctx)
+		},
+		nil
+}
+
+func conf() *viper.Viper {
+	c := viper.NewWithOptions(
+		viper.EnvKeyReplacer(strings.NewReplacer(".", "_")),
+	)
+
+	c.SetDefault("log.level", "info")
+	c.SetDefault("port", "9623")
+	c.SetDefault("storage.provider", "local")
+	c.SetDefault("storage.dir", "uploads")
+	c.SetDefault("root.password", "root")
+
+	c.AutomaticEnv()
+	return c
 }

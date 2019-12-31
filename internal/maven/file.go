@@ -24,7 +24,7 @@ type RepoFile struct {
 
 func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 	m.logger.Infof("looking up file with path %s", fmt.Sprintf(`"%s"`, path))
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"files": map[string]interface{}{
@@ -89,11 +89,11 @@ func (m *Maven) PutFile(ctx context.Context, path string, content []byte) error 
 }
 
 func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*RepoFile, error) {
-	db := m.client.DB(ctx, "maven2")
+	db := m.data.DB(ctx, "maven2")
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"kind": "repository",
-			"type": "maven",
+			"type": "migrateDB",
 		},
 	})
 	if err != nil {

@@ -8,8 +8,8 @@ package boot
 
 import (
 	"context"
+	"github.com/go-kivik/couchdb"
 
-	"github.com/enseadaio/enseada/pkg/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/spf13/viper"
 )
@@ -19,5 +19,11 @@ func dbClient(ctx context.Context, conf *viper.Viper) (*kivik.Client, error) {
 	user := conf.GetString("couchdb.user")
 	pwd := conf.GetString("couchdb.password")
 
-	return couch.NewClient(ctx, url, user, pwd)
+	client, err := kivik.New("couch", url)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Authenticate(ctx, couchdb.BasicAuth(user, pwd))
+	return client, err
 }

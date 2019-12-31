@@ -7,11 +7,18 @@
 package boot
 
 import (
+	"github.com/labstack/echo"
 	"strings"
 
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
+
+func newLogger(prefix string, lvl log.Lvl) echo.Logger {
+	l := log.New(prefix)
+	l.SetLevel(lvl)
+	return l
+}
 
 func logLvl(conf *viper.Viper) log.Lvl {
 	return getLogLvl(conf.GetString("log.level"))

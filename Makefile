@@ -22,7 +22,7 @@ all: fmt vet build-standalone-server ## Build standalone server binary (default)
 # Build
 
 .PHONY: build-server
-build-server: proto wire | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
+build-server: proto | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
 	$Q $(GO) build \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
@@ -60,9 +60,6 @@ $(BIN)/gocov-xml: PACKAGE=github.com/AlekSi/gocov-xml
 
 GO2XUNIT = $(BIN)/go2xunit
 $(BIN)/go2xunit: PACKAGE=github.com/tebeka/go2xunit
-
-WIRE = $(BIN)/wire
-$(BIN)/wire: PACKAGE=github.com/google/wire/cmd/wire
 
 PROTOTOOL = $(BIN)/prototool
 $(BIN)/prototool: PACKAGE=github.com/uber/prototool/cmd/prototool
@@ -130,17 +127,13 @@ imports: | $(GOIMPORTS) ; $(info $(M) running goimports…) @ ## Run goimports o
 
 .PHONY: build-standalone-server
 build-standalone-server: build-server web | $(RICE) ; $(info $(M) building standalone server…) @ ## Build server binary with embedded static assets
-	rice append --exec $(BIN)/enseada-server -i ./internal/server -i ./cmd/enseada-server/boot
+	rice append --exec $(BIN)/enseada-server -i ./pkg/http -i ./pkg/auth
 
 .PHONY: web
 web: ; $(info $(M) build web assets…) @ ## Build web assets with Webpack
 	cd web && yarn install && yarn build:prod
 
 # Codegen
-
-.PHONY: wire
-wire: | $(WIRE) ; $(info $(M) generating dependency injectors…) @ ## Generate Wire code
-	$(Q) cd ./cmd/enseada-server/boot && $(WIRE)
 
 .PHONY: proto
 proto: | $(PROTOTOOL) ; $(info $(M) generating RPC code…) @ ## Generate RPC code
