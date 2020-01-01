@@ -4,10 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package authsvcv1beta1
+package authv1beta1api
 
 import (
 	"context"
+	"github.com/enseadaio/enseada/internal/middleware"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/guid"
@@ -16,12 +17,18 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-type Service struct {
+type ACLService struct {
 	Logger   echo.Logger
 	Enforcer *casbin.Enforcer
 }
 
-func (s Service) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
+func (s ACLService) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
+	g, ok := middleware.CurrentUserGUID(ctx)
+	if !ok {
+		s.Logger.Info("no current user")
+	} else {
+		s.Logger.Infof("current user: %s", g.String())
+	}
 	policy := s.Enforcer.GetPolicy()
 	var rules []*authv1beta1.AclRule
 
@@ -43,7 +50,7 @@ func (s Service) ListRules(ctx context.Context, req *authv1beta1.ListRulesReques
 	}, nil
 }
 
-func (s Service) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (*authv1beta1.AddRuleResponse, error) {
+func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (*authv1beta1.AddRuleResponse, error) {
 	rule := req.Rule
 	if rule == nil {
 		return nil, twirp.RequiredArgumentError("rule")

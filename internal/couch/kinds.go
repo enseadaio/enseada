@@ -16,4 +16,5 @@ const (
 	KindOAuthRefreshToken  = Kind("refresh_token")
 	KindOpenIDSession      = Kind("refresh_token")
 	KindPKCERequest        = Kind("pkce_request")
+	KindUser               = Kind("user")
 )

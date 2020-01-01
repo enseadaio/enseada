@@ -9,7 +9,7 @@ package http
 import (
 	"encoding/json"
 	rice "github.com/GeertJohan/go.rice"
-	"github.com/enseadaio/enseada/pkg/auth"
+	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/ipfans/echo-session"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/random"

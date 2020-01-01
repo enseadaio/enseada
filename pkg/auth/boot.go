@@ -7,23 +7,23 @@ import (
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
+	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
-	goauth "golang.org/x/oauth2"
 )
 
 type Components struct {
-	Store    *Store
+	Store    *auth.Store
 	Enforcer *casbin.Enforcer
 	Watcher  *CasbinWatcher
 	Provider fosite.OAuth2Provider
-	Client   *goauth.Config
 }
 
-func Boot(ctx context.Context, data *kivik.Client, logger echo.Logger, skb []byte, ph string, clientSecret string) (*Components, error) {
+func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger echo.Logger, skb []byte, ph string, clientSecret string) (*Components, error) {
 	if err := couch.Transact(ctx, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func Boot(ctx context.Context, data *kivik.Client, logger echo.Logger, skb []byt
 
 	s := createStore(data, logger)
 
-	e, w, err := createCasbin(data, logger)
+	enf, w, err := createCasbin(data, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -48,36 +48,23 @@ func Boot(ctx context.Context, data *kivik.Client, logger echo.Logger, skb []byt
 		return nil, err
 	}
 
-	o := compose.ComposeAllEnabled(
+	op := compose.ComposeAllEnabled(
 		&compose.Config{},
 		s,
 		skb,
 		key,
 	)
 
-	redirect := ph + "/ui/callback"
-	oc := &goauth.Config{
-		ClientID:     "enseada",
-		ClientSecret: clientSecret,
-		Endpoint: goauth.Endpoint{
-			AuthURL:   ph + "/oauth/authorize",
-			TokenURL:  ph + "/oauth/token",
-			AuthStyle: goauth.AuthStyleAutoDetect,
-		},
-		RedirectURL: redirect,
-		Scopes:      []string{"openid", "profile"},
-	}
-
 	ec, err := s.GetClient(ctx, "enseada")
 	if err != nil {
 		return nil, err
 	}
 	if ec == nil {
-		defaultClient, err := NewOAuthClient("enseada", clientSecret,
-			OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
-			OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
-			OAuthScopes("openid", "profile"),
-			OAuthRedirectURIs(redirect),
+		defaultClient, err := auth.NewOAuthClient("enseada", clientSecret,
+			auth.OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
+			auth.OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
+			auth.OAuthScopes("openid", "profile"),
+			auth.OAuthRedirectURIs(ph+"/ui/callback"),
 		)
 		if err != nil {
 			return nil, err
@@ -88,39 +75,39 @@ func Boot(ctx context.Context, data *kivik.Client, logger echo.Logger, skb []byt
 		}
 	}
 
-	fr, err := s.FindByUsername(ctx, "root")
+	fr, err := s.FindUserByUsername(ctx, "root")
 	if err != nil {
 		return nil, err
 	}
 
 	if fr == nil {
-		root := RootUser("root")
-		if err := s.Save(ctx, root); err != nil {
+		root := auth.RootUser("root")
+		if err := s.SaveUser(ctx, root); err != nil {
 			return nil, err
 		}
 	}
 
+	mountRoutes(e, s, op, enf, middleware.Session(skb))
 	return &Components{
 		Store:    s,
-		Enforcer: e,
+		Enforcer: enf,
 		Watcher:  w,
-		Provider: o,
-		Client:   oc,
+		Provider: op,
 	}, nil
 }
 
-func createStore(data *kivik.Client, logger echo.Logger) *Store {
-	oAuthClientStore := NewOAuthClientStore(data, logger)
-	oAuthRequestStore := NewOAuthRequestStore(data, logger)
-	oidcSessionStore := NewOIDCSessionStore(data, logger)
-	pkceRequestStore := NewPKCERequestStore(data, logger)
-	userStore := NewUserStore(data, logger)
-	return NewStore(data, logger, oAuthClientStore, oAuthRequestStore, oidcSessionStore, pkceRequestStore, userStore)
+func createStore(data *kivik.Client, logger echo.Logger) *auth.Store {
+	oAuthClientStore := auth.NewOAuthClientStore(data, logger)
+	oAuthRequestStore := auth.NewOAuthRequestStore(data, logger)
+	oidcSessionStore := auth.NewOIDCSessionStore(data, logger)
+	pkceRequestStore := auth.NewPKCERequestStore(data, logger)
+	userStore := auth.NewUserStore(data, logger)
+	return auth.NewStore(data, logger, oAuthClientStore, oAuthRequestStore, oidcSessionStore, pkceRequestStore, userStore)
 }
 
 func createCasbin(data *kivik.Client, logger echo.Logger) (*casbin.Enforcer, *CasbinWatcher, error) {
 	box := rice.MustFindBox("../../conf/")
-	model, err := model.NewModelFromString(box.MustString("casbin_model.conf"))
+	m, err := model.NewModelFromString(box.MustString("casbin_model.conf"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -132,7 +119,7 @@ func createCasbin(data *kivik.Client, logger echo.Logger) (*casbin.Enforcer, *Ca
 
 	watcher := NewCasbinWatcher(data, logger)
 
-	e, err := casbin.NewEnforcer(model, adapter)
+	e, err := casbin.NewEnforcer(m, adapter)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -9,7 +9,6 @@ package maven
 import (
 	"errors"
 	"fmt"
-	"github.com/twitchtv/twirp"
 )
 
 func formatError(format string, args ...interface{}) error {
@@ -24,11 +23,5 @@ var (
 	}
 	ErrorInvalidRepoId = func(id string) error {
 		return formatError("invalid repo id. %s is not a valid Maven repo identifier", id)
-	}
-)
-
-var (
-	TwirpRepoNotFoundError = func(id string) twirp.Error {
-		return twirp.NotFoundError(fmt.Sprintf("no Maven repository found by id %s", id))
 	}
 )

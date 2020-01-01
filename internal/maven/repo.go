@@ -147,13 +147,13 @@ func fromId(id string) (Repo, error) {
 func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 	db := m.data.DB(ctx, "maven2")
 
-	m.logger.Infof("Initializing repo %s", repo.ID)
+	m.Logger.Infof("Initializing repo %s", repo.ID)
 	err := save(ctx, db, repo)
 	if err != nil {
 		return err
 	}
 
-	m.logger.Infof("Created repo %s", repo.ID)
+	m.Logger.Infof("Created repo %s", repo.ID)
 	t, err := template.New("migrateDB-metadata.xml").Parse(baseMetadataFile)
 	if err != nil {
 		return err
@@ -169,7 +169,7 @@ func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 		return err
 	}
 
-	m.logger.Infof("Creating file %s", t.ParseName)
+	m.Logger.Infof("Creating file %s", t.ParseName)
 	file := &RepoFile{
 		Repo:     repo,
 		Filename: t.ParseName,

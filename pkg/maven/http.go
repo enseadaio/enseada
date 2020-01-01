@@ -7,7 +7,12 @@
 package maven
 
 import (
+	"github.com/enseadaio/enseada/internal/auth"
+	"github.com/enseadaio/enseada/internal/maven"
+	mavenv1beta1api "github.com/enseadaio/enseada/internal/maven/v1beta1"
+	"github.com/enseadaio/enseada/internal/middleware"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
+	"github.com/ory/fosite"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -15,18 +20,19 @@ import (
 	"github.com/labstack/echo"
 )
 
-func (m *Maven) MountRoutes(e *echo.Echo) {
+func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Provider) {
 	g := e.Group("/maven2")
 
 	g.GET("/*", getMaven(m))
 	g.PUT("/*", storeMaven(m))
 
-	mvnsvc := ServiceV1Beta1{Maven: m}
-	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
-	e.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
+	mvnsvc := mavenv1beta1api.Service{Maven: m}
+	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, middleware.AuthTwirpHooks(m.Logger, s, op))
+	h := echo.WrapHandler(middleware.WithAuthorizationStrategy(mvnHandler))
+	e.Any(mvnHandler.PathPrefix()+"*", h)
 }
 
-func getMaven(mvn *Maven) echo.HandlerFunc {
+func getMaven(mvn *maven.Maven) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		path := strings.TrimPrefix(c.Request().RequestURI, "/")
@@ -46,7 +52,7 @@ func getMaven(mvn *Maven) echo.HandlerFunc {
 	}
 }
 
-func storeMaven(mvn *Maven) echo.HandlerFunc {
+func storeMaven(mvn *maven.Maven) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		path := strings.TrimPrefix(c.Request().RequestURI, "/maven2/")
@@ -59,7 +65,7 @@ func storeMaven(mvn *Maven) echo.HandlerFunc {
 		file, err := mvn.PutRepoFile(ctx, path, body)
 		if err != nil {
 			c.Logger().Error(err)
-			if err == ErrorRepoNotFound {
+			if err == maven.ErrorRepoNotFound {
 				return c.NoContent(http.StatusNotFound)
 			}
 			return err

@@ -80,8 +80,10 @@ func (w *CasbinWatcher) Start(ctx context.Context) error {
 				return
 			default:
 				for ch.Next() {
-					w.logger.Debugf("received change from feed. id: %s", ch.ID())
-					w.callback(ch.ID())
+					if ch.ID() != "" {
+						w.logger.Debugf("received change from feed. id: %s", ch.ID())
+						w.callback(ch.ID())
+					}
 				}
 
 				if ch.Err() != nil {

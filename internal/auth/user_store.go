@@ -3,10 +3,10 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
+	"github.com/ory/fosite"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -42,10 +42,10 @@ func (s *UserStore) Authenticate(ctx context.Context, username string, password 
 		return bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
 	}
 
-	return fmt.Errorf("user not found for username %s", username)
+	return fosite.ErrNotFound
 }
 
-func (s *UserStore) Save(ctx context.Context, u *User) error {
+func (s *UserStore) SaveUser(ctx context.Context, u *User) error {
 	db := s.data.DB(ctx, couch.UsersDB)
 	if u.HashedPassword == nil {
 		err := hashPassword(u)
@@ -64,15 +64,15 @@ func (s *UserStore) Save(ctx context.Context, u *User) error {
 	return nil
 }
 
-func (s *UserStore) FindByUsername(ctx context.Context, username string) (*User, error) {
-	return s.FindBy(ctx, couch.Query{
+func (s *UserStore) FindUserByUsername(ctx context.Context, username string) (*User, error) {
+	return s.FindUserBy(ctx, couch.Query{
 		"selector": couch.Query{
 			"username": username,
 		},
 	})
 }
 
-func (s *UserStore) FindBy(ctx context.Context, query couch.Query) (*User, error) {
+func (s *UserStore) FindUserBy(ctx context.Context, query couch.Query) (*User, error) {
 	db := s.data.DB(ctx, couch.UsersDB)
 	rows, err := db.Find(ctx, query)
 	if err != nil {
@@ -89,6 +89,21 @@ func (s *UserStore) FindBy(ctx context.Context, query couch.Query) (*User, error
 	}
 
 	return nil, nil
+}
+
+func (s *UserStore) GetUser(ctx context.Context, id string) (*User, error) {
+	db := s.data.DB(ctx, couch.UsersDB)
+	row := db.Get(ctx, id)
+	var user User
+	if err := row.ScanDoc(&user); err != nil {
+		return nil, err
+	}
+
+	if row.Err != nil {
+		return nil, row.Err
+	}
+
+	return &user, nil
 }
 
 func hashPassword(u *User) error {

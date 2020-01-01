@@ -13,6 +13,7 @@ import (
 	"github.com/enseadaio/enseada/pkg/http"
 	"github.com/enseadaio/enseada/pkg/maven"
 	"github.com/spf13/viper"
+	goauth "golang.org/x/oauth2"
 	"strings"
 )
 
@@ -25,6 +26,17 @@ func Boot(ctx context.Context) (StartFunc, StopFunc, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
 	ph := conf.GetString("public.host")
 	sec := conf.GetString("default.oauth.client.secret")
+	oc := &goauth.Config{
+		ClientID:     "enseada",
+		ClientSecret: sec,
+		Endpoint: goauth.Endpoint{
+			AuthURL:   ph + "/oauth/authorize",
+			TokenURL:  ph + "/oauth/token",
+			AuthStyle: goauth.AuthStyleAutoDetect,
+		},
+		RedirectURL: ph + "/ui/callback",
+		Scopes:      []string{"openid", "profile"},
+	}
 
 	data, err := dbClient(ctx, conf)
 	if err != nil {
@@ -36,19 +48,19 @@ func Boot(ctx context.Context) (StartFunc, StopFunc, error) {
 		return nil, nil, err
 	}
 
-	authLogger := newLogger("auth", lvl)
-	a, err := auth.Boot(ctx, data, authLogger, skb, ph, sec)
+	echo, err := http.Boot(ctx, lvl, oc, skb)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	echo, err := http.Boot(ctx, lvl, a.Provider, a.Client, a.Store, skb)
+	authLogger := newLogger("auth", lvl)
+	a, err := auth.Boot(ctx, echo, data, authLogger, skb, ph, sec)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	mvnLogger := newLogger("maven2", lvl)
-	if err := maven.Boot(ctx, mvnLogger, echo, data, storage, a.Enforcer); err != nil {
+	if err := maven.Boot(ctx, mvnLogger, echo, data, storage, a.Enforcer, a.Store, a.Provider); err != nil {
 		return nil, nil, err
 	}
 

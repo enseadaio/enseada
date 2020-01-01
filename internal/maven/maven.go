@@ -14,7 +14,7 @@ import (
 )
 
 type Maven struct {
-	logger   echo.Logger
+	Logger   echo.Logger
 	data     *kivik.Client
 	storage  storage.Backend
 	enforcer *casbin.Enforcer
@@ -22,7 +22,7 @@ type Maven struct {
 
 func New(logger echo.Logger, data *kivik.Client, storage storage.Backend, enforcer *casbin.Enforcer) *Maven {
 	return &Maven{
-		logger:   logger,
+		Logger:   logger,
 		data:     data,
 		storage:  storage,
 		enforcer: enforcer,
