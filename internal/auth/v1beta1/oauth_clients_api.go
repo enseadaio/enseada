@@ -2,13 +2,14 @@ package authv1beta1api
 
 import (
 	"context"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/guid"
 	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/internal/scope"
-	"github.com/enseadaio/enseada/rpc/auth/v1beta1"
+	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"

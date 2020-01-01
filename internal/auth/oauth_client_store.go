@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/enseadaio/enseada/internal/scope"
 
 	"github.com/enseadaio/enseada/internal/couch"
