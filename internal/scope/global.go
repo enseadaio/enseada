@@ -14,4 +14,8 @@ var AllScopes = []string{
 	ACLRead,
 	ACLWrite,
 	ACLDelete,
+
+	// OAuth
+	OAuthReadClients,
+	OAuthWriteClients,
 }

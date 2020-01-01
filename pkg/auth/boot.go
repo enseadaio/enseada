@@ -73,9 +73,14 @@ func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger echo.Log
 			return nil, err
 		}
 
-		if err := s.RegisterClient(ctx, defaultClient); err != nil {
+		if err := s.SaveClient(ctx, defaultClient); err != nil {
 			return nil, err
 		}
+	}
+
+	err = s.InitDefaultClients(ctx, ph, clientSecret)
+	if err != nil {
+		return nil, err
 	}
 
 	fr, err := s.FindUserByUsername(ctx, "root")

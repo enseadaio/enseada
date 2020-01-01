@@ -16,6 +16,7 @@ type User struct {
 
 func RootUser(pwd string) *User {
 	return &User{
+		ID:       "root",
 		Username: "root",
 		Password: pwd,
 	}

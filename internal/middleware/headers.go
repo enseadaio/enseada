@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/enseadaio/enseada/internal/auth"
-	"github.com/enseadaio/enseada/internal/couch"
-	"github.com/enseadaio/enseada/internal/guid"
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 )
@@ -76,9 +74,8 @@ func WithAuthorizationHeader(base http.Handler, logger echo.Logger, s *auth.Stor
 			return
 		}
 
-		g := guid.NewWithRev(couch.UsersDB, u.ID, couch.KindUser, u.Rev)
-		logger.Infof("successfully authenticated user %s", g.String())
-		ctx = WithCurrentUserGUID(ctx, g)
+		logger.Infof("successfully authenticated user %s", u.ID)
+		ctx = WithCurrentUserID(ctx, u.ID)
 		ctx = WithScopes(ctx, ar.GetGrantedScopes())
 
 		r = r.WithContext(ctx)

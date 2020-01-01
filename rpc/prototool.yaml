@@ -15,7 +15,9 @@ lint:
   java_package_prefix: io.enseada
   rules:
     remove:
-      - NAMES_NO_DATA # Metadata should be allowed as a name
+      - NAMES_NO_DATA # 'Metadata' should be allowed as a name
+    add:
+      - RPCS_NO_STREAMING # Twirp doesn't support streaming anyway
 
 break:
   allow_beta_deps: false

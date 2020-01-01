@@ -30,8 +30,17 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 		Enforcer: enf,
 	}
 	aclhandler := authv1beta1.NewAclAPIServer(acl, nil)
-	h := echo.WrapHandler(middleware.WithAuthorizationHeader(aclhandler, s.Logger, s, op))
-	e.Any(aclhandler.PathPrefix()+"*", h)
+	ah := echo.WrapHandler(middleware.WithAuthorizationHeader(aclhandler, s.Logger, s, op))
+	e.Any(aclhandler.PathPrefix()+"*", ah)
+
+	oclients := &authv1beta1api.OAuthClientsService{
+		Logger:   s.Logger,
+		Enforcer: enf,
+		Store:    s,
+	}
+	oclientshandler := authv1beta1.NewOAuthClientsAPIServer(oclients, nil)
+	oh := echo.WrapHandler(middleware.WithAuthorizationHeader(oclientshandler, s.Logger, s, op))
+	e.Any(oclientshandler.PathPrefix()+"*", oh)
 }
 
 func authorizationPage() echo.HandlerFunc {

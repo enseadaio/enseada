@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/enseadaio/enseada/internal/scope"
 
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
@@ -28,7 +29,6 @@ func NewOAuthClientStore(data *kivik.Client, logger echo.Logger) *OAuthClientSto
 }
 
 func (c *OAuthClientStore) GetClient(ctx context.Context, id string) (fosite.Client, error) {
-	log.Debugf("Getting client with id %s", id)
 	db := c.Data.DB(ctx, couch.OAuthDB)
 	row := db.Get(ctx, id)
 
@@ -44,11 +44,65 @@ func (c *OAuthClientStore) GetClient(ctx context.Context, id string) (fosite.Cli
 	return &client, nil
 }
 
-func (c *OAuthClientStore) RegisterClient(ctx context.Context, client fosite.Client) error {
+func (c *OAuthClientStore) ListClients(ctx context.Context, selector couch.Query) ([]fosite.Client, error) {
+	db := c.Data.DB(ctx, couch.OAuthDB)
+	s := couch.Query{
+		"kind": couch.KindOAuthClient,
+	}
+	if len(selector) > 0 {
+		delete(selector, "kind")
+		for k, v := range selector {
+			s[k] = v
+		}
+
+	}
+
+	rows, err := db.Find(ctx, couch.Query{
+		"selector": s,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var clients []fosite.Client
+	for rows.Next() {
+		client := new(OAuthClient)
+		if err := rows.ScanDoc(client); err != nil {
+			return nil, err
+		}
+		clients = append(clients, client)
+	}
+
+	return clients, nil
+}
+
+func (c *OAuthClientStore) DeleteClient(ctx context.Context, id string) (fosite.Client, error) {
+	db := c.Data.DB(ctx, couch.OAuthDB)
+	row := db.Get(ctx, id)
+	cc := new(OAuthClient)
+	if err := row.ScanDoc(cc); err != nil {
+		if kivik.StatusCode(err) == kivik.StatusNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	rev, err := db.Delete(ctx, cc.ID, cc.Rev)
+	if err != nil {
+		return nil, err
+	}
+
+	cc.Rev = rev
+	return cc, nil
+}
+
+func (c *OAuthClientStore) SaveClient(ctx context.Context, client fosite.Client) error {
 	cl, ok := client.(couch.Storable)
 	if !ok {
 		return errors.New(fmt.Sprintf("client %s does not implement couch.Storable", client.GetID()))
 	}
+
 	db := c.Data.DB(ctx, couch.OAuthDB)
 	rev, err := db.Put(ctx, cl.GetID(), client)
 	if err != nil {
@@ -59,29 +113,49 @@ func (c *OAuthClientStore) RegisterClient(ctx context.Context, client fosite.Cli
 	return nil
 }
 
-func (c *OAuthClientStore) InitDefaultClient(ctx context.Context, publicHost string, secret string) error {
+func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, secret string) error {
 	db := c.Data.DB(ctx, couch.OAuthDB)
-	_, _, err := db.GetMeta(ctx, "enseada")
-	if err == nil {
-		return nil
-	}
-	if kivik.StatusCode(err) != kivik.StatusNotFound {
-		return err
-	}
 
 	client, err := NewOAuthClient("enseada", secret,
-		OAuthRedirectURIs(publicHost+"/ui/callback"),
-		OAuthScopes("openid"),
+		OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
+		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
+		OAuthScopes(scope.AllScopes...),
+		OAuthRedirectURIs(ph+"/ui/callback"),
 	)
 	if err != nil {
 		return err
 	}
 
-	err = c.RegisterClient(ctx, client)
+	err = c.initClient(ctx, db, client)
+	if err != nil {
+		return err
+	}
+
+	cli, err := NewOAuthClient("enseada-cli", "",
+		OAuthGrantTypes("refresh_token", "password", "client_credentials"),
+		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
+		OAuthScopes(scope.AllScopes...),
+		OAuthPublic(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	err = c.initClient(ctx, db, cli)
 	if err != nil {
 		return err
 	}
 
 	c.Logger.Infof("Created default OAuthProvider client. client_id: %s client_secret: %s", "enseada", secret)
 	return nil
+}
+
+func (c *OAuthClientStore) initClient(ctx context.Context, db *kivik.DB, cc *OAuthClient) error {
+	_, rev, err := db.GetMeta(ctx, cc.GetID())
+	if err != nil && kivik.StatusCode(err) != kivik.StatusNotFound {
+		return err
+	}
+
+	cc.Rev = rev
+	return c.SaveClient(ctx, cc)
 }

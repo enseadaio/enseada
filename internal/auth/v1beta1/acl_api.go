@@ -74,7 +74,7 @@ func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest
 	}
 
 	if _, err := guid.Parse(rule.Obj); err != nil {
-		return nil, twirp.InvalidArgumentError("sub", err.Error())
+		return nil, twirp.InvalidArgumentError("obj", err.Error())
 	}
 
 	if rule.Act == "" {
