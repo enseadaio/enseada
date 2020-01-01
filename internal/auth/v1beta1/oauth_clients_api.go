@@ -29,7 +29,7 @@ func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.
 	}
 
 	scopes, _ := middleware.Scopes(ctx)
-	if !scopes.Has(scope.OAuthReadClients) {
+	if !scopes.Has(scope.OAuthClientRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -50,7 +50,7 @@ func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.
 				return nil, err
 			}
 
-			if g.Kind() == couch.KindOAuthClient && p[2] == "read" {
+			if g.DB() == couch.OAuthDB && g.Kind() == couch.KindOAuthClient && p[2] == "read" {
 				ids = append(ids, g.ID())
 			}
 		}
@@ -85,7 +85,7 @@ func (o *OAuthClientsService) GetClient(ctx context.Context, req *authv1beta1.Ge
 	}
 
 	scopes, _ := middleware.Scopes(ctx)
-	if !scopes.Has(scope.OAuthReadClients) {
+	if !scopes.Has(scope.OAuthClientRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -124,7 +124,7 @@ func (o *OAuthClientsService) CreateClient(ctx context.Context, req *authv1beta1
 	}
 
 	scopes, _ := middleware.Scopes(ctx)
-	if !scopes.Has(scope.OAuthWriteClients) {
+	if !scopes.Has(scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -171,7 +171,7 @@ func (o *OAuthClientsService) UpdateClient(ctx context.Context, req *authv1beta1
 	}
 
 	scopes, _ := middleware.Scopes(ctx)
-	if !scopes.Has(scope.OAuthWriteClients) {
+	if !scopes.Has(scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -230,7 +230,7 @@ func (o *OAuthClientsService) DeleteClient(ctx context.Context, req *authv1beta1
 	}
 
 	scopes, _ := middleware.Scopes(ctx)
-	if !scopes.Has(scope.OAuthWriteClients) {
+	if !scopes.Has(scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -257,6 +257,13 @@ func (o *OAuthClientsService) DeleteClient(ctx context.Context, req *authv1beta1
 		return nil, twirp.NotFoundError("")
 	}
 
+	ps := []string{"read", "update", "delete"}
+	for _, p := range ps {
+		_, err := o.Enforcer.DeletePermissionForUser(id, cg.String(), p)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &authv1beta1.DeleteClientResponse{
 		Client: mapClientToProto(c),
 	}, nil

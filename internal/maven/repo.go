@@ -34,40 +34,41 @@ const baseMetadataFile = `
 `
 
 type Repo struct {
-	Id         string     `json:"_id,omitempty"`
-	Rev        string     `json:"_rev,omitempty"`
-	GroupID    string     `json:"group_id"`
-	ArtifactID string     `json:"artifact_id"`
-	StorePath  string     `json:"storage_path"`
-	Files      []string   `json:"files"`
-	Kind       couch.Kind `json:"kind"`
-}
-
-func (r *Repo) ID() string {
-	return r.Id
-}
-
-func (r *Repo) StoragePath() string {
-	return r.StorePath
+	ID          string     `json:"_id,omitempty"`
+	Rev         string     `json:"_rev,omitempty"`
+	GroupID     string     `json:"group_id"`
+	ArtifactID  string     `json:"artifact_id"`
+	StoragePath string     `json:"storage_path"`
+	Files       []string   `json:"files"`
+	Kind        couch.Kind `json:"kind"`
 }
 
 func NewRepo(groupID string, artifactID string) Repo {
 	group := strings.ReplaceAll(groupID, ".", "/")
 	return Repo{
-		Id:         repoID(groupID, artifactID),
-		GroupID:    groupID,
-		ArtifactID: artifactID,
-		StorePath:  strings.Join([]string{group, artifactID}, "/"),
-		Kind:       couch.KindRepository,
+		ID:          repoID(groupID, artifactID),
+		GroupID:     groupID,
+		ArtifactID:  artifactID,
+		StoragePath: strings.Join([]string{group, artifactID}, "/"),
+		Kind:        couch.KindRepository,
 	}
 }
 
-func (m *Maven) ListRepos(ctx context.Context) ([]*Repo, error) {
-	db := m.data.DB(ctx, "maven2")
-	rows, err := db.Find(ctx, map[string]interface{}{
-		"selector": map[string]interface{}{
-			"kind": "repository",
-		},
+func (m *Maven) ListRepos(ctx context.Context, selector couch.Query) ([]*Repo, error) {
+	db := m.data.DB(ctx, couch.MavenDB)
+	s := couch.Query{
+		"kind": "repository",
+	}
+	if len(selector) > 0 {
+		delete(selector, "kind")
+		for k, v := range selector {
+			s[k] = v
+		}
+
+	}
+
+	rows, err := db.Find(ctx, couch.Query{
+		"selector": s,
 	})
 
 	if err != nil {
@@ -90,7 +91,7 @@ func (m *Maven) ListRepos(ctx context.Context) ([]*Repo, error) {
 }
 
 func (m *Maven) GetRepo(ctx context.Context, id string) (*Repo, error) {
-	db := m.data.DB(ctx, "maven2")
+	db := m.data.DB(ctx, couch.MavenDB)
 	row := db.Get(ctx, id)
 	repo := &Repo{}
 	if err := row.ScanDoc(repo); err != nil {
@@ -107,8 +108,8 @@ func (m *Maven) FindRepo(ctx context.Context, groupID string, artifactID string)
 }
 
 func (m *Maven) SaveRepo(ctx context.Context, repo *Repo) error {
-	db := m.data.DB(ctx, "maven2")
-	rev, err := db.Put(ctx, repo.Id, repo)
+	db := m.data.DB(ctx, couch.MavenDB)
+	rev, err := db.Put(ctx, repo.ID, repo)
 	if err != nil {
 		return err
 	}
@@ -117,13 +118,13 @@ func (m *Maven) SaveRepo(ctx context.Context, repo *Repo) error {
 }
 
 func (m *Maven) DeleteRepo(ctx context.Context, id string) (*Repo, error) {
-	db := m.data.DB(ctx, "maven2")
+	db := m.data.DB(ctx, couch.MavenDB)
 	repo, err := m.GetRepo(ctx, id)
 	if err != nil || repo == nil {
 		return nil, err
 	}
 
-	rev, err := db.Delete(ctx, repo.Id, repo.Rev)
+	rev, err := db.Delete(ctx, repo.ID, repo.Rev)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +146,7 @@ func fromId(id string) (Repo, error) {
 }
 
 func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
-	db := m.data.DB(ctx, "maven2")
+	db := m.data.DB(ctx, couch.MavenDB)
 
 	m.Logger.Infof("Initializing repo %s", repo.ID)
 	err := save(ctx, db, repo)
@@ -154,7 +155,7 @@ func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 	}
 
 	m.Logger.Infof("Created repo %s", repo.ID)
-	t, err := template.New("migrateDB-metadata.xml").Parse(baseMetadataFile)
+	t, err := template.New("maven-metadata.xml").Parse(baseMetadataFile)
 	if err != nil {
 		return err
 	}
@@ -213,7 +214,7 @@ func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 }
 
 func save(ctx context.Context, db *kivik.DB, repo *Repo) error {
-	rev, err := db.Put(ctx, repo.Id, repo)
+	rev, err := db.Put(ctx, repo.ID, repo)
 	if err != nil {
 		switch kivik.StatusCode(err) {
 		case http.StatusConflict:

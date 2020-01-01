@@ -137,12 +137,9 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 			return nil
 		}
 
-		// If this is a client_credentials grant, grant all scopes the client is allowed to perform.
-		if ar.GetGrantTypes().Exact("client_credentials") {
-			for _, scope := range ar.GetRequestedScopes() {
-				if fosite.HierarchicScopeStrategy(ar.GetClient().GetScopes(), scope) {
-					ar.GrantScope(scope)
-				}
+		for _, scope := range ar.GetRequestedScopes() {
+			if fosite.WildcardScopeStrategy(ar.GetClient().GetScopes(), scope) {
+				ar.GrantScope(scope)
 			}
 		}
 
@@ -155,10 +152,6 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 			}
 
 			ar.SetSession(auth.NewSession(u))
-		}
-
-		for _, scope := range ar.GetRequestedScopes() {
-			ar.GrantScope(scope)
 		}
 
 		res, err := oauth.NewAccessResponse(ctx, ar)

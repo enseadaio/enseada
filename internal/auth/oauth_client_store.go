@@ -11,8 +11,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/enseadaio/enseada/internal/scope"
-
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
@@ -120,7 +118,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 	client, err := NewOAuthClient("enseada", secret,
 		OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
-		OAuthScopes(scope.AllScopes...),
+		OAuthScopes("*"),
 		OAuthRedirectURIs(ph+"/ui/callback"),
 	)
 	if err != nil {
@@ -135,7 +133,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 	cli, err := NewOAuthClient("enseada-cli", "",
 		OAuthGrantTypes("refresh_token", "password", "client_credentials"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
-		OAuthScopes(scope.AllScopes...),
+		OAuthScopes("*"),
 		OAuthPublic(true),
 	)
 	if err != nil {

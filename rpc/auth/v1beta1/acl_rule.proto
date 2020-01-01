@@ -18,7 +18,7 @@ option php_namespace = "Auth\\V1Beta1";
 
 // Single ACL rule.
 message AclRule {
-  // The subject of the rule. Required. Must be a valid Enseada GUID.
+  // The subject of the rule. Required.
   string sub = 1;
   // The subject of the rule. Required. Must be a valid Enseada GUID.
   string obj = 2;

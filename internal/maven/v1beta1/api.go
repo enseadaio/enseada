@@ -8,60 +8,117 @@ package mavenv1beta1api
 
 import (
 	"context"
-
+	"github.com/casbin/casbin/v2"
+	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/internal/guid"
 	"github.com/enseadaio/enseada/internal/maven"
+	"github.com/enseadaio/enseada/internal/middleware"
+	"github.com/enseadaio/enseada/internal/scope"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
-	metav1beta1 "github.com/enseadaio/enseada/rpc/meta/v1beta1"
 	"github.com/twitchtv/twirp"
 )
 
 type Service struct {
-	Maven *maven.Maven
+	Maven    *maven.Maven
+	Enforcer *casbin.Enforcer
 }
 
 func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
-	repos, err := s.Maven.ListRepos(ctx)
-	if err != nil {
-		return nil, err
+	id, ok := middleware.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	rr := make([]*mavenv1beta1.Repo, len(repos))
+	scopes, _ := middleware.Scopes(ctx)
+	if !scopes.Has(scope.MavenRepoRead) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
+	var repos []*maven.Repo
+	if id == "root" {
+		rs, err := s.Maven.ListRepos(ctx, couch.Query{})
+		if err != nil {
+			return nil, err
+		}
+
+		repos = rs
+	} else {
+		ps := s.Enforcer.GetPermissionsForUser(id)
+		ids := make([]string, 0)
+		for _, p := range ps {
+			g, err := guid.Parse(p[1])
+			if err != nil {
+				return nil, err
+			}
+
+			if g.DB() == couch.MavenDB && g.Kind() == couch.KindRepository && p[2] == "read" {
+				ids = append(ids, g.ID())
+			}
+		}
+
+		rs, err := s.Maven.ListRepos(ctx, couch.Query{
+			"_id": couch.Query{
+				"$in": ids,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		repos = rs
+	}
+	rs := make([]*mavenv1beta1.Repo, len(repos))
 	for i, repo := range repos {
 		r := &mavenv1beta1.Repo{
-			Metadata: &metav1beta1.Metadata{
-				Name: repo.Id,
-			},
+			Id:         repo.ID,
 			GroupId:    repo.GroupID,
 			ArtifactId: repo.ArtifactID,
 		}
-		rr[i] = r
+		rs[i] = r
 	}
 
 	return &mavenv1beta1.ListReposResponse{
-		Repos: rr,
+		Repos: rs,
 	}, nil
 }
 
 func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
-	id := req.GetId()
-	if id == "" {
+	id, ok := middleware.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	scopes, _ := middleware.Scopes(ctx)
+	if !scopes.Has(scope.MavenRepoRead) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
+	if req.GetId() == "" {
 		return nil, twirp.RequiredArgumentError("id")
 	}
 
-	repo, err := s.Maven.GetRepo(ctx, id)
+	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
+	can, err := s.Enforcer.Enforce(id, cg.String(), "read")
+	if err != nil {
+		return nil, err
+	}
+
+	if !can {
+		return nil, twirp.NotFoundError("")
+	}
+
+	repo, err := s.Maven.GetRepo(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 
 	if repo == nil {
-		return nil, TwirpRepoNotFoundError(id)
+		return nil, twirp.NotFoundError("")
 	}
 
 	return &mavenv1beta1.GetRepoResponse{
 		Repo: &mavenv1beta1.Repo{
-			Metadata: &metav1beta1.Metadata{
-				Name: repo.Id,
-			},
+			Id:         repo.ID,
 			GroupId:    repo.GroupID,
 			ArtifactId: repo.ArtifactID,
 		},
@@ -69,6 +126,16 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 }
 
 func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
+	id, ok := middleware.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	scopes, _ := middleware.Scopes(ctx)
+	if !scopes.Has(scope.MavenRepoWrite) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
 	if req.GetGroupId() == "" {
 		return nil, twirp.RequiredArgumentError("group_id")
 	}
@@ -86,11 +153,18 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 		return nil, err
 	}
 
+	cg := guid.New(couch.MavenDB, repo.ID, couch.KindRepository)
+	ps := []string{"read", "update", "delete"}
+	for _, p := range ps {
+		_, err := s.Enforcer.AddPermissionForUser(id, cg.String(), p)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &mavenv1beta1.CreateRepoResponse{
 		Repo: &mavenv1beta1.Repo{
-			Metadata: &metav1beta1.Metadata{
-				Name: repo.Id,
-			},
+			Id:         repo.ID,
 			GroupId:    repo.GroupID,
 			ArtifactId: repo.ArtifactID,
 		},
@@ -98,25 +172,42 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 }
 
 func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
-	id := req.GetId()
-	if id == "" {
+	id, ok := middleware.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	scopes, _ := middleware.Scopes(ctx)
+	if !scopes.Has(scope.MavenRepoWrite) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
+	if req.GetId() == "" {
 		return nil, twirp.RequiredArgumentError("id")
 	}
 
-	repo, err := s.Maven.DeleteRepo(ctx, id)
+	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
+	can, err := s.Enforcer.Enforce(id, cg.String(), "delete")
+	if err != nil {
+		return nil, err
+	}
+
+	if !can {
+		return nil, twirp.NotFoundError("")
+	}
+
+	repo, err := s.Maven.DeleteRepo(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 
 	if repo == nil {
-		return nil, TwirpRepoNotFoundError(id)
+		return nil, twirp.NotFoundError("")
 	}
 
 	return &mavenv1beta1.DeleteRepoResponse{
 		Repo: &mavenv1beta1.Repo{
-			Metadata: &metav1beta1.Metadata{
-				Name: id,
-			},
+			Id:         repo.ID,
 			GroupId:    repo.GroupID,
 			ArtifactId: repo.ArtifactID,
 		},

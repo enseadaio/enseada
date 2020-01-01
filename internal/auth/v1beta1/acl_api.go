@@ -29,7 +29,7 @@ func (s ACLService) ListRules(ctx context.Context, req *authv1beta1.ListRulesReq
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	if !scopes.Has(scope.ACLRead) {
+	if !scopes.Has(scope.ACLRuleRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -60,17 +60,13 @@ func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	if !scopes.Has(scope.ACLWrite) {
+	if !scopes.Has(scope.ACLRuleWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
 	rule := req.Rule
 	if rule == nil {
 		return nil, twirp.RequiredArgumentError("rule")
-	}
-
-	if _, err := guid.Parse(rule.Sub); err != nil {
-		return nil, twirp.InvalidArgumentError("sub", err.Error())
 	}
 
 	if _, err := guid.Parse(rule.Obj); err != nil {
@@ -99,17 +95,13 @@ func (s ACLService) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleR
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	if !scopes.Has(scope.ACLDelete) {
+	if !scopes.Has(scope.ACLRuleDelete) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
 	rule := req.Rule
 	if rule == nil {
 		return nil, twirp.RequiredArgumentError("rule")
-	}
-
-	if _, err := guid.Parse(rule.Sub); err != nil {
-		return nil, twirp.InvalidArgumentError("sub", err.Error())
 	}
 
 	if _, err := guid.Parse(rule.Obj); err != nil {

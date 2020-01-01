@@ -16,11 +16,9 @@ option java_package = "io.enseada.maven.v1beta1";
 option objc_class_prefix = "MXX";
 option php_namespace = "Maven\\V1Beta1";
 
-import "meta/v1beta1/metadata.proto";
-
 // A Maven repository.
 message Repo {
-  meta.v1beta1.Metadata metadata = 1;
+  string id = 1;
   string group_id = 2;
   string artifact_id = 3;
 }

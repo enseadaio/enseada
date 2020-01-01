@@ -13,9 +13,9 @@ import (
 	"github.com/ory/fosite"
 )
 
-func Boot(ctx context.Context, logger echo.Logger, e *echo.Echo, data *kivik.Client, store storage.Backend, enforcer *casbin.Enforcer, s *auth.Store, op fosite.OAuth2Provider) error {
-	mvn := maven.New(logger, data, store, enforcer)
-	mountRoutes(e, mvn, s, op)
+func Boot(ctx context.Context, logger echo.Logger, e *echo.Echo, data *kivik.Client, store storage.Backend, enf *casbin.Enforcer, s *auth.Store, op fosite.OAuth2Provider) error {
+	mvn := maven.New(logger, data, store)
+	mountRoutes(e, mvn, s, op, enf)
 
 	if err := couch.Transact(ctx, data, migrateDB, couch.MavenDB); err != nil {
 		return err

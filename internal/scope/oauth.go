@@ -1,6 +1,6 @@
 package scope
 
 const (
-	OAuthReadClients  = "oauth:read-clients"
-	OAuthWriteClients = "oauth:write-clients"
+	OAuthClientRead  = "oauth:client.read"
+	OAuthClientWrite = "oauth:client.write"
 )

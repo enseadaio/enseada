@@ -9,11 +9,12 @@ package maven
 import (
 	"context"
 	"fmt"
+	"github.com/enseadaio/enseada/internal/couch"
 	"sort"
 	"strings"
 )
 
-const StoragePrefix = "maven2"
+const StoragePrefix = couch.MavenDB
 
 type RepoFile struct {
 	Repo     *Repo
@@ -24,7 +25,7 @@ type RepoFile struct {
 
 func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 	m.Logger.Infof("looking up file with path %s", fmt.Sprintf(`"%s"`, path))
-	db := m.data.DB(ctx, "maven2")
+	db := m.data.DB(ctx, couch.MavenDB)
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"files": map[string]interface{}{
@@ -89,11 +90,11 @@ func (m *Maven) PutFile(ctx context.Context, path string, content []byte) error 
 }
 
 func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*RepoFile, error) {
-	db := m.data.DB(ctx, "maven2")
+	db := m.data.DB(ctx, couch.MavenDB)
 	rows, err := db.Find(ctx, map[string]interface{}{
 		"selector": map[string]interface{}{
 			"kind": "repository",
-			"type": "migrateDB",
+			"type": "maven",
 		},
 	})
 	if err != nil {
@@ -106,17 +107,17 @@ func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*
 		if err := rows.ScanDoc(&r); err != nil {
 			return nil, err
 		}
-		if strings.HasPrefix(path, r.StoragePath()) {
+		if strings.HasPrefix(path, r.StoragePath) {
 			repo = r
 			break
 		}
 	}
 
-	if repo.Id == "" {
+	if repo.ID == "" {
 		return nil, ErrorRepoNotFound
 	}
 
-	trimmed := strings.TrimPrefix(path, repo.StoragePath())
+	trimmed := strings.TrimPrefix(path, repo.StoragePath)
 	trimmed = strings.TrimPrefix(trimmed, "/")
 	slices := strings.Split(trimmed, "/")
 	filename := slices[len(slices)-1]
@@ -155,8 +156,8 @@ func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*
 func filePath(file *RepoFile) string {
 	repo := file.Repo
 	if file.Version == "" {
-		return fmt.Sprintf("%s/%s/%s", StoragePrefix, repo.StoragePath(), file.Filename)
+		return fmt.Sprintf("%s/%s/%s", StoragePrefix, repo.StoragePath, file.Filename)
 	} else {
-		return fmt.Sprintf("%s/%s/%s/%s", StoragePrefix, repo.StoragePath(), file.Version, file.Filename)
+		return fmt.Sprintf("%s/%s/%s/%s", StoragePrefix, repo.StoragePath, file.Version, file.Filename)
 	}
 }

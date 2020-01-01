@@ -7,6 +7,7 @@
 package maven
 
 import (
+	"github.com/casbin/casbin/v2"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -21,13 +22,16 @@ import (
 	"github.com/labstack/echo"
 )
 
-func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Provider) {
+func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer) {
 	g := e.Group("/maven2")
 
 	g.GET("/*", getMaven(m))
 	g.PUT("/*", storeMaven(m))
 
-	mvnsvc := mavenv1beta1api.Service{Maven: m}
+	mvnsvc := mavenv1beta1api.Service{
+		Maven:    m,
+		Enforcer: enf,
+	}
 	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
 	h := echo.WrapHandler(middleware.WithAuthorizationHeader(mvnHandler, m.Logger, s, op))
 	e.Any(mvnHandler.PathPrefix()+"*", h)

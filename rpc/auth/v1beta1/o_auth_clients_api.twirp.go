@@ -3,28 +3,18 @@
 
 package authv1beta1
 
-import (
-	bytes "bytes"
-	strings "strings"
+import bytes "bytes"
+import strings "strings"
+import context "context"
+import fmt "fmt"
+import ioutil "io/ioutil"
+import http "net/http"
+import strconv "strconv"
 
-	context "context"
-
-	fmt "fmt"
-
-	ioutil "io/ioutil"
-
-	http "net/http"
-
-	strconv "strconv"
-
-	jsonpb "github.com/golang/protobuf/jsonpb"
-
-	proto "github.com/golang/protobuf/proto"
-
-	twirp "github.com/twitchtv/twirp"
-
-	ctxsetters "github.com/twitchtv/twirp/ctxsetters"
-)
+import jsonpb "github.com/golang/protobuf/jsonpb"
+import proto "github.com/golang/protobuf/proto"
+import twirp "github.com/twitchtv/twirp"
+import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
 
 // =========================
 // OAuthClientsAPI Interface

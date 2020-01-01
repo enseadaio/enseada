@@ -5,9 +5,8 @@ package authv1beta1
 
 import (
 	fmt "fmt"
-	math "math"
-
 	proto "github.com/golang/protobuf/proto"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -23,7 +22,7 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // Single ACL rule.
 type AclRule struct {
-	// The subject of the rule. Required. Must be a valid Enseada GUID.
+	// The subject of the rule. Required.
 	Sub string `protobuf:"bytes,1,opt,name=sub,proto3" json:"sub,omitempty"`
 	// The subject of the rule. Required. Must be a valid Enseada GUID.
 	Obj string `protobuf:"bytes,2,opt,name=obj,proto3" json:"obj,omitempty"`
