@@ -167,7 +167,7 @@ update-toc:
 
 .PHONY: update-license
 update-license: | $(ADDLICENSE) ; $(info $(M) updating license headers…) @ ## Update license headers
-	$(Q) $(ADDLICENSE) -c "Enseada authors" -y 2019 -f ./rpc/copyright.txt **/*.go
+	$(Q) $(ADDLICENSE) -f ./rpc/copyright.txt ./cmd ./pkg ./internal ./rpc ./web
 
 .PHONY: install-hooks
 install-hooks: ; $(info $(M) installing git hooks…) @ ## Install git hooks
