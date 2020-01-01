@@ -9,12 +9,13 @@ package boot
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/enseadaio/enseada/pkg/http"
 	"github.com/enseadaio/enseada/pkg/maven"
 	"github.com/spf13/viper"
 	goauth "golang.org/x/oauth2"
-	"strings"
 )
 
 type StartFunc func(ctx context.Context) error

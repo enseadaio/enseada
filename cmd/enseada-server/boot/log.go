@@ -7,8 +7,9 @@
 package boot
 
 import (
-	"github.com/labstack/echo"
 	"strings"
+
+	"github.com/labstack/echo"
 
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"

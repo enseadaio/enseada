@@ -2,6 +2,9 @@ package middleware
 
 import (
 	"context"
+
+	"github.com/ory/fosite"
+
 	"github.com/enseadaio/enseada/internal/guid"
 )
 
@@ -10,6 +13,7 @@ type contextKey int
 const (
 	currentUserGUID contextKey = 1 + iota
 	authStrategy
+	scopes
 )
 
 func CurrentUserGUID(ctx context.Context) (guid.GUID, bool) {
@@ -17,15 +21,15 @@ func CurrentUserGUID(ctx context.Context) (guid.GUID, bool) {
 	return g, ok
 }
 
-func SetCurrentUserGUID(ctx context.Context, g guid.GUID) context.Context {
+func WithCurrentUserGUID(ctx context.Context, g guid.GUID) context.Context {
 	return context.WithValue(ctx, currentUserGUID, g)
 }
 
-func AuthStrategy(ctx context.Context) (AuthorizationStrategy, bool) {
-	a, ok := ctx.Value(authStrategy).(AuthorizationStrategy)
-	return a, ok
+func Scopes(ctx context.Context) (fosite.Arguments, bool) {
+	s, ok := ctx.Value(scopes).(fosite.Arguments)
+	return s, ok
 }
 
-func SetAuthStrategy(ctx context.Context, a AuthorizationStrategy) context.Context {
-	return context.WithValue(ctx, authStrategy, a)
+func WithScopes(ctx context.Context, s fosite.Arguments) context.Context {
+	return context.WithValue(ctx, scopes, s)
 }

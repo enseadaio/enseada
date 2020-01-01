@@ -7,15 +7,16 @@
 package maven
 
 import (
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/maven"
 	mavenv1beta1api "github.com/enseadaio/enseada/internal/maven/v1beta1"
 	"github.com/enseadaio/enseada/internal/middleware"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/ory/fosite"
-	"io/ioutil"
-	"net/http"
-	"strings"
 
 	"github.com/labstack/echo"
 )
@@ -27,8 +28,8 @@ func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Pr
 	g.PUT("/*", storeMaven(m))
 
 	mvnsvc := mavenv1beta1api.Service{Maven: m}
-	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, middleware.AuthTwirpHooks(m.Logger, s, op))
-	h := echo.WrapHandler(middleware.WithAuthorizationStrategy(mvnHandler))
+	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
+	h := echo.WrapHandler(middleware.WithAuthorizationHeader(mvnHandler, m.Logger, s, op))
 	e.Any(mvnHandler.PathPrefix()+"*", h)
 }
 

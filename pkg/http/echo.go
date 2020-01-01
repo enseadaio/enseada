@@ -1,11 +1,12 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/enseadaio/enseada/internal/utils"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
-	"net/http"
 )
 
 func createEchoServer(lvl log.Lvl) *echo.Echo {

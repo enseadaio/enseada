@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"time"
+
 	session "github.com/ipfans/echo-session"
 	"github.com/labstack/echo"
-	"time"
 )
 
 func Session(skb []byte) echo.MiddlewareFunc {

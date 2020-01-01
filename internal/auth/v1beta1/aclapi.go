@@ -8,10 +8,11 @@ package authv1beta1api
 
 import (
 	"context"
-	"github.com/enseadaio/enseada/internal/middleware"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/guid"
+	"github.com/enseadaio/enseada/internal/middleware"
+	"github.com/enseadaio/enseada/internal/scope"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/labstack/echo"
 	"github.com/twitchtv/twirp"
@@ -23,12 +24,15 @@ type ACLService struct {
 }
 
 func (s ACLService) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
-	g, ok := middleware.CurrentUserGUID(ctx)
+	scopes, ok := middleware.Scopes(ctx)
 	if !ok {
-		s.Logger.Info("no current user")
-	} else {
-		s.Logger.Infof("current user: %s", g.String())
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
+
+	if !scopes.Has(scope.ACLRead) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
 	policy := s.Enforcer.GetPolicy()
 	var rules []*authv1beta1.AclRule
 
@@ -51,6 +55,15 @@ func (s ACLService) ListRules(ctx context.Context, req *authv1beta1.ListRulesReq
 }
 
 func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (*authv1beta1.AddRuleResponse, error) {
+	scopes, ok := middleware.Scopes(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	if !scopes.Has(scope.ACLWrite) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
 	rule := req.Rule
 	if rule == nil {
 		return nil, twirp.RequiredArgumentError("rule")
@@ -78,4 +91,43 @@ func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest
 	}
 
 	return nil, twirp.NewError(twirp.AlreadyExists, "")
+}
+
+func (s ACLService) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleRequest) (*authv1beta1.DeleteRuleResponse, error) {
+	scopes, ok := middleware.Scopes(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	if !scopes.Has(scope.ACLDelete) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
+	rule := req.Rule
+	if rule == nil {
+		return nil, twirp.RequiredArgumentError("rule")
+	}
+
+	if _, err := guid.Parse(rule.Sub); err != nil {
+		return nil, twirp.InvalidArgumentError("sub", err.Error())
+	}
+
+	if _, err := guid.Parse(rule.Obj); err != nil {
+		return nil, twirp.InvalidArgumentError("sub", err.Error())
+	}
+
+	if rule.Act == "" {
+		return nil, twirp.RequiredArgumentError("act")
+	}
+
+	ok, err := s.Enforcer.RemovePolicy(rule.Sub, rule.Obj, rule.Act)
+	if err != nil {
+		return nil, err
+	}
+
+	if ok {
+		return &authv1beta1.DeleteRuleResponse{Rule: rule}, nil
+	}
+
+	return nil, twirp.NotFoundError("")
 }

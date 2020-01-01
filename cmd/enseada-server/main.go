@@ -8,13 +8,14 @@ package main
 
 import (
 	"context"
-	"github.com/enseadaio/enseada/cmd/enseada-server/boot"
-	"github.com/joho/godotenv"
-	"github.com/labstack/gommon/log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/enseadaio/enseada/cmd/enseada-server/boot"
+	"github.com/joho/godotenv"
+	"github.com/labstack/gommon/log"
 )
 
 func init() {

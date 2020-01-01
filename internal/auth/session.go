@@ -1,11 +1,12 @@
 package auth
 
 import (
+	"time"
+
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
-	"time"
 )
 
 func NewSession(u *User) fosite.Session {

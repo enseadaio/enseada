@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	authv1beta1api "github.com/enseadaio/enseada/internal/auth/v1beta1"
@@ -12,8 +15,6 @@ import (
 	"github.com/labstack/gommon/random"
 	"github.com/ory/fosite"
 	"github.com/pkg/errors"
-	"net/http"
-	"strings"
 )
 
 func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc) {
@@ -28,9 +29,8 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 		Logger:   s.Logger,
 		Enforcer: enf,
 	}
-
-	aclhandler := authv1beta1.NewAclAPIServer(acl, middleware.AuthTwirpHooks(s.Logger, s, op))
-	h := echo.WrapHandler(middleware.WithAuthorizationStrategy(aclhandler))
+	aclhandler := authv1beta1.NewAclAPIServer(acl, nil)
+	h := echo.WrapHandler(middleware.WithAuthorizationHeader(aclhandler, s.Logger, s, op))
 	e.Any(aclhandler.PathPrefix()+"*", h)
 }
 

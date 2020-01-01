@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+
 	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"

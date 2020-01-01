@@ -4,6 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+
+	"github.com/enseadaio/enseada/internal/scope"
+
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -63,7 +66,7 @@ func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger echo.Log
 		defaultClient, err := auth.NewOAuthClient("enseada", clientSecret,
 			auth.OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
 			auth.OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
-			auth.OAuthScopes("openid", "profile"),
+			auth.OAuthScopes(scope.AllScopes...),
 			auth.OAuthRedirectURIs(ph+"/ui/callback"),
 		)
 		if err != nil {

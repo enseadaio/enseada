@@ -8,6 +8,7 @@ package boot
 
 import (
 	"context"
+
 	"github.com/go-kivik/couchdb"
 
 	"github.com/go-kivik/kivik"

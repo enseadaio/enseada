@@ -24,6 +24,8 @@ service AclAPI {
   rpc ListRules(ListRulesRequest) returns (ListRulesResponse);
   // Add a new ACL rules.
   rpc AddRule(AddRuleRequest) returns (AddRuleResponse);
+  // Delete an ACL rules.
+  rpc DeleteRule(DeleteRuleRequest) returns (DeleteRuleResponse);
 }
 
 // Request body to list all available ACL rules.
@@ -42,5 +44,16 @@ message AddRuleRequest {
 
 // Response body with the newly added ACL rule.
 message AddRuleResponse {
+  auth.v1beta1.AclRule rule = 1;
+}
+
+// Request body to delete an ACL rule.
+message DeleteRuleRequest {
+  // The rule to delete. Required.
+  auth.v1beta1.AclRule rule = 1;
+}
+
+// Response body with the deleted ACL rule.
+message DeleteRuleResponse {
   auth.v1beta1.AclRule rule = 1;
 }

@@ -175,46 +175,38 @@
         
           
           <li>
-            <a href="#maven%2fv1beta1%2fmaven_api.proto">maven/v1beta1/maven_api.proto</a>
+            <a href="#auth%2fv1beta1%2facl_api.proto">auth/v1beta1/acl_api.proto</a>
             <ul>
               
                 <li>
-                  <a href="#maven.v1beta1.CreateRepoRequest"><span class="badge">M</span>CreateRepoRequest</a>
+                  <a href="#auth.v1beta1.AddRuleRequest"><span class="badge">M</span>AddRuleRequest</a>
                 </li>
               
                 <li>
-                  <a href="#maven.v1beta1.CreateRepoResponse"><span class="badge">M</span>CreateRepoResponse</a>
+                  <a href="#auth.v1beta1.AddRuleResponse"><span class="badge">M</span>AddRuleResponse</a>
                 </li>
               
                 <li>
-                  <a href="#maven.v1beta1.DeleteRepoRequest"><span class="badge">M</span>DeleteRepoRequest</a>
+                  <a href="#auth.v1beta1.DeleteRuleRequest"><span class="badge">M</span>DeleteRuleRequest</a>
                 </li>
               
                 <li>
-                  <a href="#maven.v1beta1.DeleteRepoResponse"><span class="badge">M</span>DeleteRepoResponse</a>
+                  <a href="#auth.v1beta1.DeleteRuleResponse"><span class="badge">M</span>DeleteRuleResponse</a>
                 </li>
               
                 <li>
-                  <a href="#maven.v1beta1.GetRepoRequest"><span class="badge">M</span>GetRepoRequest</a>
+                  <a href="#auth.v1beta1.ListRulesRequest"><span class="badge">M</span>ListRulesRequest</a>
                 </li>
               
                 <li>
-                  <a href="#maven.v1beta1.GetRepoResponse"><span class="badge">M</span>GetRepoResponse</a>
-                </li>
-              
-                <li>
-                  <a href="#maven.v1beta1.ListReposRequest"><span class="badge">M</span>ListReposRequest</a>
-                </li>
-              
-                <li>
-                  <a href="#maven.v1beta1.ListReposResponse"><span class="badge">M</span>ListReposResponse</a>
+                  <a href="#auth.v1beta1.ListRulesResponse"><span class="badge">M</span>ListRulesResponse</a>
                 </li>
               
               
               
               
                 <li>
-                  <a href="#maven.v1beta1.MavenAPI"><span class="badge">S</span>MavenAPI</a>
+                  <a href="#auth.v1beta1.AclAPI"><span class="badge">S</span>AclAPI</a>
                 </li>
               
             </ul>
@@ -222,11 +214,11 @@
         
           
           <li>
-            <a href="#maven%2fv1beta1%2frepo.proto">maven/v1beta1/repo.proto</a>
+            <a href="#auth%2fv1beta1%2facl_rule.proto">auth/v1beta1/acl_rule.proto</a>
             <ul>
               
                 <li>
-                  <a href="#maven.v1beta1.Repo"><span class="badge">M</span>Repo</a>
+                  <a href="#auth.v1beta1.AclRule"><span class="badge">M</span>AclRule</a>
                 </li>
               
               
@@ -242,13 +234,13 @@
     
       
       <div class="file-heading">
-        <h2 id="maven/v1beta1/maven_api.proto">maven/v1beta1/maven_api.proto</h2><a href="#title">Top</a>
+        <h2 id="auth/v1beta1/acl_api.proto">auth/v1beta1/acl_api.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
 
       
-        <h3 id="maven.v1beta1.CreateRepoRequest">CreateRepoRequest</h3>
-        <p>Request body to create a new Maven repository.</p>
+        <h3 id="auth.v1beta1.AddRuleRequest">AddRuleRequest</h3>
+        <p>Request body to add a new ACL rule.</p>
 
         
           <table class="field-table">
@@ -258,17 +250,10 @@
             <tbody>
               
                 <tr>
-                  <td>group_id</td>
-                  <td><a href="#string">string</a></td>
+                  <td>rule</td>
+                  <td><a href="#auth.v1beta1.AclRule">AclRule</a></td>
                   <td></td>
-                  <td><p>The repository Group ID. Required. </p></td>
-                </tr>
-              
-                <tr>
-                  <td>artifact_id</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>The repository Artifact ID. Required. </p></td>
+                  <td><p>The rule to add. Required. </p></td>
                 </tr>
               
             </tbody>
@@ -278,8 +263,8 @@
 
         
       
-        <h3 id="maven.v1beta1.CreateRepoResponse">CreateRepoResponse</h3>
-        <p>Response body with the newly created Maven repository.</p>
+        <h3 id="auth.v1beta1.AddRuleResponse">AddRuleResponse</h3>
+        <p>Response body with the newly added ACL rule.</p>
 
         
           <table class="field-table">
@@ -289,8 +274,8 @@
             <tbody>
               
                 <tr>
-                  <td>repo</td>
-                  <td><a href="#maven.v1beta1.Repo">Repo</a></td>
+                  <td>rule</td>
+                  <td><a href="#auth.v1beta1.AclRule">AclRule</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -302,8 +287,8 @@
 
         
       
-        <h3 id="maven.v1beta1.DeleteRepoRequest">DeleteRepoRequest</h3>
-        <p>Request body to retrieve a Maven repository.</p>
+        <h3 id="auth.v1beta1.DeleteRuleRequest">DeleteRuleRequest</h3>
+        <p>Request body to delete an ACL rule.</p>
 
         
           <table class="field-table">
@@ -313,10 +298,10 @@
             <tbody>
               
                 <tr>
-                  <td>id</td>
-                  <td><a href="#string">string</a></td>
+                  <td>rule</td>
+                  <td><a href="#auth.v1beta1.AclRule">AclRule</a></td>
                   <td></td>
-                  <td><p>ID of the repository to retrieve. Required. </p></td>
+                  <td><p>The rule to delete. Required. </p></td>
                 </tr>
               
             </tbody>
@@ -326,8 +311,8 @@
 
         
       
-        <h3 id="maven.v1beta1.DeleteRepoResponse">DeleteRepoResponse</h3>
-        <p>Response body with the requested Maven repository.</p>
+        <h3 id="auth.v1beta1.DeleteRuleResponse">DeleteRuleResponse</h3>
+        <p>Response body with the deleted ACL rule.</p>
 
         
           <table class="field-table">
@@ -337,56 +322,8 @@
             <tbody>
               
                 <tr>
-                  <td>repo</td>
-                  <td><a href="#maven.v1beta1.Repo">Repo</a></td>
-                  <td></td>
-                  <td><p> </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="maven.v1beta1.GetRepoRequest">GetRepoRequest</h3>
-        <p>Request body to retrieve a Maven repository.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>id</td>
-                  <td><a href="#string">string</a></td>
-                  <td></td>
-                  <td><p>ID of the repository to retrieve. Required. </p></td>
-                </tr>
-              
-            </tbody>
-          </table>
-
-          
-
-        
-      
-        <h3 id="maven.v1beta1.GetRepoResponse">GetRepoResponse</h3>
-        <p>Response body with the requested Maven repository.</p>
-
-        
-          <table class="field-table">
-            <thead>
-              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
-            </thead>
-            <tbody>
-              
-                <tr>
-                  <td>repo</td>
-                  <td><a href="#maven.v1beta1.Repo">Repo</a></td>
+                  <td>rule</td>
+                  <td><a href="#auth.v1beta1.AclRule">AclRule</a></td>
                   <td></td>
                   <td><p> </p></td>
                 </tr>
@@ -398,15 +335,15 @@
 
         
       
-        <h3 id="maven.v1beta1.ListReposRequest">ListReposRequest</h3>
-        <p>Request body to list all available Maven repositories.</p>
+        <h3 id="auth.v1beta1.ListRulesRequest">ListRulesRequest</h3>
+        <p>Request body to list all available ACL rules.</p>
 
         
 
         
       
-        <h3 id="maven.v1beta1.ListReposResponse">ListReposResponse</h3>
-        <p>Response body with a list of all available Maven repositories.</p>
+        <h3 id="auth.v1beta1.ListRulesResponse">ListRulesResponse</h3>
+        <p>Response body with a list of all available ACL rules.</p>
 
         
           <table class="field-table">
@@ -416,8 +353,8 @@
             <tbody>
               
                 <tr>
-                  <td>repos</td>
-                  <td><a href="#maven.v1beta1.Repo">Repo</a></td>
+                  <td>rules</td>
+                  <td><a href="#auth.v1beta1.AclRule">AclRule</a></td>
                   <td>repeated</td>
                   <td><p> </p></td>
                 </tr>
@@ -435,8 +372,8 @@
       
 
       
-        <h3 id="maven.v1beta1.MavenAPI">MavenAPI</h3>
-        <p>RPC API for interacting with Maven repositories.</p>
+        <h3 id="auth.v1beta1.AclAPI">AclAPI</h3>
+        <p>RPC API to manage ACL and policies.</p>
         <table class="enum-table">
           <thead>
             <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
@@ -444,31 +381,24 @@
           <tbody>
             
               <tr>
-                <td>ListRepos</td>
-                <td><a href="#maven.v1beta1.ListReposRequest">ListReposRequest</a></td>
-                <td><a href="#maven.v1beta1.ListReposResponse">ListReposResponse</a></td>
-                <td><p>List all available Maven repositories.</p></td>
+                <td>ListRules</td>
+                <td><a href="#auth.v1beta1.ListRulesRequest">ListRulesRequest</a></td>
+                <td><a href="#auth.v1beta1.ListRulesResponse">ListRulesResponse</a></td>
+                <td><p>List all available ACL rules.</p></td>
               </tr>
             
               <tr>
-                <td>GetRepo</td>
-                <td><a href="#maven.v1beta1.GetRepoRequest">GetRepoRequest</a></td>
-                <td><a href="#maven.v1beta1.GetRepoResponse">GetRepoResponse</a></td>
-                <td><p>Retrieve a Maven repository.</p></td>
+                <td>AddRule</td>
+                <td><a href="#auth.v1beta1.AddRuleRequest">AddRuleRequest</a></td>
+                <td><a href="#auth.v1beta1.AddRuleResponse">AddRuleResponse</a></td>
+                <td><p>Add a new ACL rules.</p></td>
               </tr>
             
               <tr>
-                <td>CreateRepo</td>
-                <td><a href="#maven.v1beta1.CreateRepoRequest">CreateRepoRequest</a></td>
-                <td><a href="#maven.v1beta1.CreateRepoResponse">CreateRepoResponse</a></td>
-                <td><p>Create a new Maven repository.</p></td>
-              </tr>
-            
-              <tr>
-                <td>DeleteRepo</td>
-                <td><a href="#maven.v1beta1.DeleteRepoRequest">DeleteRepoRequest</a></td>
-                <td><a href="#maven.v1beta1.DeleteRepoResponse">DeleteRepoResponse</a></td>
-                <td><p>Delete a Maven repository.</p></td>
+                <td>DeleteRule</td>
+                <td><a href="#auth.v1beta1.DeleteRuleRequest">DeleteRuleRequest</a></td>
+                <td><a href="#auth.v1beta1.DeleteRuleResponse">DeleteRuleResponse</a></td>
+                <td><p>Delete an ACL rules.</p></td>
               </tr>
             
           </tbody>
@@ -478,13 +408,13 @@
     
       
       <div class="file-heading">
-        <h2 id="maven/v1beta1/repo.proto">maven/v1beta1/repo.proto</h2><a href="#title">Top</a>
+        <h2 id="auth/v1beta1/acl_rule.proto">auth/v1beta1/acl_rule.proto</h2><a href="#title">Top</a>
       </div>
       <p></p>
 
       
-        <h3 id="maven.v1beta1.Repo">Repo</h3>
-        <p>A Maven repository.</p>
+        <h3 id="auth.v1beta1.AclRule">AclRule</h3>
+        <p>Single ACL rule.</p>
 
         
           <table class="field-table">
@@ -494,24 +424,24 @@
             <tbody>
               
                 <tr>
-                  <td>metadata</td>
-                  <td><a href="#meta.v1beta1.Metadata">meta.v1beta1.Metadata</a></td>
+                  <td>sub</td>
+                  <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>The subject of the rule. Required. Must be a valid Enseada GUID. </p></td>
                 </tr>
               
                 <tr>
-                  <td>group_id</td>
+                  <td>obj</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>The subject of the rule. Required. Must be a valid Enseada GUID. </p></td>
                 </tr>
               
                 <tr>
-                  <td>artifact_id</td>
+                  <td>act</td>
                   <td><a href="#string">string</a></td>
                   <td></td>
-                  <td><p> </p></td>
+                  <td><p>The action of the rule. Required. </p></td>
                 </tr>
               
             </tbody>
