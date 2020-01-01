@@ -76,7 +76,7 @@ func printRepos(repos ...*mavenv1beta1.Repo) {
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Name", "Group ID", "Artifact ID"})
 	for _, repo := range repos {
-		t.AppendRow(table.Row{repo.GetMetadata().GetName(), repo.GetGroupId(), repo.GetArtifactId()})
+		t.AppendRow(table.Row{repo.GetId(), repo.GetGroupId(), repo.GetArtifactId()})
 	}
 	t.Render()
 }
