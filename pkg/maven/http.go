@@ -7,10 +7,11 @@
 package maven
 
 import (
-	"github.com/casbin/casbin/v2"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/casbin/casbin/v2"
 
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/maven"

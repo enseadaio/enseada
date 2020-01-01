@@ -9,9 +9,10 @@ package maven
 import (
 	"context"
 	"fmt"
-	"github.com/enseadaio/enseada/internal/couch"
 	"sort"
 	"strings"
+
+	"github.com/enseadaio/enseada/internal/couch"
 )
 
 const StoragePrefix = couch.MavenDB
