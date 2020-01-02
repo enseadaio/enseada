@@ -32,7 +32,7 @@ COPY . .
 COPY --from=assets /web/static ./web/static
 
 RUN go build -o bin/enseada-server ./cmd/enseada-server
-RUN rice append --exec bin/enseada-server -i ./cmd/enseada-server/boot -i ./internal/server
+RUN rice append --exec bin/enseada-server -i ./pkg/http -i ./pkg/auth
 
 # final stage
 FROM scratch
