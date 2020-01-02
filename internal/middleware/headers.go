@@ -12,14 +12,15 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	"github.com/enseadaio/enseada/internal/ctxutils"
 
 	"github.com/enseadaio/enseada/internal/auth"
-	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 )
 
-func WithAuthorizationHeader(base http.Handler, logger echo.Logger, s *auth.Store, op fosite.OAuth2Provider) http.Handler {
+func WithAuthorizationHeader(base http.Handler, logger log.Logger, s *auth.Store, op fosite.OAuth2Provider) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := r.Header.Get("authorization")
 		if h == "" {

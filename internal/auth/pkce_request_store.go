@@ -11,17 +11,17 @@ import (
 	"errors"
 
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 )
 
 type PKCERequestStore struct {
 	data   *kivik.Client
-	logger echo.Logger
+	logger log.Logger
 }
 
-func NewPKCERequestStore(data *kivik.Client, logger echo.Logger) *PKCERequestStore {
+func NewPKCERequestStore(data *kivik.Client, logger log.Logger) *PKCERequestStore {
 	return &PKCERequestStore{data: data, logger: logger}
 }
 

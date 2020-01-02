@@ -9,22 +9,23 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	"github.com/enseadaio/enseada/internal/ctxutils"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/guid"
 	"github.com/enseadaio/enseada/internal/scope"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
-	"github.com/labstack/echo"
 	"github.com/twitchtv/twirp"
 )
 
 type AclAPI struct {
-	Logger   echo.Logger
+	Logger   log.Logger
 	Enforcer *casbin.Enforcer
 }
 
-func NewAclAPI(logger echo.Logger, enforcer *casbin.Enforcer) *AclAPI {
+func NewAclAPI(logger log.Logger, enforcer *casbin.Enforcer) *AclAPI {
 	return &AclAPI{Logger: logger, Enforcer: enforcer}
 }
 

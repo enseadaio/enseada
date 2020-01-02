@@ -12,8 +12,8 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 )
 
 type CasbinRule struct {
@@ -29,12 +29,12 @@ type CasbinRule struct {
 }
 
 type CasbinAdapter struct {
-	logger echo.Logger
+	logger log.Logger
 	data   *kivik.Client
 	policy []CasbinRule
 }
 
-func NewCasbinAdapter(data *kivik.Client, logger echo.Logger) (*CasbinAdapter, error) {
+func NewCasbinAdapter(data *kivik.Client, logger log.Logger) (*CasbinAdapter, error) {
 	return &CasbinAdapter{
 		data:   data,
 		logger: logger,

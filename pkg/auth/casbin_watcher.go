@@ -12,21 +12,21 @@ import (
 	"sync"
 
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 )
 
 type CallbackFunc func(string)
 
 type CasbinWatcher struct {
-	logger   echo.Logger
+	logger   log.Logger
 	data     *kivik.Client
 	callback CallbackFunc
 	ch       *kivik.Changes
 	once     sync.Once
 }
 
-func NewCasbinWatcher(data *kivik.Client, logger echo.Logger) *CasbinWatcher {
+func NewCasbinWatcher(data *kivik.Client, logger log.Logger) *CasbinWatcher {
 	w := &CasbinWatcher{
 		logger: logger,
 		data:   data,
@@ -75,7 +75,7 @@ func (w *CasbinWatcher) Start(ctx context.Context) error {
 
 			select {
 			case <-ctx.Done():
-				w.logger.Info("Shutting down ACL watcher")
+				w.logger.Info("shutting down ACL watcher")
 				w.logger.Error(ctx.Err())
 				return
 			default:
@@ -87,7 +87,7 @@ func (w *CasbinWatcher) Start(ctx context.Context) error {
 				}
 
 				if ch.Err() != nil {
-					w.logger.Warn("Stopping watcher. Reason:", ch.Err())
+					w.logger.Warnf("stopping watcher. Reason: %s", ch.Err().Error())
 					return
 				}
 			}
@@ -99,6 +99,7 @@ func (w *CasbinWatcher) Start(ctx context.Context) error {
 
 func finalizer(w *CasbinWatcher) {
 	w.once.Do(func() {
+		w.logger.Warn("finalizing ACL watcher")
 		if err := w.ch.Close(); err != nil {
 			w.logger.Error(err)
 		}

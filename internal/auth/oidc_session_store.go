@@ -10,18 +10,18 @@ import (
 	"context"
 
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/handler/openid"
 )
 
 type OIDCSessionStore struct {
 	data   *kivik.Client
-	logger echo.Logger
+	logger log.Logger
 }
 
-func NewOIDCSessionStore(data *kivik.Client, logger echo.Logger) *OIDCSessionStore {
+func NewOIDCSessionStore(data *kivik.Client, logger log.Logger) *OIDCSessionStore {
 	return &OIDCSessionStore{data: data, logger: logger}
 }
 

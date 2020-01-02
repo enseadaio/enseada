@@ -11,17 +11,17 @@ import (
 	"errors"
 
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 )
 
 type OAuthRequestStore struct {
 	data   *kivik.Client
-	logger echo.Logger
+	logger log.Logger
 }
 
-func NewOAuthRequestStore(data *kivik.Client, logger echo.Logger) *OAuthRequestStore {
+func NewOAuthRequestStore(data *kivik.Client, logger log.Logger) *OAuthRequestStore {
 	return &OAuthRequestStore{data: data, logger: logger}
 }
 

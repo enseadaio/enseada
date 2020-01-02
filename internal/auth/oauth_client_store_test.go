@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivikmock"
-	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
 )
 

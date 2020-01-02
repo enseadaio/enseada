@@ -9,6 +9,8 @@ package couch
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	"github.com/go-kivik/kivik"
 	"github.com/pkg/errors"
 )
@@ -20,8 +22,8 @@ const (
 	AclDB   = "acl"
 )
 
-func Transact(ctx context.Context, client *kivik.Client, f func(context.Context, *kivik.Client) error, dbname string) error {
-	if err := f(ctx, client); err != nil {
+func Transact(ctx context.Context, logger log.Logger, client *kivik.Client, f func(context.Context, log.Logger, *kivik.Client) error, dbname string) error {
+	if err := f(ctx, logger, client); err != nil {
 		e := client.DestroyDB(ctx, dbname)
 		if e != nil {
 			return errors.Wrap(err, e.Error())

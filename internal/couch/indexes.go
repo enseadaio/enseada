@@ -10,12 +10,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/gommon/log"
 )
 
-func InitIndex(ctx context.Context, client *kivik.Client, dbName string, name string, idx map[string]interface{}) error {
+func InitIndex(ctx context.Context, logger log.Logger, client *kivik.Client, dbName string, name string, idx map[string]interface{}) error {
 	db := client.DB(ctx, dbName)
-	log.Infof("initializing index %s on db %s", name, dbName)
+	logger.Infof("initializing index %s on db %s", name, dbName)
 	return db.CreateIndex(ctx, fmt.Sprintf("%s_idx", name), name, idx)
 }

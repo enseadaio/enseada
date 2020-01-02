@@ -9,10 +9,10 @@ package boot
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/enseadaio/enseada/pkg/http"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/enseadaio/enseada/pkg/maven"
 	"github.com/spf13/viper"
 	goauth "golang.org/x/oauth2"
@@ -21,9 +21,7 @@ import (
 type StartFunc func(ctx context.Context) error
 type StopFunc func(ctx context.Context) error
 
-func Boot(ctx context.Context) (StartFunc, StopFunc, error) {
-	conf := conf()
-	lvl := logLvl(conf)
+func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (StartFunc, StopFunc, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
 	ph := conf.GetString("public.host")
 	sec := conf.GetString("default.oauth.client.secret")
@@ -49,19 +47,17 @@ func Boot(ctx context.Context) (StartFunc, StopFunc, error) {
 		return nil, nil, err
 	}
 
-	echo, err := http.Boot(ctx, lvl, oc, skb)
+	echo, err := http.Boot(ctx, logger.Child("echo"), oc, skb)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	authLogger := newLogger("auth", lvl)
-	a, err := auth.Boot(ctx, echo, data, authLogger, skb, ph, sec)
+	a, err := auth.Boot(ctx, echo, data, logger.Child("auth"), skb, ph, sec)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	mvnLogger := newLogger("maven2", lvl)
-	if err := maven.Boot(ctx, mvnLogger, echo, data, storage, a.Enforcer, a.Store, a.Provider); err != nil {
+	if err := maven.Boot(ctx, logger.Child("maven2"), echo, data, storage, a.Enforcer, a.Store, a.Provider); err != nil {
 		return nil, nil, err
 	}
 
@@ -88,19 +84,4 @@ func Boot(ctx context.Context) (StartFunc, StopFunc, error) {
 			return echo.Shutdown(ctx)
 		},
 		nil
-}
-
-func conf() *viper.Viper {
-	c := viper.NewWithOptions(
-		viper.EnvKeyReplacer(strings.NewReplacer(".", "_")),
-	)
-
-	c.SetDefault("log.level", "info")
-	c.SetDefault("port", "9623")
-	c.SetDefault("storage.provider", "local")
-	c.SetDefault("storage.dir", "uploads")
-	c.SetDefault("root.password", "root")
-
-	c.AutomaticEnv()
-	return c
 }

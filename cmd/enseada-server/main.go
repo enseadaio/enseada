@@ -10,12 +10,16 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/enseadaio/enseada/pkg/log/adapters"
+	"github.com/spf13/viper"
+
 	"github.com/enseadaio/enseada/cmd/enseada-server/boot"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/joho/godotenv"
-	"github.com/labstack/gommon/log"
 )
 
 func init() {
@@ -27,18 +31,39 @@ func init() {
 	}
 }
 
+func conf() *viper.Viper {
+	c := viper.NewWithOptions(
+		viper.EnvKeyReplacer(strings.NewReplacer(".", "_")),
+	)
+
+	c.SetDefault("log.level", "info")
+	c.SetDefault("port", "9623")
+	c.SetDefault("storage.provider", "local")
+	c.SetDefault("storage.dir", "uploads")
+	c.SetDefault("root.password", "root")
+
+	c.AutomaticEnv()
+	return c
+}
+
 func main() {
-	l := log.New("main")
+	c := conf()
+	lvl := log.Level(strings.ToLower(c.GetString("log.level")))
+	l, err := adapters.NewZapLoggerAdapter(lvl)
+	if err != nil {
+		panic(err)
+	}
+
 	bootctx, cancelboot := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelboot()
 
 	s := time.Now()
-	start, stop, err := boot.Boot(bootctx)
+	start, stop, err := boot.Boot(bootctx, l, c)
 	if err != nil {
 		l.Fatal(err)
 	}
 	d := time.Since(s)
-	l.Infof("Booted Enseada in %dms", d.Milliseconds())
+	l.Infof("booted Enseada in %dms", d.Milliseconds())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {

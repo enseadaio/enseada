@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/enseadaio/enseada/internal/ctxutils"
+	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
@@ -17,17 +18,16 @@ import (
 	"github.com/enseadaio/enseada/internal/guid"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 	"github.com/twitchtv/twirp"
 )
 
 type UsersAPI struct {
-	Logger   echo.Logger
+	Logger   log.Logger
 	Enforcer *casbin.Enforcer
 	Store    *auth.Store
 }
 
-func NewUsersAPI(logger echo.Logger, enforcer *casbin.Enforcer, store *auth.Store) *UsersAPI {
+func NewUsersAPI(logger log.Logger, enforcer *casbin.Enforcer, store *auth.Store) *UsersAPI {
 	return &UsersAPI{Logger: logger, Enforcer: enforcer, Store: store}
 }
 

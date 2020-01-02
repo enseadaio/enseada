@@ -11,19 +11,19 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
-	"github.com/labstack/gommon/log"
 	"github.com/ory/fosite"
 )
 
 type OAuthClientStore struct {
-	Logger echo.Logger
+	Logger log.Logger
 	Data   *kivik.Client
 }
 
-func NewOAuthClientStore(data *kivik.Client, logger echo.Logger) *OAuthClientStore {
+func NewOAuthClientStore(data *kivik.Client, logger log.Logger) *OAuthClientStore {
 	return &OAuthClientStore{Logger: logger, Data: data}
 }
 
@@ -36,7 +36,7 @@ func (c *OAuthClientStore) GetClient(ctx context.Context, id string) (fosite.Cli
 		if kivik.StatusCode(err) == kivik.StatusNotFound {
 			return nil, nil
 		}
-		log.Error(err)
+		c.Logger.Error(err)
 		return nil, err
 	}
 
@@ -145,7 +145,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 		return err
 	}
 
-	c.Logger.Infof("Created default OAuthProvider client. client_id: %s client_secret: %s", "enseada", secret)
+	c.Logger.Infof("created default OAuthProvider client. client_id: %s client_secret: %s", "enseada", secret)
 	return nil
 }
 

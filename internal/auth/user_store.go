@@ -11,18 +11,18 @@ import (
 	"errors"
 
 	"github.com/enseadaio/enseada/internal/couch"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserStore struct {
 	data   *kivik.Client
-	logger echo.Logger
+	logger log.Logger
 }
 
-func NewUserStore(data *kivik.Client, logger echo.Logger) *UserStore {
+func NewUserStore(data *kivik.Client, logger log.Logger) *UserStore {
 	return &UserStore{
 		data:   data,
 		logger: logger,

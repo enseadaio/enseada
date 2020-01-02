@@ -8,17 +8,17 @@ package maven
 
 import (
 	"github.com/chartmuseum/storage"
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 )
 
 type Maven struct {
-	Logger  echo.Logger
+	Logger  log.Logger
 	data    *kivik.Client
 	storage storage.Backend
 }
 
-func New(logger echo.Logger, data *kivik.Client, storage storage.Backend) *Maven {
+func New(logger log.Logger, data *kivik.Client, storage storage.Backend) *Maven {
 	return &Maven{
 		Logger:  logger,
 		data:    data,

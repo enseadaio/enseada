@@ -9,14 +9,15 @@ package http
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/labstack/echo"
-	"github.com/labstack/gommon/log"
 	goauth "golang.org/x/oauth2"
 )
 
-func Boot(_ context.Context, lvl log.Lvl, oc *goauth.Config, skb []byte) (*echo.Echo, error) {
-	e := createEchoServer(lvl)
+func Boot(_ context.Context, logger log.Logger, oc *goauth.Config, skb []byte) (*echo.Echo, error) {
+	e := createEchoServer(logger)
 
 	mountHealthCheck(e)
 	mountUI(e, oc, middleware.Session(skb))

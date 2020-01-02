@@ -7,13 +7,13 @@
 package auth
 
 import (
+	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 )
 
 type Store struct {
 	data   *kivik.Client
-	logger echo.Logger
+	logger log.Logger
 	*OAuthClientStore
 	*OAuthRequestStore
 	*OIDCSessionStore
@@ -21,7 +21,7 @@ type Store struct {
 	*UserStore
 }
 
-func NewStore(data *kivik.Client, logger echo.Logger, cs *OAuthClientStore, rs *OAuthRequestStore, os *OIDCSessionStore, ps *PKCERequestStore, us *UserStore) *Store {
+func NewStore(data *kivik.Client, logger log.Logger, cs *OAuthClientStore, rs *OAuthRequestStore, os *OIDCSessionStore, ps *PKCERequestStore, us *UserStore) *Store {
 	return &Store{
 		data:              data,
 		logger:            logger,

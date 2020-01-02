@@ -9,6 +9,8 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	"github.com/enseadaio/enseada/internal/ctxutils"
 
 	"github.com/casbin/casbin/v2"
@@ -18,18 +20,17 @@ import (
 	"github.com/enseadaio/enseada/internal/scope"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"github.com/twitchtv/twirp"
 )
 
 type OAuthClientsAPI struct {
-	Logger   echo.Logger
+	Logger   log.Logger
 	Enforcer *casbin.Enforcer
 	Store    *auth.Store
 }
 
-func NewOAuthClientsAPI(logger echo.Logger, enforcer *casbin.Enforcer, store *auth.Store) *OAuthClientsAPI {
+func NewOAuthClientsAPI(logger log.Logger, enforcer *casbin.Enforcer, store *auth.Store) *OAuthClientsAPI {
 	return &OAuthClientsAPI{Logger: logger, Enforcer: enforcer, Store: store}
 }
 

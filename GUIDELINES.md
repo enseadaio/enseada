@@ -39,7 +39,9 @@ Enseada follows the classic Golang layout:
 The division between `cmd`, `pkg`, and `internal` is really important.   
 
 Most of the code resides in `internal` and, as such, can be modified and broken without prior warning. 
-Code in this folder should **NEVER** import packages from `pkg` or `cmd`, only third party dependencies.
+Code in this folder should **NEVER** import packages from `pkg` or `cmd`, only third party dependencies.  
+_EXCEPTION_: the `log` package. This is just an interface and it needs to be accessed pretty much everywhere. It will eventually be extracted
+in a library.
 
 Code residing in `pkg` is safe for external usage. Its API should be stable (following the project
 SemVer) and is the only code allowed to import packages from `internal`. This is also where [Dependency Injection](#dependency-injection)

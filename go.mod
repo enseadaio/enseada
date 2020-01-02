@@ -17,9 +17,6 @@ require (
 	github.com/go-kivik/kivikmock v2.0.0-pre3+incompatible
 	github.com/go-kivik/kiviktest v1.1.2 // indirect
 	github.com/go-openapi/strfmt v0.19.4 // indirect
-	github.com/go-session/cookie v3.0.1+incompatible // indirect
-	github.com/go-session/echo-session v3.0.0+incompatible
-	github.com/go-session/session v3.1.2+incompatible
 	github.com/golang/protobuf v1.3.2
 	github.com/google/wire v0.4.0 // indirect
 	github.com/gorilla/sessions v1.2.0 // indirect
@@ -41,7 +38,7 @@ require (
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
 	github.com/twitchtv/twirp v5.9.0+incompatible
 	gitlab.com/flimzy/testy v0.0.0-20191030154103-8f78296a3383 // indirect
-	go.uber.org/zap v1.13.0 // indirect
+	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/oauth2.v3 v3.12.0 // indirect

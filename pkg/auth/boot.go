@@ -11,6 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 
+	"github.com/enseadaio/enseada/pkg/log"
+
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -30,16 +32,16 @@ type Components struct {
 	Provider fosite.OAuth2Provider
 }
 
-func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger echo.Logger, skb []byte, ph string, clientSecret string) (*Components, error) {
-	if err := couch.Transact(ctx, data, migrateAclDb, couch.AclDB); err != nil {
+func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger log.Logger, skb []byte, ph string, clientSecret string) (*Components, error) {
+	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
 
-	if err := couch.Transact(ctx, data, migrateOAuthDb, couch.OAuthDB); err != nil {
+	if err := couch.Transact(ctx, logger, data, migrateOAuthDb, couch.OAuthDB); err != nil {
 		return nil, err
 	}
 
-	if err := couch.Transact(ctx, data, migrateUsersDb, couch.UsersDB); err != nil {
+	if err := couch.Transact(ctx, logger, data, migrateUsersDb, couch.UsersDB); err != nil {
 		return nil, err
 	}
 
@@ -81,7 +83,7 @@ func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger echo.Log
 	}, nil
 }
 
-func createStore(data *kivik.Client, logger echo.Logger) *auth.Store {
+func createStore(data *kivik.Client, logger log.Logger) *auth.Store {
 	oAuthClientStore := auth.NewOAuthClientStore(data, logger)
 	oAuthRequestStore := auth.NewOAuthRequestStore(data, logger)
 	oidcSessionStore := auth.NewOIDCSessionStore(data, logger)
@@ -90,7 +92,7 @@ func createStore(data *kivik.Client, logger echo.Logger) *auth.Store {
 	return auth.NewStore(data, logger, oAuthClientStore, oAuthRequestStore, oidcSessionStore, pkceRequestStore, userStore)
 }
 
-func createCasbin(data *kivik.Client, logger echo.Logger) (*casbin.Enforcer, *CasbinWatcher, error) {
+func createCasbin(data *kivik.Client, logger log.Logger) (*casbin.Enforcer, *CasbinWatcher, error) {
 	box := rice.MustFindBox("../../conf/")
 	m, err := model.NewModelFromString(box.MustString("casbin_model.conf"))
 	if err != nil {
@@ -120,38 +122,38 @@ func createCasbin(data *kivik.Client, logger echo.Logger) (*casbin.Enforcer, *Ca
 	return e, watcher, nil
 }
 
-func migrateAclDb(ctx context.Context, client *kivik.Client) error {
-	if err := couch.InitDb(ctx, client, couch.AclDB); err != nil {
+func migrateAclDb(ctx context.Context, logger log.Logger, client *kivik.Client) error {
+	if err := couch.InitDb(ctx, logger, client, couch.AclDB); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func migrateOAuthDb(ctx context.Context, client *kivik.Client) error {
-	if err := couch.InitDb(ctx, client, couch.OAuthDB); err != nil {
+func migrateOAuthDb(ctx context.Context, logger log.Logger, client *kivik.Client) error {
+	if err := couch.InitDb(ctx, logger, client, couch.OAuthDB); err != nil {
 		return err
 	}
 
-	if err := couch.InitIndex(ctx, client, couch.OAuthDB, "kind_index", couch.Query{
+	if err := couch.InitIndex(ctx, logger, client, couch.OAuthDB, "kind_index", couch.Query{
 		"fields": []string{"kind"},
 	}); err != nil {
 		return err
 	}
 
-	if err := couch.InitIndex(ctx, client, couch.OAuthDB, "oauth_reqs_index", couch.Query{
+	if err := couch.InitIndex(ctx, logger, client, couch.OAuthDB, "oauth_reqs_index", couch.Query{
 		"fields": []string{"req.id"},
 	}); err != nil {
 		return err
 	}
 
-	if err := couch.InitIndex(ctx, client, couch.OAuthDB, "oauth_sigs_index", couch.Query{
+	if err := couch.InitIndex(ctx, logger, client, couch.OAuthDB, "oauth_sigs_index", couch.Query{
 		"fields": []string{"sig"},
 	}); err != nil {
 		return err
 	}
 
-	if err := couch.InitIndex(ctx, client, couch.OAuthDB, "openid_reqs_index", couch.Query{
+	if err := couch.InitIndex(ctx, logger, client, couch.OAuthDB, "openid_reqs_index", couch.Query{
 		"fields": []string{"auth_code"},
 	}); err != nil {
 		return err
@@ -160,8 +162,8 @@ func migrateOAuthDb(ctx context.Context, client *kivik.Client) error {
 	return nil
 }
 
-func migrateUsersDb(ctx context.Context, client *kivik.Client) error {
-	if err := couch.InitDb(ctx, client, couch.UsersDB); err != nil {
+func migrateUsersDb(ctx context.Context, logger log.Logger, client *kivik.Client) error {
+	if err := couch.InitDb(ctx, logger, client, couch.UsersDB); err != nil {
 		return err
 	}
 
