@@ -13,21 +13,30 @@
 
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 
-It leverages scalability by using natively distributed technologies
+It leverages scalability by using natively distributed technologies.
 
-The registry itself is written in [Golang](https://golang.org/), a fast and resource efficient, statically compiled programming language
+Check out the [official documentation](https://docs.enseada.io) for a complete manual of operation.
+
+## Features
+
+- [Multiple package repositories](#supported-package-repositories)
+- [Multiple storage backends](#supported-storage-providers)
+- Strong authentication based on [OAuth 2.0](https://auth0.com/docs/protocols/oauth2) tokens
+- Flexible ACL engine to manage user permissions 
+- Complete [management API](https://docs.enseada.io/developers/apis.html)
+
+The registry itself is written in [Golang](https://golang.org/), a fast, resource efficient and statically compiled programming language
 built for the Cloud.
 
 [CouchDB](https://couchdb.apache.org/) is used as the primary datastore, containing information about
 repositories, users and access control. CouchDB is a web-native database written in Erlang and based on web technologies
 like HTTP and JSON.
 
-As far as storage is concerned, both local disks an object storage services are supported, altough
-the latter are strongly recommended for production deployments.
+Both local disks an object storage services are supported, altough the latter are strongly recommended for production deployments.
 
 ## Supported package repositories
 
-Enseada is a multi-package registry, meaning it can support a large number of package 
+Enseada is a multi-package registry, meaning it can support a large number of package
 formats and registry APIs.
 
 At the moment, the following formats are supported:
@@ -36,12 +45,13 @@ At the moment, the following formats are supported:
 - [NPM](https://github.com/npm/registry/blob/master/docs/REGISTRY-API.md) (planned, coming soon)
 - [Docker](https://docs.docker.com/registry/spec/api/) (planned, coming soon)
 - [RubyGems](https://rubygems.org) (planned, coming soon)
+- [Go module proxy](https://docs.gomods.io/intro/protocol/) (planned, coming soon)
 
 ## Supported storage providers
 
 The storage layer used by Enseada provides pluggable backends, allowing to easily support
 multiple storage providers.
-See [Configuration](#configuration) for how to setup the storage layer.
+See the [configuration guide](https://docs.enseada.io/users/configuration.html) for how to setup the storage layer.
 
 At the moment, only these providers are supported:
 
@@ -49,7 +59,36 @@ At the moment, only these providers are supported:
 - S3 compatible (AWS S3, Minio, DigitalOcean Spaces, Scaleway Object Storage, Ceph, etc)
 - Google Cloud Storage
 
-Local disk is only supported in single-node mode. To support [cluster mode](#cluster-mode) use an object storage provider.
+Local disk is only supported in single-node mode. To run multiple instances use an object storage provider.
+
+## HTTPS and HTTP/2 support
+Enseada has full support for strict HTTPS, enabling it is very simple.
+
+Passing the environment value `SSL=yes|true|active` (or any kind of non-empty value) will turn on
+HTTPS on the entire application (with [HSTS](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) enabled). This will require two
+additional environment variables.
+
+```.env
+## The path to the key file
+SSL_KEY_PATH=nil
+
+## The path to the certificate file
+SSL_CERT_PATH=nil
+```
+
+When HTTPS is active, Enseada switches automatically to [HTTP/2](https://en.wikipedia.org/wiki/HTTP/2). You can check
+the active protocol by looking at the response body of the `GET /health` endpoint:
+
+```json
+{
+    "status": "UP",
+    "protocol": "HTTP/2.0",
+    "host": "localhost:9623",
+    "remote": "[::1]:46558",
+    "method": "GET",
+    "path": "/health"
+}
+```
 
 ## Build
 
@@ -77,7 +116,6 @@ vet                      Run go vet on all source files
 imports                  Run goimports on all source files
 build-standalone-server  Build server binary with embedded static assets
 web                      Build web assets with Webpack
-wire                     Generate Wire code
 proto                    Generate RPC code
 deps                     Install dependencies
 clean                    Cleanup everything
@@ -120,21 +158,6 @@ persist data in a Docker volume.
 
 Upon first run, the database server is uninitialized. Please run the initialization setup for 
 single node deployment by visiting http://localhost:5984/_utils/#setup and following the instructions.
-
-## HTTPS support
-Enseada has full support for strict HTTPS, enabling it is very simple.
-
-Passing the environment value `SSL=yes|true|active` (or any kind of non-empty value) will turn on
-HTTPS on the entire application (with [HSTS](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) enabled). This will require two
-additional environment variables.
-
-```.env
-## The path to the key file
-SSL_KEY_PATH=nil
-
-## The path to the certificate file
-SSL_CERT_PATH=nil
-```
 
 ## License
 This Source Code Form is subject to the terms of the Mozilla Public
