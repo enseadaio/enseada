@@ -43,7 +43,7 @@ func (z *ZapLoggerAdapter) Log(lvl log.Level, i ...interface{}) {
 	var msg string
 	f, ok := i[0].(string)
 	if !ok || f == "" {
-		msg = fmt.Sprint(i)
+		msg = fmt.Sprint(i...)
 	} else {
 		msg = fmt.Sprintf(f, i[1:]...)
 	}

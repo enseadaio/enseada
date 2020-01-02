@@ -10,6 +10,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/enseadaio/enseada/pkg/log/adapters"
+
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivikmock"
@@ -36,7 +38,10 @@ func TestOAuthClientStore_GetByID(t *testing.T) {
 		"audiences":      client.Audiences,
 		"public":         client.Public,
 	}))
-	store := NewOAuthClientStore(data, log.New("test"))
+	l, err := adapters.NewZapLoggerAdapter(log.INFO)
+	assert.NoError(t, err)
+
+	store := NewOAuthClientStore(data, l)
 	assert.NoError(t, err)
 
 	got, err := store.GetClient(context.Background(), client.ID)
