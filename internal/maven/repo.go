@@ -12,7 +12,6 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
-	"net/http"
 	"strings"
 	"text/template"
 	"time"
@@ -57,7 +56,7 @@ func NewRepo(groupID string, artifactID string) Repo {
 func (m *Maven) ListRepos(ctx context.Context, selector couch.Query) ([]*Repo, error) {
 	db := m.data.DB(ctx, couch.MavenDB)
 	s := couch.Query{
-		"kind": "repository",
+		"kind": couch.KindRepository,
 	}
 	if len(selector) > 0 {
 		delete(selector, "kind")
@@ -103,12 +102,53 @@ func (m *Maven) GetRepo(ctx context.Context, id string) (*Repo, error) {
 	return repo, nil
 }
 
-func (m *Maven) FindRepo(ctx context.Context, groupID string, artifactID string) (*Repo, error) {
+func (m *Maven) GetRepoByCoordinates(ctx context.Context, groupID string, artifactID string) (*Repo, error) {
 	return m.GetRepo(ctx, repoID(groupID, artifactID))
+}
+
+func (m *Maven) FindRepo(ctx context.Context, selector couch.Query) (*Repo, error) {
+	s := couch.Query{
+		"kind": couch.KindRepository,
+	}
+
+	if len(selector) > 0 {
+		delete(selector, "kind")
+		for k, v := range selector {
+			s[k] = v
+		}
+
+	}
+
+	db := m.data.DB(ctx, couch.MavenDB)
+	rows, err := db.Find(ctx, couch.Query{
+		"selector": s,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if rows.Next() {
+		repo := new(Repo)
+		if err := rows.ScanDoc(repo); err != nil {
+			return nil, err
+		}
+		return repo, nil
+	}
+
+	return nil, nil
 }
 
 func (m *Maven) SaveRepo(ctx context.Context, repo *Repo) error {
 	db := m.data.DB(ctx, couch.MavenDB)
+	if repo.Rev == "" {
+		_, rev, err := db.GetMeta(ctx, repo.ID)
+		if err != nil {
+			return err
+		}
+
+		repo.Rev = rev
+	}
+
 	rev, err := db.Put(ctx, repo.ID, repo)
 	if err != nil {
 		return err
@@ -124,6 +164,10 @@ func (m *Maven) DeleteRepo(ctx context.Context, id string) (*Repo, error) {
 		return nil, err
 	}
 
+	if err := m.ClearRepoStorage(ctx, repo); err != nil {
+		return nil, err
+	}
+
 	rev, err := db.Delete(ctx, repo.ID, repo.Rev)
 	if err != nil {
 		return nil, err
@@ -135,14 +179,6 @@ func (m *Maven) DeleteRepo(ctx context.Context, id string) (*Repo, error) {
 
 func repoID(groupID string, artifactID string) string {
 	return strings.Join([]string{groupID, artifactID}, ":")
-}
-
-func fromId(id string) (Repo, error) {
-	parts := strings.Split(id, ":")
-	if len(parts) != 2 {
-		return Repo{}, ErrorInvalidRepoId(id)
-	}
-	return NewRepo(parts[0], parts[1]), nil
 }
 
 func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
@@ -174,38 +210,38 @@ func (m *Maven) InitRepo(ctx context.Context, repo *Repo) error {
 	file := &RepoFile{
 		Repo:     repo,
 		Filename: t.ParseName,
-		Content:  buf.Bytes(),
+		content:  buf.Bytes(),
 	}
 
 	md5sum := &RepoFile{
 		Repo:     repo,
 		Filename: fmt.Sprintf("%s.md5", t.ParseName),
-		Content:  []byte(fmt.Sprintf("%x", md5.Sum(file.Content))),
+		content:  []byte(fmt.Sprintf("%x", md5.Sum(file.content))),
 	}
 
 	sha1sum := &RepoFile{
 		Repo:     repo,
 		Filename: fmt.Sprintf("%s.sha1", t.ParseName),
-		Content:  []byte(fmt.Sprintf("%x", sha1.Sum(file.Content))),
+		content:  []byte(fmt.Sprintf("%x", sha1.Sum(file.content))),
 	}
 
 	path := filePath(file)
 	repo.Files = append(repo.Files, path)
-	err = m.PutFile(ctx, path, file.Content)
+	err = m.PutFile(ctx, path, file.content)
 	if err != nil {
 		return err
 	}
 
 	path = filePath(md5sum)
 	repo.Files = append(repo.Files, path)
-	err = m.PutFile(ctx, path, md5sum.Content)
+	err = m.PutFile(ctx, path, md5sum.content)
 	if err != nil {
 		return err
 	}
 
 	path = filePath(sha1sum)
 	repo.Files = append(repo.Files, path)
-	err = m.PutFile(ctx, path, sha1sum.Content)
+	err = m.PutFile(ctx, path, sha1sum.content)
 	if err != nil {
 		return err
 	}
@@ -217,7 +253,7 @@ func save(ctx context.Context, db *kivik.DB, repo *Repo) error {
 	rev, err := db.Put(ctx, repo.ID, repo)
 	if err != nil {
 		switch kivik.StatusCode(err) {
-		case http.StatusConflict:
+		case kivik.StatusConflict:
 			return ErrorRepoAlreadyPresent
 		default:
 			return err

@@ -10,10 +10,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/enseadaio/enseada/internal/middleware"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	authv1beta1api "github.com/enseadaio/enseada/internal/auth/v1beta1"
-	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/internal/utils"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	session "github.com/ipfans/echo-session"
@@ -24,6 +25,8 @@ import (
 )
 
 func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc) {
+	e.Use(echo.WrapMiddleware(middleware.AuthorizationHeader(s.Logger, s, op)))
+
 	g := e.Group("/oauth")
 	g.Use(sm)
 	g.GET("/authorize", authorizationPage())
@@ -33,18 +36,15 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 
 	acl := authv1beta1api.NewAclAPI(s.Logger, enf)
 	aclhandler := authv1beta1.NewAclAPIServer(acl, nil)
-	ah := echo.WrapHandler(middleware.WithAuthorizationHeader(aclhandler, s.Logger, s, op))
-	e.Any(aclhandler.PathPrefix()+"*", ah)
+	e.Any(aclhandler.PathPrefix()+"*", echo.WrapHandler(aclhandler))
 
 	oclients := authv1beta1api.NewOAuthClientsAPI(s.Logger, enf, s)
 	oclientshandler := authv1beta1.NewOAuthClientsAPIServer(oclients, nil)
-	oh := echo.WrapHandler(middleware.WithAuthorizationHeader(oclientshandler, s.Logger, s, op))
-	e.Any(oclientshandler.PathPrefix()+"*", oh)
+	e.Any(oclientshandler.PathPrefix()+"*", echo.WrapHandler(oclientshandler))
 
 	users := authv1beta1api.NewUsersAPI(s.Logger, enf, s)
 	usershandler := authv1beta1.NewUsersAPIServer(users, nil)
-	uh := echo.WrapHandler(middleware.WithAuthorizationHeader(usershandler, s.Logger, s, op))
-	e.Any(usershandler.PathPrefix()+"*", uh)
+	e.Any(usershandler.PathPrefix()+"*", echo.WrapHandler(usershandler))
 }
 
 func authorizationPage() echo.HandlerFunc {

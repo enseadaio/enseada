@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/chartmuseum/storage"
+
 	"github.com/enseadaio/enseada/internal/couch"
 )
 
@@ -21,68 +23,44 @@ type RepoFile struct {
 	Repo     *Repo
 	Filename string
 	Version  string
-	Content  []byte
+	content  []byte
+	path     string
+	storage  storage.Backend
 }
 
+func (f *RepoFile) Content() ([]byte, error) {
+	if f.content == nil {
+		obj, err := f.storage.GetObject(f.path)
+		if err != nil {
+			return nil, err
+		}
+		f.content = obj.Content
+	}
+	return f.content, nil
+}
 func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 	m.Logger.Infof("looking up file with path %s", fmt.Sprintf(`"%s"`, path))
-	db := m.data.DB(ctx, couch.MavenDB)
-	rows, err := db.Find(ctx, map[string]interface{}{
-		"selector": map[string]interface{}{
-			"files": map[string]interface{}{
-				"$elemMatch": map[string]interface{}{
-					"$eq": path,
-				},
+	repo, err := m.FindRepo(ctx, couch.Query{
+		"files": couch.Query{
+			"$elemMatch": couch.Query{
+				"$eq": path,
 			},
 		},
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
-	m.Logger.Infof("found %d files with path %s", rows.TotalRows(), path)
-
-	var repoId string
-	fileCount := 0
-	for rows.Next() {
-		if repoId != "" {
-			continue
-		}
-
-		d := make(map[string]interface{})
-		if err := rows.ScanDoc(&d); err != nil {
-			return nil, err
-		}
-		repoId = d["_id"].(string)
-		m.Logger.Infof("found matching repo %s", repoId)
-		fileCount++
-	}
-	if fileCount == 0 {
-		m.Logger.Warnf("no file found with path %s", path)
+	if repo == nil {
 		return nil, nil
-	}
-
-	if fileCount > 1 {
-		m.Logger.Warnf("too many files found with path %s, actual %d", path, fileCount)
-		return nil, ErrorTooManyFilesForKey(1, fileCount)
-	}
-
-	obj, err := m.storage.GetObject(path)
-	if err != nil {
-		return nil, err
-	}
-
-	repo, err := fromId(repoId)
-	if err != nil {
-		return nil, err
 	}
 
 	slices := strings.Split(path, "/")
 	return &RepoFile{
-		Repo:     &repo,
+		Repo:     repo,
 		Filename: slices[len(slices)-1],
-		Content:  obj.Content,
+		path:     path,
+		storage:  m.storage,
 	}, nil
 }
 
@@ -90,34 +68,7 @@ func (m *Maven) PutFile(ctx context.Context, path string, content []byte) error 
 	return m.storage.PutObject(path, content)
 }
 
-func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*RepoFile, error) {
-	db := m.data.DB(ctx, couch.MavenDB)
-	rows, err := db.Find(ctx, map[string]interface{}{
-		"selector": map[string]interface{}{
-			"kind": "repository",
-			"type": "maven",
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var repo Repo
-	for rows.Next() {
-		var r Repo
-		if err := rows.ScanDoc(&r); err != nil {
-			return nil, err
-		}
-		if strings.HasPrefix(path, r.StoragePath) {
-			repo = r
-			break
-		}
-	}
-
-	if repo.ID == "" {
-		return nil, ErrorRepoNotFound
-	}
-
+func (m *Maven) PutFileInRepo(ctx context.Context, repo *Repo, path string, content []byte) (*RepoFile, error) {
 	trimmed := strings.TrimPrefix(path, repo.StoragePath)
 	trimmed = strings.TrimPrefix(trimmed, "/")
 	slices := strings.Split(trimmed, "/")
@@ -127,14 +78,14 @@ func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*
 		version = slices[0]
 	}
 	file := &RepoFile{
-		Repo:     &repo,
+		Repo:     repo,
 		Filename: filename,
 		Version:  version,
-		Content:  content,
+		content:  content,
 	}
 	m.Logger.Infof("storing file %+v", file)
 	spath := filePath(file)
-	err = m.PutFile(ctx, spath, file.Content)
+	err := m.PutFile(ctx, spath, content)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +102,24 @@ func (m *Maven) PutRepoFile(ctx context.Context, path string, content []byte) (*
 		in[j] = in[i]
 	}
 	repo.Files = in[:j+1]
-	return file, m.SaveRepo(ctx, &repo)
+	return file, m.SaveRepo(ctx, repo)
+}
+
+func (m *Maven) ClearRepoStorage(ctx context.Context, repo *Repo) error {
+	prefix := fmt.Sprintf("%s/%s/", StoragePrefix, repo.StoragePath)
+	objs, err := m.storage.ListObjects(prefix)
+	if err != nil {
+		return err
+	}
+
+	for _, obj := range objs {
+		if err := m.storage.DeleteObject(prefix + obj.Path); err != nil {
+			return err
+		}
+	}
+
+	repo.Files = []string{}
+	return m.SaveRepo(ctx, repo)
 }
 
 func filePath(file *RepoFile) string {

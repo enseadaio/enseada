@@ -156,7 +156,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 	}
 
 	cg := guid.New(couch.MavenDB, repo.ID, couch.KindRepository)
-	ps := []string{"read", "update", "delete"}
+	ps := []string{"read", "update", "write", "delete"}
 	for _, p := range ps {
 		_, err := s.Enforcer.AddPermissionForUser(id, cg.String(), p)
 		if err != nil {
