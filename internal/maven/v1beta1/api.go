@@ -9,11 +9,12 @@ package mavenv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/internal/ctxutils"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/guid"
 	"github.com/enseadaio/enseada/internal/maven"
-	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/internal/scope"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/twitchtv/twirp"
@@ -25,12 +26,12 @@ type Service struct {
 }
 
 func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.MavenRepoRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -84,12 +85,12 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 }
 
 func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.MavenRepoRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -127,12 +128,12 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 }
 
 func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.MavenRepoWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -173,12 +174,12 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 }
 
 func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.MavenRepoWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}

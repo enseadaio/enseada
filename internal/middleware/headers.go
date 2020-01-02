@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/enseadaio/enseada/internal/ctxutils"
+
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"
@@ -81,8 +83,8 @@ func WithAuthorizationHeader(base http.Handler, logger echo.Logger, s *auth.Stor
 		}
 
 		logger.Infof("successfully authenticated user %s", u.Username)
-		ctx = WithCurrentUserID(ctx, u.Username)
-		ctx = WithScopes(ctx, ar.GetGrantedScopes())
+		ctx = ctxutils.WithCurrentUserID(ctx, u.Username)
+		ctx = ctxutils.WithScopes(ctx, ar.GetGrantedScopes())
 
 		r = r.WithContext(ctx)
 		base.ServeHTTP(w, r)

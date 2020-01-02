@@ -9,11 +9,12 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/internal/ctxutils"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/guid"
-	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/internal/scope"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/go-kivik/kivik"
@@ -33,12 +34,12 @@ func NewOAuthClientsAPI(logger echo.Logger, enforcer *casbin.Enforcer, store *au
 }
 
 func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.ListClientsRequest) (*authv1beta1.ListClientsResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.OAuthClientRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -89,12 +90,12 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 }
 
 func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetClientRequest) (*authv1beta1.GetClientResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.OAuthClientRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -128,12 +129,12 @@ func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetCli
 }
 
 func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.CreateClientRequest) (*authv1beta1.CreateClientResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -175,12 +176,12 @@ func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.Cre
 }
 
 func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.UpdateClientRequest) (*authv1beta1.UpdateClientResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
@@ -234,12 +235,12 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 }
 
 func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.DeleteClientRequest) (*authv1beta1.DeleteClientResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	scopes, _ := middleware.Scopes(ctx)
+	scopes, _ := ctxutils.Scopes(ctx)
 	if !scopes.Has(scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}

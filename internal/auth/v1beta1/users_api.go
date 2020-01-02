@@ -9,11 +9,12 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/internal/ctxutils"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/guid"
-	"github.com/enseadaio/enseada/internal/middleware"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
@@ -31,7 +32,7 @@ func NewUsersAPI(logger echo.Logger, enforcer *casbin.Enforcer, store *auth.Stor
 }
 
 func (u *UsersAPI) ListUsers(ctx context.Context, req *authv1beta1.ListUsersRequest) (*authv1beta1.ListUsersResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
@@ -64,7 +65,7 @@ func (u *UsersAPI) ListUsers(ctx context.Context, req *authv1beta1.ListUsersRequ
 }
 
 func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest) (*authv1beta1.GetUserResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
@@ -101,7 +102,7 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 }
 
 func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRequest) (*authv1beta1.CreateUserResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
@@ -146,7 +147,7 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 }
 
 func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.UpdateUserPasswordRequest) (*authv1beta1.UpdateUserPasswordResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
@@ -170,7 +171,7 @@ func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.Upda
 }
 
 func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRequest) (*authv1beta1.DeleteUserResponse, error) {
-	id, ok := middleware.CurrentUserID(ctx)
+	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}

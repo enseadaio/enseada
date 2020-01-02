@@ -9,9 +9,10 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/internal/ctxutils"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/guid"
-	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/internal/scope"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	"github.com/labstack/echo"
@@ -28,7 +29,7 @@ func NewAclAPI(logger echo.Logger, enforcer *casbin.Enforcer) *AclAPI {
 }
 
 func (s *AclAPI) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
-	scopes, ok := middleware.Scopes(ctx)
+	scopes, ok := ctxutils.Scopes(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
@@ -59,7 +60,7 @@ func (s *AclAPI) ListRules(ctx context.Context, req *authv1beta1.ListRulesReques
 }
 
 func (s *AclAPI) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (*authv1beta1.AddRuleResponse, error) {
-	scopes, ok := middleware.Scopes(ctx)
+	scopes, ok := ctxutils.Scopes(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
@@ -94,7 +95,7 @@ func (s *AclAPI) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (
 }
 
 func (s *AclAPI) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleRequest) (*authv1beta1.DeleteRuleResponse, error) {
-	scopes, ok := middleware.Scopes(ctx)
+	scopes, ok := ctxutils.Scopes(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
