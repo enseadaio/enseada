@@ -145,14 +145,70 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 	}, nil
 }
 
-func (u *UsersAPI) UpdateUser(ctx context.Context, req *authv1beta1.UpdateUserRequest) (*authv1beta1.UpdateUserResponse, error) {
-	panic("implement me")
-}
-
 func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.UpdateUserPasswordRequest) (*authv1beta1.UpdateUserPasswordResponse, error) {
-	panic("implement me")
+	id, ok := middleware.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	uu, err := u.Store.GetUser(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.GetPassword() == "" {
+		return nil, twirp.RequiredArgumentError("password")
+	}
+
+	uu.Password = req.GetPassword()
+	err = u.Store.UpdateUser(ctx, uu)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authv1beta1.UpdateUserPasswordResponse{}, nil
 }
 
 func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRequest) (*authv1beta1.DeleteUserResponse, error) {
-	panic("implement me")
+	id, ok := middleware.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "")
+	}
+
+	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
+	if err != nil {
+		return nil, twirp.InternalErrorWith(err)
+	}
+
+	if !can {
+		return nil, twirp.NewError(twirp.PermissionDenied, "")
+	}
+
+	if req.GetUsername() == "" {
+		return nil, twirp.RequiredArgumentError("username")
+	}
+
+	if req.GetUsername() == id {
+		return nil, twirp.InvalidArgumentError("username", "cannot be the currently authenticated user")
+	}
+
+	uu, err := u.Store.GetUser(ctx, req.GetUsername())
+	if err != nil {
+		return nil, err
+	}
+
+	if uu == nil {
+		return nil, twirp.NotFoundError("")
+	}
+
+	err = u.Store.DeleteUser(ctx, uu)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authv1beta1.DeleteUserResponse{
+		User: &authv1beta1.User{
+			Username: uu.Username,
+		},
+	}, nil
 }

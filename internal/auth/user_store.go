@@ -56,7 +56,34 @@ func (s *UserStore) SaveUser(ctx context.Context, u *User) error {
 
 	u.Username = id
 	u.Rev = rev
-	u.Password = ""
+	return nil
+}
+
+func (s *UserStore) UpdateUser(ctx context.Context, u *User) error {
+	db := s.data.DB(ctx, couch.UsersDB)
+
+	if u.Password != "" {
+		err := hashPassword(u)
+		if err != nil {
+			return err
+		}
+	}
+
+	if u.Rev == "" {
+		_, rev, err := db.GetMeta(ctx, u.Username)
+		if err != nil {
+			return err
+		}
+
+		u.Rev = rev
+	}
+
+	rev, err := db.Put(ctx, u.Username, u)
+	if err != nil {
+		return err
+	}
+
+	u.Rev = rev
 	return nil
 }
 
@@ -101,6 +128,27 @@ func (s *UserStore) GetUser(ctx context.Context, username string) (*User, error)
 	return &user, nil
 }
 
+func (s *UserStore) DeleteUser(ctx context.Context, u *User) error {
+	db := s.data.DB(ctx, couch.UsersDB)
+
+	if u.Rev == "" {
+		_, rev, err := db.GetMeta(ctx, u.Username)
+		if err != nil {
+			return err
+		}
+
+		u.Rev = rev
+	}
+
+	rev, err := db.Delete(ctx, u.Username, u.Rev)
+	if err != nil {
+		return err
+	}
+
+	u.Rev = rev
+	return nil
+}
+
 func hashPassword(u *User) error {
 	if u.Password == "" {
 		return errors.New("user password cannot be blank")
@@ -112,5 +160,6 @@ func hashPassword(u *User) error {
 	}
 
 	u.HashedPassword = h
+	u.Password = ""
 	return nil
 }

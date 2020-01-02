@@ -26,10 +26,7 @@ service UsersAPI {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   // Create a new OAuth user with a password.
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-  // Update a OAuth user.
-  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
-  // Change a user password.
-  // Only callable by the user itself.
+  // Change a user password. Only callable by the user itself.
   rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UpdateUserPasswordResponse);
   // Delete a OAuth user.
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
@@ -64,17 +61,6 @@ message CreateUserRequest {
 
 // Response body with the newly created OAuth user.
 message CreateUserResponse {
-  auth.v1beta1.User user = 1;
-}
-
-// Request body to update an OAuth user.
-message UpdateUserRequest {
-  // The user to update. Required.
-  auth.v1beta1.User user = 1;
-}
-
-// Response body with the updated OAuth user.
-message UpdateUserResponse {
   auth.v1beta1.User user = 1;
 }
 
