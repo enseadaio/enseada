@@ -16,6 +16,8 @@ It is generated from these files:
 	auth/v1beta1/acl_rule.proto
 	auth/v1beta1/o_auth_client.proto
 	auth/v1beta1/o_auth_clients_api.proto
+	auth/v1beta1/user.proto
+	auth/v1beta1/users_api.proto
 */
 package authv1beta1
 

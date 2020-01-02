@@ -297,6 +297,84 @@
             </ul>
           </li>
         
+          
+          <li>
+            <a href="#auth%2fv1beta1%2fuser.proto">auth/v1beta1/user.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#auth.v1beta1.User"><span class="badge">M</span>User</a>
+                </li>
+              
+              
+              
+              
+            </ul>
+          </li>
+        
+          
+          <li>
+            <a href="#auth%2fv1beta1%2fusers_api.proto">auth/v1beta1/users_api.proto</a>
+            <ul>
+              
+                <li>
+                  <a href="#auth.v1beta1.CreateUserRequest"><span class="badge">M</span>CreateUserRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.CreateUserResponse"><span class="badge">M</span>CreateUserResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.DeleteUserRequest"><span class="badge">M</span>DeleteUserRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.DeleteUserResponse"><span class="badge">M</span>DeleteUserResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.GetUserRequest"><span class="badge">M</span>GetUserRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.GetUserResponse"><span class="badge">M</span>GetUserResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.ListUsersRequest"><span class="badge">M</span>ListUsersRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.ListUsersResponse"><span class="badge">M</span>ListUsersResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.UpdateUserPasswordRequest"><span class="badge">M</span>UpdateUserPasswordRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.UpdateUserPasswordResponse"><span class="badge">M</span>UpdateUserPasswordResponse</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.UpdateUserRequest"><span class="badge">M</span>UpdateUserRequest</a>
+                </li>
+              
+                <li>
+                  <a href="#auth.v1beta1.UpdateUserResponse"><span class="badge">M</span>UpdateUserResponse</a>
+                </li>
+              
+              
+              
+              
+                <li>
+                  <a href="#auth.v1beta1.UsersAPI"><span class="badge">S</span>UsersAPI</a>
+                </li>
+              
+            </ul>
+          </li>
+        
         <li><a href="#scalar-value-types">Scalar Value Types</a></li>
       </ul>
     </div>
@@ -863,35 +941,408 @@
                 <td>ListClients</td>
                 <td><a href="#auth.v1beta1.ListClientsRequest">ListClientsRequest</a></td>
                 <td><a href="#auth.v1beta1.ListClientsResponse">ListClientsResponse</a></td>
-                <td><p>List all available OAuth clients.</p></td>
+                <td><p>List all available OAuth clients.
+OAuth scopes: oauth:client.read</p></td>
               </tr>
             
               <tr>
                 <td>GetClient</td>
                 <td><a href="#auth.v1beta1.GetClientRequest">GetClientRequest</a></td>
                 <td><a href="#auth.v1beta1.GetClientResponse">GetClientResponse</a></td>
-                <td><p>Get a single OAuth client.</p></td>
+                <td><p>Get a single OAuth client.
+OAuth scopes: oauth:client.read</p></td>
               </tr>
             
               <tr>
                 <td>CreateClient</td>
                 <td><a href="#auth.v1beta1.CreateClientRequest">CreateClientRequest</a></td>
                 <td><a href="#auth.v1beta1.CreateClientResponse">CreateClientResponse</a></td>
-                <td><p>Add a new OAuth clients.</p></td>
+                <td><p>Add a new OAuth clients.
+OAuth scopes: oauth:client.write</p></td>
               </tr>
             
               <tr>
                 <td>UpdateClient</td>
                 <td><a href="#auth.v1beta1.UpdateClientRequest">UpdateClientRequest</a></td>
                 <td><a href="#auth.v1beta1.UpdateClientResponse">UpdateClientResponse</a></td>
-                <td><p>Update an OAuth client.</p></td>
+                <td><p>Update an OAuth client.
+OAuth scopes: oauth:client.write</p></td>
               </tr>
             
               <tr>
                 <td>DeleteClient</td>
                 <td><a href="#auth.v1beta1.DeleteClientRequest">DeleteClientRequest</a></td>
                 <td><a href="#auth.v1beta1.DeleteClientResponse">DeleteClientResponse</a></td>
-                <td><p>Delete an OAuth clients.</p></td>
+                <td><p>Delete an OAuth clients.
+OAuth scopes: oauth:client.write</p></td>
+              </tr>
+            
+          </tbody>
+        </table>
+
+        
+    
+      
+      <div class="file-heading">
+        <h2 id="auth/v1beta1/user.proto">auth/v1beta1/user.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="auth.v1beta1.User">User</h3>
+        <p>An OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+    
+      
+      <div class="file-heading">
+        <h2 id="auth/v1beta1/users_api.proto">auth/v1beta1/users_api.proto</h2><a href="#title">Top</a>
+      </div>
+      <p></p>
+
+      
+        <h3 id="auth.v1beta1.CreateUserRequest">CreateUserRequest</h3>
+        <p>Request body to create a new OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td></td>
+                  <td><p>The user to create. Required. </p></td>
+                </tr>
+              
+                <tr>
+                  <td>password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>The user password. Required. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.CreateUserResponse">CreateUserResponse</h3>
+        <p>Response body with the newly created OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.DeleteUserRequest">DeleteUserRequest</h3>
+        <p>Request body to delete an OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>The username of the user to delete. Required. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.DeleteUserResponse">DeleteUserResponse</h3>
+        <p>Response body with the deleted OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.GetUserRequest">GetUserRequest</h3>
+        <p>Request body to get a single OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>username</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>The username. Required. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.GetUserResponse">GetUserResponse</h3>
+        <p>Response body with a single OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.ListUsersRequest">ListUsersRequest</h3>
+        <p>Request body to list all registered OAuth users.</p>
+
+        
+
+        
+      
+        <h3 id="auth.v1beta1.ListUsersResponse">ListUsersResponse</h3>
+        <p>Response body with a list of all registered OAuth users.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>users</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td>repeated</td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.UpdateUserPasswordRequest">UpdateUserPasswordRequest</h3>
+        <p>Request body to update an OAuth user password.</p><p>The target user is always the current authenticated user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>password</td>
+                  <td><a href="#string">string</a></td>
+                  <td></td>
+                  <td><p>The new password. Required. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.UpdateUserPasswordResponse">UpdateUserPasswordResponse</h3>
+        <p></p>
+
+        
+
+        
+      
+        <h3 id="auth.v1beta1.UpdateUserRequest">UpdateUserRequest</h3>
+        <p>Request body to update an OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td></td>
+                  <td><p>The user to update. Required. </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+        <h3 id="auth.v1beta1.UpdateUserResponse">UpdateUserResponse</h3>
+        <p>Response body with the updated OAuth user.</p>
+
+        
+          <table class="field-table">
+            <thead>
+              <tr><td>Field</td><td>Type</td><td>Label</td><td>Description</td></tr>
+            </thead>
+            <tbody>
+              
+                <tr>
+                  <td>user</td>
+                  <td><a href="#auth.v1beta1.User">User</a></td>
+                  <td></td>
+                  <td><p> </p></td>
+                </tr>
+              
+            </tbody>
+          </table>
+
+          
+
+        
+      
+
+      
+
+      
+
+      
+        <h3 id="auth.v1beta1.UsersAPI">UsersAPI</h3>
+        <p>RPC API to manage OAuth users.</p>
+        <table class="enum-table">
+          <thead>
+            <tr><td>Method Name</td><td>Request Type</td><td>Response Type</td><td>Description</td></tr>
+          </thead>
+          <tbody>
+            
+              <tr>
+                <td>ListUsers</td>
+                <td><a href="#auth.v1beta1.ListUsersRequest">ListUsersRequest</a></td>
+                <td><a href="#auth.v1beta1.ListUsersResponse">ListUsersResponse</a></td>
+                <td><p>List all registered OAuth users.</p></td>
+              </tr>
+            
+              <tr>
+                <td>GetUser</td>
+                <td><a href="#auth.v1beta1.GetUserRequest">GetUserRequest</a></td>
+                <td><a href="#auth.v1beta1.GetUserResponse">GetUserResponse</a></td>
+                <td><p>Get a single OAuth user.</p></td>
+              </tr>
+            
+              <tr>
+                <td>CreateUser</td>
+                <td><a href="#auth.v1beta1.CreateUserRequest">CreateUserRequest</a></td>
+                <td><a href="#auth.v1beta1.CreateUserResponse">CreateUserResponse</a></td>
+                <td><p>Create a new OAuth user with a password.</p></td>
+              </tr>
+            
+              <tr>
+                <td>UpdateUser</td>
+                <td><a href="#auth.v1beta1.UpdateUserRequest">UpdateUserRequest</a></td>
+                <td><a href="#auth.v1beta1.UpdateUserResponse">UpdateUserResponse</a></td>
+                <td><p>Update a OAuth user.</p></td>
+              </tr>
+            
+              <tr>
+                <td>UpdateUserPassword</td>
+                <td><a href="#auth.v1beta1.UpdateUserPasswordRequest">UpdateUserPasswordRequest</a></td>
+                <td><a href="#auth.v1beta1.UpdateUserPasswordResponse">UpdateUserPasswordResponse</a></td>
+                <td><p>Change a user password.
+Only callable by the user itself.</p></td>
+              </tr>
+            
+              <tr>
+                <td>DeleteUser</td>
+                <td><a href="#auth.v1beta1.DeleteUserRequest">DeleteUserRequest</a></td>
+                <td><a href="#auth.v1beta1.DeleteUserResponse">DeleteUserResponse</a></td>
+                <td><p>Delete a OAuth user.</p></td>
               </tr>
             
           </tbody>

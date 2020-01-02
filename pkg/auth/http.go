@@ -31,22 +31,20 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 	g.POST("/token", token(op, s))
 	g.POST("/token/introspect", introspect(op))
 
-	acl := &authv1beta1api.ACLService{
-		Logger:   s.Logger,
-		Enforcer: enf,
-	}
+	acl := authv1beta1api.NewAclAPI(s.Logger, enf)
 	aclhandler := authv1beta1.NewAclAPIServer(acl, nil)
 	ah := echo.WrapHandler(middleware.WithAuthorizationHeader(aclhandler, s.Logger, s, op))
 	e.Any(aclhandler.PathPrefix()+"*", ah)
 
-	oclients := &authv1beta1api.OAuthClientsService{
-		Logger:   s.Logger,
-		Enforcer: enf,
-		Store:    s,
-	}
+	oclients := authv1beta1api.NewOAuthClientsAPI(s.Logger, enf, s)
 	oclientshandler := authv1beta1.NewOAuthClientsAPIServer(oclients, nil)
 	oh := echo.WrapHandler(middleware.WithAuthorizationHeader(oclientshandler, s.Logger, s, op))
 	e.Any(oclientshandler.PathPrefix()+"*", oh)
+
+	users := authv1beta1api.NewUsersAPI(s.Logger, enf, s)
+	usershandler := authv1beta1.NewUsersAPIServer(users, nil)
+	uh := echo.WrapHandler(middleware.WithAuthorizationHeader(usershandler, s.Logger, s, op))
+	e.Any(usershandler.PathPrefix()+"*", uh)
 }
 
 func authorizationPage() echo.HandlerFunc {
@@ -103,7 +101,7 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 			return nil
 		}
 
-		u, err := store.FindUserByUsername(ctx, username)
+		u, err := store.GetUser(ctx, username)
 		if err != nil {
 			return err
 		}
@@ -152,7 +150,7 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 		// If this is a password grant, populate the session.
 		if ar.GetGrantTypes().Exact("password") {
 			username := strings.TrimSpace(req.FormValue("username"))
-			u, err := store.FindUserByUsername(ctx, username)
+			u, err := store.GetUser(ctx, username)
 			if err != nil {
 				return err
 			}

@@ -18,12 +18,16 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-type ACLService struct {
+type AclAPI struct {
 	Logger   echo.Logger
 	Enforcer *casbin.Enforcer
 }
 
-func (s ACLService) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
+func NewAclAPI(logger echo.Logger, enforcer *casbin.Enforcer) *AclAPI {
+	return &AclAPI{Logger: logger, Enforcer: enforcer}
+}
+
+func (s *AclAPI) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
 	scopes, ok := middleware.Scopes(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -54,7 +58,7 @@ func (s ACLService) ListRules(ctx context.Context, req *authv1beta1.ListRulesReq
 	}, nil
 }
 
-func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (*authv1beta1.AddRuleResponse, error) {
+func (s *AclAPI) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (*authv1beta1.AddRuleResponse, error) {
 	scopes, ok := middleware.Scopes(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -79,7 +83,7 @@ func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest
 
 	ok, err := s.Enforcer.AddPolicy(rule.Sub, rule.Obj, rule.Act)
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if ok {
@@ -89,7 +93,7 @@ func (s ACLService) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest
 	return nil, twirp.NewError(twirp.AlreadyExists, "")
 }
 
-func (s ACLService) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleRequest) (*authv1beta1.DeleteRuleResponse, error) {
+func (s *AclAPI) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleRequest) (*authv1beta1.DeleteRuleResponse, error) {
 	scopes, ok := middleware.Scopes(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -114,7 +118,7 @@ func (s ACLService) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleR
 
 	ok, err := s.Enforcer.RemovePolicy(rule.Sub, rule.Obj, rule.Act)
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if ok {

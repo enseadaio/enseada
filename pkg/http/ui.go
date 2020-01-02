@@ -158,8 +158,7 @@ func addCurrentUser(s session.Session, params echo.Map) {
 	u := s.Get("current_user_name")
 	if i != nil && u != nil {
 		params["CurrentUser"] = auth.User{
-			ID:       i.(string),
-			Username: u.(string),
+			Username: i.(string),
 		}
 	}
 }

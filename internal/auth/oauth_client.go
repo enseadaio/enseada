@@ -38,7 +38,7 @@ type OAuthClientOptions struct {
 
 func NewOAuthClient(id string, secret string, opts ...OAuthClientOption) (*OAuthClient, error) {
 	if id == "" {
-		return nil, errors.New("client ID cannot be empty")
+		return nil, errors.New("client Username cannot be empty")
 	}
 
 	options := &OAuthClientOptions{
@@ -88,7 +88,7 @@ func NewOAuthClient(id string, secret string, opts ...OAuthClientOption) (*OAuth
 	}, nil
 }
 
-// GetID returns the client ID.
+// GetID returns the client Username.
 func (c *OAuthClient) GetID() string {
 	return c.ID
 }

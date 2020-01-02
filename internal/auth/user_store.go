@@ -30,26 +30,14 @@ func NewUserStore(data *kivik.Client, logger echo.Logger) *UserStore {
 }
 
 func (s *UserStore) Authenticate(ctx context.Context, username string, password string) error {
-	db := s.data.DB(ctx, couch.UsersDB)
-	rows, err := db.Find(ctx, couch.Query{
-		"selector": couch.Query{
-			"username": username,
-		},
-	})
+	u, err := s.GetUser(ctx, username)
 	if err != nil {
+		if kivik.StatusCode(err) == kivik.StatusNotFound {
+			return fosite.ErrNotFound
+		}
 		return err
 	}
-
-	if rows.Next() {
-		var u User
-		if err := rows.ScanDoc(&u); err != nil {
-			return err
-		}
-
-		return bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
-	}
-
-	return fosite.ErrNotFound
+	return bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
 }
 
 func (s *UserStore) SaveUser(ctx context.Context, u *User) error {
@@ -66,43 +54,43 @@ func (s *UserStore) SaveUser(ctx context.Context, u *User) error {
 		return err
 	}
 
-	u.ID = id
+	u.Username = id
 	u.Rev = rev
+	u.Password = ""
 	return nil
 }
 
-func (s *UserStore) FindUserByUsername(ctx context.Context, username string) (*User, error) {
-	return s.FindUserBy(ctx, couch.Query{
-		"selector": couch.Query{
-			"username": username,
-		},
-	})
-}
-
-func (s *UserStore) FindUserBy(ctx context.Context, query couch.Query) (*User, error) {
+func (s *UserStore) ListUsers(ctx context.Context) ([]*User, error) {
 	db := s.data.DB(ctx, couch.UsersDB)
-	rows, err := db.Find(ctx, query)
+	rows, err := db.AllDocs(ctx, kivik.Options{
+		"include_docs": true,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	if rows.Next() {
-		var user User
-		if err := rows.ScanDoc(&user); err != nil {
+	var users []*User
+	for rows.Next() {
+		user := new(User)
+		if err := rows.ScanDoc(user); err != nil {
 			return nil, err
 		}
 
-		return &user, nil
+		users = append(users, user)
 	}
 
-	return nil, nil
+	return users, nil
 }
 
-func (s *UserStore) GetUser(ctx context.Context, id string) (*User, error) {
+func (s *UserStore) GetUser(ctx context.Context, username string) (*User, error) {
 	db := s.data.DB(ctx, couch.UsersDB)
-	row := db.Get(ctx, id)
+	row := db.Get(ctx, username)
 	var user User
 	if err := row.ScanDoc(&user); err != nil {
+		if kivik.StatusCode(err) == kivik.StatusNotFound {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 

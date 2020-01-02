@@ -1,0 +1,99 @@
+// Copyright 2019-2020 Enseada authors
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+syntax = "proto3";
+
+package auth.v1beta1;
+
+option csharp_namespace = "Auth.V1Beta1";
+option go_package = "authv1beta1";
+option java_multiple_files = true;
+option java_outer_classname = "UsersApiProto";
+option java_package = "io.enseada.auth.v1beta1";
+option objc_class_prefix = "AXX";
+option php_namespace = "Auth\\V1Beta1";
+
+import "auth/v1beta1/user.proto";
+
+// RPC API to manage OAuth users.
+service UsersAPI {
+  // List all registered OAuth users.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // Get a single OAuth user.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Create a new OAuth user with a password.
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // Update a OAuth user.
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  // Change a user password.
+  // Only callable by the user itself.
+  rpc UpdateUserPassword(UpdateUserPasswordRequest) returns (UpdateUserPasswordResponse);
+  // Delete a OAuth user.
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+// Request body to list all registered OAuth users.
+message ListUsersRequest {}
+
+// Response body with a list of all registered OAuth users.
+message ListUsersResponse {
+  repeated auth.v1beta1.User users = 1;
+}
+
+// Request body to get a single OAuth user.
+message GetUserRequest {
+  // The username. Required.
+  string username = 1;
+}
+
+// Response body with a single OAuth user.
+message GetUserResponse {
+  auth.v1beta1.User user = 1;
+}
+
+// Request body to create a new OAuth user.
+message CreateUserRequest {
+  // The user to create. Required.
+  auth.v1beta1.User user = 1;
+  // The user password. Required.
+  string password = 2;
+}
+
+// Response body with the newly created OAuth user.
+message CreateUserResponse {
+  auth.v1beta1.User user = 1;
+}
+
+// Request body to update an OAuth user.
+message UpdateUserRequest {
+  // The user to update. Required.
+  auth.v1beta1.User user = 1;
+}
+
+// Response body with the updated OAuth user.
+message UpdateUserResponse {
+  auth.v1beta1.User user = 1;
+}
+
+// Request body to update an OAuth user password.
+// The target user is always the current authenticated user.
+message UpdateUserPasswordRequest {
+  // The new password. Required.
+  string password = 1;
+}
+
+message UpdateUserPasswordResponse {}
+
+// Request body to delete an OAuth user.
+message DeleteUserRequest {
+  // The username of the user to delete. Required.
+  string username = 1;
+}
+
+// Response body with the deleted OAuth user.
+message DeleteUserResponse {
+  auth.v1beta1.User user = 1;
+}

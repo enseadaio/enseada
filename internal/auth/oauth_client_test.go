@@ -40,7 +40,7 @@ func TestNewPrivateOAuthClient(t *testing.T) {
 func TestNewPrivateOAuthClientNoID(t *testing.T) {
 	client, err := NewOAuthClient("", "")
 	assert.Nil(t, client)
-	assert.EqualError(t, err, "client ID cannot be empty")
+	assert.EqualError(t, err, "client Username cannot be empty")
 }
 
 func TestNewPrivateOAuthClientNoSecret(t *testing.T) {

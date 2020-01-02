@@ -67,16 +67,9 @@ func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger echo.Log
 		return nil, err
 	}
 
-	fr, err := s.FindUserByUsername(ctx, "root")
-	if err != nil {
+	root := auth.RootUser("root")
+	if err := s.SaveUser(ctx, root); err != nil && kivik.StatusCode(err) != kivik.StatusConflict {
 		return nil, err
-	}
-
-	if fr == nil {
-		root := auth.RootUser("root")
-		if err := s.SaveUser(ctx, root); err != nil {
-			return nil, err
-		}
 	}
 
 	mountRoutes(e, s, op, enf, middleware.Session(skb))

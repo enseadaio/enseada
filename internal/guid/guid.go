@@ -52,7 +52,7 @@ func Parse(guid string) (GUID, error) {
 	db := s1[0]
 	id := s1[1]
 	if id == "" {
-		return GUID{}, errors.New("is missing ID")
+		return GUID{}, errors.New("is missing Username")
 	}
 
 	query := url.Values{}

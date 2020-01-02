@@ -50,7 +50,7 @@ func TestParseInvalid(t *testing.T) {
 
 	_, err = Parse("test://")
 	assert.Error(t, err)
-	assert.Equal(t, "is missing ID", err.Error())
+	assert.Equal(t, "is missing Username", err.Error())
 }
 
 func TestParseEmpty(t *testing.T) {

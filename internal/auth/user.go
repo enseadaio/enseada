@@ -7,16 +7,14 @@
 package auth
 
 type User struct {
-	ID             string `json:"_id,omitempty"`
+	Username       string `json:"_id"`
 	Rev            string `json:"_rev,omitempty"`
-	Username       string `json:"username"`
 	Password       string `json:"-"`
 	HashedPassword []byte `json:"hashed_password"`
 }
 
 func RootUser(pwd string) *User {
 	return &User{
-		ID:       "root",
 		Username: "root",
 		Password: pwd,
 	}

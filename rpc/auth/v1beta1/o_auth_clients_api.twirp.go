@@ -39,18 +39,23 @@ import (
 // RPC API to manage OAuth clients.
 type OAuthClientsAPI interface {
 	// List all available OAuth clients.
+	// OAuth scopes: oauth:client.read
 	ListClients(context.Context, *ListClientsRequest) (*ListClientsResponse, error)
 
 	// Get a single OAuth client.
+	// OAuth scopes: oauth:client.read
 	GetClient(context.Context, *GetClientRequest) (*GetClientResponse, error)
 
 	// Add a new OAuth clients.
+	// OAuth scopes: oauth:client.write
 	CreateClient(context.Context, *CreateClientRequest) (*CreateClientResponse, error)
 
 	// Update an OAuth client.
+	// OAuth scopes: oauth:client.write
 	UpdateClient(context.Context, *UpdateClientRequest) (*UpdateClientResponse, error)
 
 	// Delete an OAuth clients.
+	// OAuth scopes: oauth:client.write
 	DeleteClient(context.Context, *DeleteClientRequest) (*DeleteClientResponse, error)
 }
 

@@ -39,7 +39,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 	if id == "root" {
 		rs, err := s.Maven.ListRepos(ctx, couch.Query{})
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 
 		repos = rs
@@ -49,7 +49,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 		for _, p := range ps {
 			g, err := guid.Parse(p[1])
 			if err != nil {
-				return nil, err
+				return nil, twirp.InternalErrorWith(err)
 			}
 
 			if g.DB() == couch.MavenDB && g.Kind() == couch.KindRepository && p[2] == "read" {
@@ -63,7 +63,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 			},
 		})
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 
 		repos = rs
@@ -101,7 +101,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
 	can, err := s.Enforcer.Enforce(id, cg.String(), "read")
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
@@ -110,7 +110,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 
 	repo, err := s.Maven.GetRepo(ctx, req.GetId())
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if repo == nil {
@@ -151,7 +151,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 		if err == maven.ErrorRepoAlreadyPresent {
 			return nil, twirp.NewError(twirp.AlreadyExists, "Maven repository already present")
 		}
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	cg := guid.New(couch.MavenDB, repo.ID, couch.KindRepository)
@@ -159,7 +159,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 	for _, p := range ps {
 		_, err := s.Enforcer.AddPermissionForUser(id, cg.String(), p)
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 	}
 
@@ -190,7 +190,7 @@ func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReq
 	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
 	can, err := s.Enforcer.Enforce(id, cg.String(), "delete")
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
@@ -199,7 +199,7 @@ func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReq
 
 	repo, err := s.Maven.DeleteRepo(ctx, req.GetId())
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if repo == nil {

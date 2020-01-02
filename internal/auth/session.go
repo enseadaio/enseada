@@ -15,13 +15,17 @@ import (
 	"github.com/ory/fosite/token/jwt"
 )
 
-func NewSession(u *User) fosite.Session {
+func NewSession(u *User, audiences ...string) fosite.Session {
+	if len(audiences) == 0 {
+		audiences = []string{"enseada"}
+	}
+
 	if u == nil {
 		return &openid.DefaultSession{
 			Claims: &jwt.IDTokenClaims{
 				Issuer:      "enseada",
 				Subject:     "",
-				Audience:    []string{"enseada"},
+				Audience:    audiences,
 				Nonce:       "",
 				ExpiresAt:   time.Now().Add(time.Hour * 6),
 				IssuedAt:    time.Now(),
@@ -36,8 +40,8 @@ func NewSession(u *User) fosite.Session {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      "enseada",
-			Subject:     u.ID,
-			Audience:    []string{"enseada"},
+			Subject:     u.Username,
+			Audience:    audiences,
 			Nonce:       "",
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
@@ -48,6 +52,6 @@ func NewSession(u *User) fosite.Session {
 			},
 		},
 		Username: u.Username,
-		Subject:  u.ID,
+		Subject:  u.Username,
 	}
 }

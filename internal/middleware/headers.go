@@ -80,8 +80,8 @@ func WithAuthorizationHeader(base http.Handler, logger echo.Logger, s *auth.Stor
 			return
 		}
 
-		logger.Infof("successfully authenticated user %s", u.ID)
-		ctx = WithCurrentUserID(ctx, u.ID)
+		logger.Infof("successfully authenticated user %s", u.Username)
+		ctx = WithCurrentUserID(ctx, u.Username)
 		ctx = WithScopes(ctx, ar.GetGrantedScopes())
 
 		r = r.WithContext(ctx)

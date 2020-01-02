@@ -22,13 +22,17 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-type OAuthClientsService struct {
+type OAuthClientsAPI struct {
 	Logger   echo.Logger
 	Enforcer *casbin.Enforcer
 	Store    *auth.Store
 }
 
-func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.ListClientsRequest) (*authv1beta1.ListClientsResponse, error) {
+func NewOAuthClientsAPI(logger echo.Logger, enforcer *casbin.Enforcer, store *auth.Store) *OAuthClientsAPI {
+	return &OAuthClientsAPI{Logger: logger, Enforcer: enforcer, Store: store}
+}
+
+func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.ListClientsRequest) (*authv1beta1.ListClientsResponse, error) {
 	id, ok := middleware.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -43,7 +47,7 @@ func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.
 	if id == "root" {
 		clients, err := o.Store.ListClients(ctx, couch.Query{})
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 
 		cs = clients
@@ -53,7 +57,7 @@ func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.
 		for _, p := range ps {
 			g, err := guid.Parse(p[1])
 			if err != nil {
-				return nil, err
+				return nil, twirp.InternalErrorWith(err)
 			}
 
 			if g.DB() == couch.OAuthDB && g.Kind() == couch.KindOAuthClient && p[2] == "read" {
@@ -67,7 +71,7 @@ func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.
 			},
 		})
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 
 		cs = clients
@@ -84,7 +88,7 @@ func (o *OAuthClientsService) ListClients(ctx context.Context, req *authv1beta1.
 	}, nil
 }
 
-func (o *OAuthClientsService) GetClient(ctx context.Context, req *authv1beta1.GetClientRequest) (*authv1beta1.GetClientResponse, error) {
+func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetClientRequest) (*authv1beta1.GetClientResponse, error) {
 	id, ok := middleware.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -102,7 +106,7 @@ func (o *OAuthClientsService) GetClient(ctx context.Context, req *authv1beta1.Ge
 	cg := guid.New(couch.OAuthDB, req.Id, couch.KindOAuthClient)
 	can, err := o.Enforcer.Enforce(id, cg.String(), "read")
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
@@ -111,7 +115,7 @@ func (o *OAuthClientsService) GetClient(ctx context.Context, req *authv1beta1.Ge
 
 	c, err := o.Store.GetClient(ctx, req.Id)
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if c == nil {
@@ -123,7 +127,7 @@ func (o *OAuthClientsService) GetClient(ctx context.Context, req *authv1beta1.Ge
 	}, nil
 }
 
-func (o *OAuthClientsService) CreateClient(ctx context.Context, req *authv1beta1.CreateClientRequest) (*authv1beta1.CreateClientResponse, error) {
+func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.CreateClientRequest) (*authv1beta1.CreateClientResponse, error) {
 	id, ok := middleware.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -145,7 +149,7 @@ func (o *OAuthClientsService) CreateClient(ctx context.Context, req *authv1beta1
 
 	c, err := mapProtoToClient(pc, req.GetSecret())
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	err = o.Store.SaveClient(ctx, c)
@@ -153,7 +157,7 @@ func (o *OAuthClientsService) CreateClient(ctx context.Context, req *authv1beta1
 		if kivik.StatusCode(err) == kivik.StatusConflict {
 			return nil, twirp.NewError(twirp.AlreadyExists, "")
 		}
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
@@ -161,7 +165,7 @@ func (o *OAuthClientsService) CreateClient(ctx context.Context, req *authv1beta1
 	for _, p := range ps {
 		_, err := o.Enforcer.AddPermissionForUser(id, cg.String(), p)
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 	}
 
@@ -170,7 +174,7 @@ func (o *OAuthClientsService) CreateClient(ctx context.Context, req *authv1beta1
 	}, nil
 }
 
-func (o *OAuthClientsService) UpdateClient(ctx context.Context, req *authv1beta1.UpdateClientRequest) (*authv1beta1.UpdateClientResponse, error) {
+func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.UpdateClientRequest) (*authv1beta1.UpdateClientResponse, error) {
 	id, ok := middleware.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -188,7 +192,7 @@ func (o *OAuthClientsService) UpdateClient(ctx context.Context, req *authv1beta1
 
 	fc, err := o.Store.GetClient(ctx, pc.GetId())
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if fc == nil {
@@ -200,7 +204,7 @@ func (o *OAuthClientsService) UpdateClient(ctx context.Context, req *authv1beta1
 	cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
 	can, err := o.Enforcer.Enforce(id, cg.String(), "update")
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
@@ -229,7 +233,7 @@ func (o *OAuthClientsService) UpdateClient(ctx context.Context, req *authv1beta1
 	}, nil
 }
 
-func (o *OAuthClientsService) DeleteClient(ctx context.Context, req *authv1beta1.DeleteClientRequest) (*authv1beta1.DeleteClientResponse, error) {
+func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.DeleteClientRequest) (*authv1beta1.DeleteClientResponse, error) {
 	id, ok := middleware.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -247,7 +251,7 @@ func (o *OAuthClientsService) DeleteClient(ctx context.Context, req *authv1beta1
 	cg := guid.New(couch.OAuthDB, req.GetId(), couch.KindOAuthClient)
 	can, err := o.Enforcer.Enforce(id, cg, "delete")
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
@@ -256,7 +260,7 @@ func (o *OAuthClientsService) DeleteClient(ctx context.Context, req *authv1beta1
 
 	c, err := o.Store.DeleteClient(ctx, req.GetId())
 	if err != nil {
-		return nil, err
+		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if c == nil {
@@ -267,7 +271,7 @@ func (o *OAuthClientsService) DeleteClient(ctx context.Context, req *authv1beta1
 	for _, p := range ps {
 		_, err := o.Enforcer.DeletePermissionForUser(id, cg.String(), p)
 		if err != nil {
-			return nil, err
+			return nil, twirp.InternalErrorWith(err)
 		}
 	}
 	return &authv1beta1.DeleteClientResponse{

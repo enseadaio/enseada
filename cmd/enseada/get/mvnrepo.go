@@ -74,7 +74,7 @@ func listRepos(ctx context.Context, client mavenv1beta1.MavenAPI) error {
 func printRepos(repos ...*mavenv1beta1.Repo) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Name", "Group ID", "Artifact ID"})
+	t.AppendHeader(table.Row{"Name", "Group Username", "Artifact Username"})
 	for _, repo := range repos {
 		t.AppendRow(table.Row{repo.GetId(), repo.GetGroupId(), repo.GetArtifactId()})
 	}

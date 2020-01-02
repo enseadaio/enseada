@@ -21,14 +21,19 @@ import "auth/v1beta1/o_auth_client.proto";
 // RPC API to manage OAuth clients.
 service OAuthClientsAPI {
   // List all available OAuth clients.
+  // OAuth scopes: oauth:client.read
   rpc ListClients(ListClientsRequest) returns (ListClientsResponse);
   // Get a single OAuth client.
+  // OAuth scopes: oauth:client.read
   rpc GetClient(GetClientRequest) returns (GetClientResponse);
   // Add a new OAuth clients.
+  // OAuth scopes: oauth:client.write
   rpc CreateClient(CreateClientRequest) returns (CreateClientResponse);
   // Update an OAuth client.
+  // OAuth scopes: oauth:client.write
   rpc UpdateClient(UpdateClientRequest) returns (UpdateClientResponse);
   // Delete an OAuth clients.
+  // OAuth scopes: oauth:client.write
   rpc DeleteClient(DeleteClientRequest) returns (DeleteClientResponse);
 }
 
