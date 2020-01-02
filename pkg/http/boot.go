@@ -9,6 +9,8 @@ package http
 import (
 	"context"
 
+	"github.com/uber-go/tally"
+
 	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/enseadaio/enseada/internal/middleware"
@@ -16,8 +18,8 @@ import (
 	goauth "golang.org/x/oauth2"
 )
 
-func Boot(_ context.Context, logger log.Logger, oc *goauth.Config, skb []byte) (*echo.Echo, error) {
-	e := createEchoServer(logger)
+func Boot(_ context.Context, logger log.Logger, stats tally.Scope, oc *goauth.Config, skb []byte) (*echo.Echo, error) {
+	e := createEchoServer(logger, stats)
 
 	mountHealthCheck(e)
 	mountUI(e, oc, middleware.Session(skb))

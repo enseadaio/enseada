@@ -21,12 +21,12 @@ import (
 )
 
 type AclAPI struct {
-	Logger   log.Logger
-	Enforcer *casbin.Enforcer
+	logger   log.Logger
+	enforcer *casbin.Enforcer
 }
 
 func NewAclAPI(logger log.Logger, enforcer *casbin.Enforcer) *AclAPI {
-	return &AclAPI{Logger: logger, Enforcer: enforcer}
+	return &AclAPI{logger: logger, enforcer: enforcer}
 }
 
 func (s *AclAPI) ListRules(ctx context.Context, req *authv1beta1.ListRulesRequest) (*authv1beta1.ListRulesResponse, error) {
@@ -39,7 +39,7 @@ func (s *AclAPI) ListRules(ctx context.Context, req *authv1beta1.ListRulesReques
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
-	policy := s.Enforcer.GetPolicy()
+	policy := s.enforcer.GetPolicy()
 	var rules []*authv1beta1.AclRule
 
 	for _, r := range policy {
@@ -83,7 +83,7 @@ func (s *AclAPI) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (
 		return nil, twirp.RequiredArgumentError("act")
 	}
 
-	ok, err := s.Enforcer.AddPolicy(rule.Sub, rule.Obj, rule.Act)
+	ok, err := s.enforcer.AddPolicy(rule.Sub, rule.Obj, rule.Act)
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -118,7 +118,7 @@ func (s *AclAPI) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleRequ
 		return nil, twirp.RequiredArgumentError("act")
 	}
 
-	ok, err := s.Enforcer.RemovePolicy(rule.Sub, rule.Obj, rule.Act)
+	ok, err := s.enforcer.RemovePolicy(rule.Sub, rule.Obj, rule.Act)
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}

@@ -37,15 +37,15 @@ func NewCasbinWatcher(data *kivik.Client, logger log.Logger) *CasbinWatcher {
 
 // SetUpdateCallback sets the callback function that the watcher will call
 // when the policy in DB has been changed by other instances.
-// A classic callback is Enforcer.LoadPolicy().
+// A classic callback is enforcer.LoadPolicy().
 func (w *CasbinWatcher) SetUpdateCallback(cb func(string)) error {
 	w.callback = cb
 	return nil
 }
 
 // Update calls the update callback of other instances to synchronize their policy.
-// It is usually called after changing the policy in DB, like Enforcer.SavePolicy(),
-// Enforcer.AddPolicy(), Enforcer.RemovePolicy(), etc.
+// It is usually called after changing the policy in DB, like enforcer.SavePolicy(),
+// enforcer.AddPolicy(), enforcer.RemovePolicy(), etc.
 func (w *CasbinWatcher) Update() error {
 	// noop because Couch provides the update for us via the Changes feed
 	return nil

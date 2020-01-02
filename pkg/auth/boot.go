@@ -11,6 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 
+	"github.com/uber-go/tally"
+
 	"github.com/enseadaio/enseada/pkg/log"
 
 	rice "github.com/GeertJohan/go.rice"
@@ -32,7 +34,7 @@ type Components struct {
 	Provider fosite.OAuth2Provider
 }
 
-func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger log.Logger, skb []byte, ph string, clientSecret string) (*Components, error) {
+func Boot(ctx context.Context, logger log.Logger, e *echo.Echo, data *kivik.Client, stats tally.Scope, skb []byte, ph string, clientSecret string) (*Components, error) {
 	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
@@ -74,7 +76,7 @@ func Boot(ctx context.Context, e *echo.Echo, data *kivik.Client, logger log.Logg
 		return nil, err
 	}
 
-	mountRoutes(e, s, op, enf, middleware.Session(skb))
+	mountRoutes(ctx, e, s, op, enf, stats, middleware.Session(skb))
 	return &Components{
 		Store:    s,
 		Enforcer: enf,

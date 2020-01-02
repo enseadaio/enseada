@@ -10,6 +10,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/enseadaio/enseada/pkg/observability"
+	"github.com/labstack/echo"
+
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/enseadaio/enseada/pkg/http"
 	"github.com/enseadaio/enseada/pkg/log"
@@ -47,17 +50,22 @@ func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (StartFunc,
 		return nil, nil, err
 	}
 
-	echo, err := http.Boot(ctx, logger.Child("echo"), oc, skb)
+	rep := observability.NewPromReporter(logger.Child("prom"))
+	stats, statsCloser := observability.NewScope(rep)
+
+	e, err := http.Boot(ctx, logger.Child("echo"), stats.SubScope("http"), oc, skb)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	a, err := auth.Boot(ctx, echo, data, logger.Child("auth"), skb, ph, sec)
+	e.GET("/metrics", echo.WrapHandler(rep.HTTPHandler()))
+
+	a, err := auth.Boot(ctx, logger.Child("auth"), e, data, stats.SubScope("auth"), skb, ph, sec)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if err := maven.Boot(ctx, logger.Child("maven2"), echo, data, storage, a.Enforcer, a.Store, a.Provider); err != nil {
+	if err := maven.Boot(ctx, logger.Child("maven2"), e, data, storage, a.Enforcer, stats.SubScope("maven")); err != nil {
 		return nil, nil, err
 	}
 
@@ -74,14 +82,17 @@ func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (StartFunc,
 			if ssl {
 				cert := conf.GetString("ssl.cert.path")
 				key := conf.GetString("ssl.key.path")
-				return echo.StartTLS(address, cert, key)
+				return e.StartTLS(address, cert, key)
 			} else {
-				return echo.Start(address)
+				return e.Start(address)
 			}
 
 		}, func(ctx context.Context) error {
-			echo.Logger.Info("Shutting down server...")
-			return echo.Shutdown(ctx)
+			if err := statsCloser.Close(); err != nil {
+				logger.Fatal(err)
+			}
+			e.Logger.Info("Shutting down server...")
+			return e.Shutdown(ctx)
 		},
 		nil
 }
