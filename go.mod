@@ -27,10 +27,6 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.3.0 // indirect
-	github.com/m3db/prometheus_client_golang v0.8.1 // indirect
-	github.com/m3db/prometheus_client_model v0.1.0 // indirect
-	github.com/m3db/prometheus_common v0.1.0 // indirect
-	github.com/m3db/prometheus_procfs v0.8.1 // indirect
 	github.com/magefile/mage v1.9.0 // indirect
 	github.com/mattn/go-runewidth v0.0.7 // indirect
 	github.com/ory/fosite v0.30.2
@@ -41,7 +37,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
 	github.com/twitchtv/twirp v5.9.0+incompatible
-	github.com/uber-go/tally v3.3.13+incompatible
 	gitlab.com/flimzy/testy v0.0.0-20191030154103-8f78296a3383 // indirect
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413

@@ -25,13 +25,13 @@ import (
 )
 
 type OAuthClientsAPI struct {
-	logger   log.Logger
-	enforcer *casbin.Enforcer
-	store    *auth.Store
+	Logger   log.Logger
+	Enforcer *casbin.Enforcer
+	Store    *auth.Store
 }
 
 func NewOAuthClientsAPI(logger log.Logger, enforcer *casbin.Enforcer, store *auth.Store) *OAuthClientsAPI {
-	return &OAuthClientsAPI{logger: logger, enforcer: enforcer, store: store}
+	return &OAuthClientsAPI{Logger: logger, Enforcer: enforcer, Store: store}
 }
 
 func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.ListClientsRequest) (*authv1beta1.ListClientsResponse, error) {
@@ -47,14 +47,14 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 
 	var cs []fosite.Client
 	if id == "root" {
-		clients, err := o.store.ListClients(ctx, couch.Query{})
+		clients, err := o.Store.ListClients(ctx, couch.Query{})
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
 		}
 
 		cs = clients
 	} else {
-		ps := o.enforcer.GetPermissionsForUser(id)
+		ps := o.Enforcer.GetPermissionsForUser(id)
 		ids := make([]string, 0)
 		for _, p := range ps {
 			g, err := guid.Parse(p[1])
@@ -67,7 +67,7 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 			}
 		}
 
-		clients, err := o.store.ListClients(ctx, couch.Query{
+		clients, err := o.Store.ListClients(ctx, couch.Query{
 			"_id": couch.Query{
 				"$in": ids,
 			},
@@ -106,7 +106,7 @@ func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetCli
 	}
 
 	cg := guid.New(couch.OAuthDB, req.Id, couch.KindOAuthClient)
-	can, err := o.enforcer.Enforce(id, cg.String(), "read")
+	can, err := o.Enforcer.Enforce(id, cg.String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -115,7 +115,7 @@ func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetCli
 		return nil, twirp.NotFoundError("")
 	}
 
-	c, err := o.store.GetClient(ctx, req.Id)
+	c, err := o.Store.GetClient(ctx, req.Id)
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -154,7 +154,7 @@ func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.Cre
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	err = o.store.SaveClient(ctx, c)
+	err = o.Store.SaveClient(ctx, c)
 	if err != nil {
 		if kivik.StatusCode(err) == kivik.StatusConflict {
 			return nil, twirp.NewError(twirp.AlreadyExists, "")
@@ -165,7 +165,7 @@ func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.Cre
 	cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
 	ps := []string{"read", "update", "delete"}
 	for _, p := range ps {
-		_, err := o.enforcer.AddPermissionForUser(id, cg.String(), p)
+		_, err := o.Enforcer.AddPermissionForUser(id, cg.String(), p)
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
 		}
@@ -192,7 +192,7 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 		return nil, twirp.RequiredArgumentError("client")
 	}
 
-	fc, err := o.store.GetClient(ctx, pc.GetId())
+	fc, err := o.Store.GetClient(ctx, pc.GetId())
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -204,7 +204,7 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 	c := fc.(*auth.OAuthClient)
 
 	cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
-	can, err := o.enforcer.Enforce(id, cg.String(), "update")
+	can, err := o.Enforcer.Enforce(id, cg.String(), "update")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -229,7 +229,7 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 		c.Audiences = pc.GetAudiences()
 	}
 
-	err = o.store.SaveClient(ctx, c)
+	err = o.Store.SaveClient(ctx, c)
 	return &authv1beta1.UpdateClientResponse{
 		Client: mapClientToProto(c),
 	}, nil
@@ -251,7 +251,7 @@ func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.Del
 	}
 
 	cg := guid.New(couch.OAuthDB, req.GetId(), couch.KindOAuthClient)
-	can, err := o.enforcer.Enforce(id, cg, "delete")
+	can, err := o.Enforcer.Enforce(id, cg, "delete")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -260,7 +260,7 @@ func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.Del
 		return nil, twirp.NotFoundError("")
 	}
 
-	c, err := o.store.DeleteClient(ctx, req.GetId())
+	c, err := o.Store.DeleteClient(ctx, req.GetId())
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -271,7 +271,7 @@ func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.Del
 
 	ps := []string{"read", "update", "delete"}
 	for _, p := range ps {
-		_, err := o.enforcer.DeletePermissionForUser(id, cg.String(), p)
+		_, err := o.Enforcer.DeletePermissionForUser(id, cg.String(), p)
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
 		}

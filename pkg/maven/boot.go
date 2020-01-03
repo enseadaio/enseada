@@ -9,21 +9,21 @@ package maven
 import (
 	"context"
 
-	"github.com/uber-go/tally"
-
 	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/chartmuseum/storage"
+	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
+	"github.com/ory/fosite"
 )
 
-func Boot(ctx context.Context, logger log.Logger, e *echo.Echo, data *kivik.Client, store storage.Backend, enf *casbin.Enforcer, stats tally.Scope) error {
+func Boot(ctx context.Context, logger log.Logger, e *echo.Echo, data *kivik.Client, store storage.Backend, enf *casbin.Enforcer, s *auth.Store, op fosite.OAuth2Provider) error {
 	mvn := maven.New(logger, data, store)
-	mountRoutes(e, mvn, stats, enf)
+	mountRoutes(e, mvn, s, op, enf)
 
 	if err := couch.Transact(ctx, logger, data, migrateDB, couch.MavenDB); err != nil {
 		return err

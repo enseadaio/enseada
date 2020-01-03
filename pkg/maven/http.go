@@ -11,8 +11,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/uber-go/tally"
-
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/ctxutils"
 	"github.com/enseadaio/enseada/internal/guid"
@@ -21,22 +19,29 @@ import (
 
 	"github.com/casbin/casbin/v2"
 
+	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/maven"
 	mavenv1beta1api "github.com/enseadaio/enseada/internal/maven/v1beta1"
+	"github.com/enseadaio/enseada/internal/middleware"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
+	"github.com/ory/fosite"
+
 	"github.com/labstack/echo"
 )
 
-func mountRoutes(e *echo.Echo, m *maven.Maven, stats tally.Scope, enf *casbin.Enforcer) {
+func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer) {
 	g := e.Group("/maven2")
 
 	g.GET("/*", getMaven(m, enf))
 	g.PUT("/*", storeMaven(m, enf))
 
-	mvnapi := mavenv1beta1api.NewAPI(m, enf, stats)
-	mvnhandler := mavenv1beta1.NewMavenAPIServer(mvnapi, nil)
-	h := echo.WrapHandler(mvnhandler)
-	e.Any(mvnhandler.PathPrefix()+"*", h)
+	mvnsvc := mavenv1beta1api.Service{
+		Maven:    m,
+		Enforcer: enf,
+	}
+	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
+	h := echo.WrapHandler(middleware.AuthorizationHeader(m.Logger, s, op)(mvnHandler))
+	e.Any(mvnHandler.PathPrefix()+"*", h)
 }
 
 func getMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {

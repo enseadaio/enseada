@@ -11,7 +11,6 @@ import (
 
 	"github.com/enseadaio/enseada/internal/ctxutils"
 	"github.com/enseadaio/enseada/pkg/log"
-	"github.com/uber-go/tally"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
@@ -23,17 +22,13 @@ import (
 )
 
 type UsersAPI struct {
-	logger       log.Logger
-	enforcer     *casbin.Enforcer
-	store        *auth.Store
-	stats        tally.Scope
-	usersCounter tally.Gauge
+	Logger   log.Logger
+	Enforcer *casbin.Enforcer
+	Store    *auth.Store
 }
 
-func NewUsersAPI(ctx context.Context, logger log.Logger, enforcer *casbin.Enforcer, store *auth.Store, stats tally.Scope) *UsersAPI {
-	u := &UsersAPI{logger: logger, enforcer: enforcer, store: store, stats: stats}
-	go u.updateUsersCounter(ctx)
-	return u
+func NewUsersAPI(logger log.Logger, enforcer *casbin.Enforcer, store *auth.Store) *UsersAPI {
+	return &UsersAPI{Logger: logger, Enforcer: enforcer, Store: store}
 }
 
 func (u *UsersAPI) ListUsers(ctx context.Context, req *authv1beta1.ListUsersRequest) (*authv1beta1.ListUsersResponse, error) {
@@ -42,7 +37,7 @@ func (u *UsersAPI) ListUsers(ctx context.Context, req *authv1beta1.ListUsersRequ
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	can, err := u.enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
+	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -51,7 +46,7 @@ func (u *UsersAPI) ListUsers(ctx context.Context, req *authv1beta1.ListUsersRequ
 		return nil, twirp.NewError(twirp.PermissionDenied, "")
 	}
 
-	us, err := u.store.ListUsers(ctx)
+	us, err := u.Store.ListUsers(ctx)
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -75,7 +70,7 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	can, err := u.enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
+	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -88,7 +83,7 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 		return nil, twirp.RequiredArgumentError("username")
 	}
 
-	user, err := u.store.GetUser(ctx, req.GetUsername())
+	user, err := u.Store.GetUser(ctx, req.GetUsername())
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -112,7 +107,7 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	can, err := u.enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
+	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -135,7 +130,7 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 		Username: up.GetUsername(),
 		Password: pwd,
 	}
-	err = u.store.SaveUser(ctx, uu)
+	err = u.Store.SaveUser(ctx, uu)
 	if err != nil {
 		// Don't like it, leaking db implementation
 		if kivik.StatusCode(err) == kivik.StatusConflict {
@@ -146,7 +141,6 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	u.updateUsersCounter(ctx)
 	return &authv1beta1.CreateUserResponse{
 		User: up,
 	}, nil
@@ -158,7 +152,7 @@ func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.Upda
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	uu, err := u.store.GetUser(ctx, id)
+	uu, err := u.Store.GetUser(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +162,7 @@ func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.Upda
 	}
 
 	uu.Password = req.GetPassword()
-	err = u.store.UpdateUser(ctx, uu)
+	err = u.Store.UpdateUser(ctx, uu)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +176,7 @@ func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRe
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	can, err := u.enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
+	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -199,7 +193,7 @@ func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRe
 		return nil, twirp.InvalidArgumentError("username", "cannot be the currently authenticated user")
 	}
 
-	uu, err := u.store.GetUser(ctx, req.GetUsername())
+	uu, err := u.Store.GetUser(ctx, req.GetUsername())
 	if err != nil {
 		return nil, err
 	}
@@ -208,28 +202,14 @@ func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRe
 		return nil, twirp.NotFoundError("")
 	}
 
-	err = u.store.DeleteUser(ctx, uu)
+	err = u.Store.DeleteUser(ctx, uu)
 	if err != nil {
 		return nil, err
 	}
 
-	u.updateUsersCounter(ctx)
 	return &authv1beta1.DeleteUserResponse{
 		User: &authv1beta1.User{
 			Username: uu.Username,
 		},
 	}, nil
-}
-
-func (u *UsersAPI) updateUsersCounter(ctx context.Context) {
-	if u.usersCounter == nil {
-		u.usersCounter = u.stats.Gauge("users")
-	}
-	us, err := u.store.ListUsers(ctx)
-	if err != nil {
-		u.logger.Error(err)
-		return
-	}
-
-	u.usersCounter.Update(float64(len(us)))
 }

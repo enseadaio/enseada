@@ -12,18 +12,15 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/enseadaio/enseada/internal/middleware"
-	"github.com/uber-go/tally"
-
 	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/enseadaio/enseada/internal/utils"
 	"github.com/labstack/echo"
-	eware "github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/middleware"
 	elog "github.com/labstack/gommon/log"
 )
 
-func createEchoServer(l log.Logger, stats tally.Scope) *echo.Echo {
+func createEchoServer(l log.Logger) *echo.Echo {
 	e := echo.New()
 
 	e.Logger = &EchoLogger{
@@ -40,21 +37,17 @@ func createEchoServer(l log.Logger, stats tally.Scope) *echo.Echo {
 
 	e.Renderer = NewGoViewRenderer()
 
-	e.Use(eware.Recover())
-	e.Use(eware.CORS())
-	e.Use(eware.RequestID())
-	e.Use(eware.Logger())
-	e.Use(eware.GzipWithConfig(eware.GzipConfig{
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Logger())
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
-		Skipper: func(c echo.Context) bool {
-			return c.Path() == "/metrics"
-		},
 	}))
-	e.Pre(eware.RemoveTrailingSlashWithConfig(
-		eware.TrailingSlashConfig{
+	e.Pre(middleware.RemoveTrailingSlashWithConfig(
+		middleware.TrailingSlashConfig{
 			RedirectCode: http.StatusMovedPermanently,
 		}))
-	e.Use(echo.WrapMiddleware(middleware.Stats(stats)))
 
 	return e
 }

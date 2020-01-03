@@ -9,8 +9,6 @@ package mavenv1beta1api
 import (
 	"context"
 
-	"github.com/uber-go/tally"
-
 	"github.com/enseadaio/enseada/internal/ctxutils"
 
 	"github.com/casbin/casbin/v2"
@@ -22,17 +20,12 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-type API struct {
-	mvn      *maven.Maven
-	enforcer *casbin.Enforcer
-	stats    tally.Scope
+type Service struct {
+	Maven    *maven.Maven
+	Enforcer *casbin.Enforcer
 }
 
-func NewAPI(maven *maven.Maven, enforcer *casbin.Enforcer, stats tally.Scope) *API {
-	return &API{mvn: maven, enforcer: enforcer, stats: stats}
-}
-
-func (s *API) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
+func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
 	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -45,14 +38,14 @@ func (s *API) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest)
 
 	var repos []*maven.Repo
 	if id == "root" {
-		rs, err := s.mvn.ListRepos(ctx, couch.Query{})
+		rs, err := s.Maven.ListRepos(ctx, couch.Query{})
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
 		}
 
 		repos = rs
 	} else {
-		ps := s.enforcer.GetPermissionsForUser(id)
+		ps := s.Enforcer.GetPermissionsForUser(id)
 		ids := make([]string, 0)
 		for _, p := range ps {
 			g, err := guid.Parse(p[1])
@@ -65,7 +58,7 @@ func (s *API) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest)
 			}
 		}
 
-		rs, err := s.mvn.ListRepos(ctx, couch.Query{
+		rs, err := s.Maven.ListRepos(ctx, couch.Query{
 			"_id": couch.Query{
 				"$in": ids,
 			},
@@ -91,7 +84,7 @@ func (s *API) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest)
 	}, nil
 }
 
-func (s *API) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
+func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
 	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -107,7 +100,7 @@ func (s *API) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*m
 	}
 
 	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
-	can, err := s.enforcer.Enforce(id, cg.String(), "read")
+	can, err := s.Enforcer.Enforce(id, cg.String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -116,7 +109,7 @@ func (s *API) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*m
 		return nil, twirp.NotFoundError("")
 	}
 
-	repo, err := s.mvn.GetRepo(ctx, req.GetId())
+	repo, err := s.Maven.GetRepo(ctx, req.GetId())
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -134,7 +127,7 @@ func (s *API) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*m
 	}, nil
 }
 
-func (s *API) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
+func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
 	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -154,7 +147,7 @@ func (s *API) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReques
 	}
 
 	repo := maven.NewRepo(req.GroupId, req.ArtifactId)
-	err := s.mvn.InitRepo(ctx, &repo)
+	err := s.Maven.InitRepo(ctx, &repo)
 	if err != nil {
 		if err == maven.ErrorRepoAlreadyPresent {
 			return nil, twirp.NewError(twirp.AlreadyExists, "Maven repository already present")
@@ -165,7 +158,7 @@ func (s *API) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReques
 	cg := guid.New(couch.MavenDB, repo.ID, couch.KindRepository)
 	ps := []string{"read", "update", "write", "delete"}
 	for _, p := range ps {
-		_, err := s.enforcer.AddPermissionForUser(id, cg.String(), p)
+		_, err := s.Enforcer.AddPermissionForUser(id, cg.String(), p)
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
 		}
@@ -180,7 +173,7 @@ func (s *API) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReques
 	}, nil
 }
 
-func (s *API) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
+func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
 	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
@@ -196,7 +189,7 @@ func (s *API) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReques
 	}
 
 	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
-	can, err := s.enforcer.Enforce(id, cg.String(), "delete")
+	can, err := s.Enforcer.Enforce(id, cg.String(), "delete")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
@@ -205,7 +198,7 @@ func (s *API) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReques
 		return nil, twirp.NotFoundError("")
 	}
 
-	repo, err := s.mvn.DeleteRepo(ctx, req.GetId())
+	repo, err := s.Maven.DeleteRepo(ctx, req.GetId())
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}

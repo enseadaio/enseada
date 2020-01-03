@@ -7,11 +7,8 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 	"strings"
-
-	"github.com/uber-go/tally"
 
 	"github.com/enseadaio/enseada/internal/middleware"
 
@@ -27,7 +24,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func mountRoutes(ctx context.Context, e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, stats tally.Scope, sm echo.MiddlewareFunc) {
+func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc) {
 	e.Use(echo.WrapMiddleware(middleware.AuthorizationHeader(s.Logger, s, op)))
 
 	g := e.Group("/oauth")
@@ -45,7 +42,7 @@ func mountRoutes(ctx context.Context, e *echo.Echo, s *auth.Store, op fosite.OAu
 	oclientshandler := authv1beta1.NewOAuthClientsAPIServer(oclients, nil)
 	e.Any(oclientshandler.PathPrefix()+"*", echo.WrapHandler(oclientshandler))
 
-	users := authv1beta1api.NewUsersAPI(ctx, s.Logger, enf, s, stats)
+	users := authv1beta1api.NewUsersAPI(s.Logger, enf, s)
 	usershandler := authv1beta1.NewUsersAPIServer(users, nil)
 	e.Any(usershandler.PathPrefix()+"*", echo.WrapHandler(usershandler))
 }
