@@ -25,6 +25,7 @@ all: fmt vet build-standalone-server ## Build standalone server binary (default)
 .PHONY: build-server
 build-server: proto | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
 	$Q $(GO) build \
+		-race \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
 		-o $(BIN)/enseada-server ./cmd/enseada-server
@@ -32,6 +33,7 @@ build-server: proto | $(BIN); $(info $(M) building server executable…) @ ## Bu
 .PHONY: build-client
 build-client: proto | $(BIN); $(info $(M) building client executable…) @ ## Build client binary
 	$Q $(GO) build \
+		-race \
 		-tags release \
 		-ldflags '-X $(MODULE)/cmd.Version=$(VERSION) -X $(MODULE)/cmd.BuildDate=$(DATE)' \
 		-o $(BIN)/enseada ./cmd/enseada
@@ -78,15 +80,14 @@ TEST_TARGETS := test-default test-bench test-short test-verbose test-race
 test-bench:   ARGS=-run=__absolutelynothing__ -bench=. ## Run benchmarks
 test-short:   ARGS=-short        ## Run only short tests
 test-verbose: ARGS=-v            ## Run tests in verbose mode with coverage reporting
-test-race:    ARGS=-race         ## Run tests with race detector
 $(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
 $(TEST_TARGETS): test
 check test tests: fmt vet ; $(info $(M) running $(NAME:%=% )tests…) @ ## Run tests
-	$Q $(GO) test -timeout $(TIMEOUT)s $(ARGS) $(TESTPKGS)
+	$Q $(GO) test -race -timeout $(TIMEOUT)s $(ARGS) $(TESTPKGS)
 
 test-xml: fmt vet | $(GO2XUNIT) ; $(info $(M) running xUnit tests…) @ ## Run tests with xUnit output
 	$Q mkdir -p test
-	$Q 2>&1 $(GO) test -timeout $(TIMEOUT)s -v $(TESTPKGS) | tee test/tests.output
+	$Q 2>&1 $(GO) test -race -timeout $(TIMEOUT)s -v $(TESTPKGS) | tee test/tests.output
 	$(GO2XUNIT) -fail -input test/tests.output -output test/tests.xml
 
 COVERAGE_MODE    = atomic
@@ -99,6 +100,7 @@ test-coverage: COVERAGE_DIR := $(CURDIR)/test/coverage
 test-coverage: fmt vet test-coverage-tools ; $(info $(M) running coverage tests…) @ ## Run coverage tests
 	$Q mkdir -p $(COVERAGE_DIR)
 	$Q $(GO) test \
+		-race \
 		-coverpkg=$$($(GO) list -f '{{ join .Deps "\n" }}' $(TESTPKGS) | \
 					grep '^$(MODULE)/' | \
 					tr '\n' ',' | sed 's/,$$//') \
