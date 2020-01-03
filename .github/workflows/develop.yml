@@ -27,7 +27,7 @@ jobs:
       - name: Lint code
         run: |
           make vet
-          make build-server
+#          make build-server
       - name: Run tests
         run: |
           ./cc-test-reporter before-build
