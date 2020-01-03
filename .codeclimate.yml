@@ -1,0 +1,12 @@
+version: "2"
+plugins:
+  golint:
+    enabled: true
+  gofmt:
+    enabled: true
+  govet:
+    enabled: true
+exclude_patterns:
+  - "rpc/"
+  - "vendor/"
+  - "examples"
