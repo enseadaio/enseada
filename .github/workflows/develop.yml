@@ -20,15 +20,21 @@ jobs:
             ${{ runner.os }}-go-
       - name: Install Dependencies
         run: |
-          apk update && apk add build-base
-          go mod vendor
+          apk update && apk add build-base git curl
+          make deps
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
       - name: Lint code
         run: |
-          go vet ./...
-          go build -o /dev/null ./...
+          make vet
+          make build-server
       - name: Run tests
         run: |
-          go test ./...
+          ./cc-test-reporter before-build
+          make test-coverage
+          ./cc-test-reporter after-build --coverage-input-type gocov --exit-code $?
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
   protocols-check:
     runs-on: ubuntu-latest
     container:

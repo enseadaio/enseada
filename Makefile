@@ -144,6 +144,8 @@ proto: | $(PROTOTOOL) ; $(info $(M) generating RPC code…) @ ## Generate RPC co
 .PHONY: deps
 deps: ; $(info $(M) installing dependencies…)	@ ## Install dependencies
 	$(Q) $(GO) mod vendor
+	$(Q) $(GO) get -u github.com/golang/protobuf/protoc-gen-go
+	$(Q) $(GO) get -u github.com/twitchtv/twirp/protoc-gen-twirp
 
 .PHONY: clean
 clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
