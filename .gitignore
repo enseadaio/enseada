@@ -186,4 +186,4 @@ $RECYCLE.BIN/
 
 uploads/
 .env
-test/
+coverage/
