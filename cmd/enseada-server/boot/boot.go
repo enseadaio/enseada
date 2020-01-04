@@ -10,6 +10,9 @@ import (
 	"context"
 	"fmt"
 
+	enseada "github.com/enseadaio/enseada/pkg"
+	"github.com/enseadaio/enseada/pkg/observability"
+
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/enseadaio/enseada/pkg/http"
 	"github.com/enseadaio/enseada/pkg/log"
@@ -18,10 +21,7 @@ import (
 	goauth "golang.org/x/oauth2"
 )
 
-type StartFunc func(ctx context.Context) error
-type StopFunc func(ctx context.Context) error
-
-func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (StartFunc, StopFunc, error) {
+func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (enseada.StartFunc, enseada.StopFunc, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
 	ph := conf.GetString("public.host")
 	sec := conf.GetString("default.oauth.client.secret")
@@ -47,7 +47,12 @@ func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (StartFunc,
 		return nil, nil, err
 	}
 
-	echo, err := http.Boot(ctx, logger.Child("echo"), oc, skb)
+	echo, stopHttp, err := http.Boot(ctx, logger.Child("echo"), oc, skb)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stopObs, err := observability.Boot(ctx, echo)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -80,8 +85,14 @@ func Boot(ctx context.Context, logger log.Logger, conf *viper.Viper) (StartFunc,
 			}
 
 		}, func(ctx context.Context) error {
-			echo.Logger.Info("Shutting down server...")
-			return echo.Shutdown(ctx)
+			if err := stopHttp(ctx); err != nil {
+				return err
+			}
+
+			if err := stopObs(ctx); err != nil {
+				return err
+			}
+			return nil
 		},
 		nil
 }

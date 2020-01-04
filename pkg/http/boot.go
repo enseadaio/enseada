@@ -9,6 +9,8 @@ package http
 import (
 	"context"
 
+	enseada "github.com/enseadaio/enseada/pkg"
+
 	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/enseadaio/enseada/internal/middleware"
@@ -16,10 +18,13 @@ import (
 	goauth "golang.org/x/oauth2"
 )
 
-func Boot(_ context.Context, logger log.Logger, oc *goauth.Config, skb []byte) (*echo.Echo, error) {
+func Boot(_ context.Context, logger log.Logger, oc *goauth.Config, skb []byte) (*echo.Echo, enseada.StopFunc, error) {
 	e := createEchoServer(logger)
 
 	mountHealthCheck(e)
 	mountUI(e, oc, middleware.Session(skb))
-	return e, nil
+	return e, func(ctx context.Context) error {
+		e.Logger.Info("Shutting down server...")
+		return e.Shutdown(ctx)
+	}, nil
 }

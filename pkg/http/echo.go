@@ -43,6 +43,9 @@ func createEchoServer(l log.Logger) *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
+		Skipper: func(c echo.Context) bool {
+			return c.Path() == "/metrics"
+		},
 	}))
 	e.Pre(middleware.RemoveTrailingSlashWithConfig(
 		middleware.TrailingSlashConfig{

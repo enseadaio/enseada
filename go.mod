@@ -3,6 +3,7 @@ module github.com/enseadaio/enseada
 go 1.13
 
 require (
+	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/antonlindstrom/pgstore v0.0.0-20170604072116-a407030ba6d0 // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
@@ -36,8 +37,9 @@ require (
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
-	github.com/twitchtv/twirp v5.9.0+incompatible
+	github.com/twitchtv/twirp v5.10.0+incompatible
 	gitlab.com/flimzy/testy v0.0.0-20191030154103-8f78296a3383 // indirect
+	go.opencensus.io v0.22.2
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
