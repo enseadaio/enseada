@@ -76,6 +76,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper) ([]app.M
 
 	return []app.Module{
 		dm,
+		sm,
 		hm,
 		am,
 		mm,
