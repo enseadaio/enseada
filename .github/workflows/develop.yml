@@ -32,7 +32,7 @@ jobs:
         run: |
           ./cc-test-reporter before-build
           make test-coverage
-          ./cc-test-reporter format-coverage --input-type gocov --prefix github.com/enseadaio/enseada ./test/coverage/profile.out
+          ./cc-test-reporter format-coverage --input-type gocov --prefix github.com/enseadaio/enseada ./coverage/profile.out
           ./cc-test-reporter upload-coverage
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}

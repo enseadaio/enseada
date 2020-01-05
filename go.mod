@@ -36,7 +36,7 @@ require (
 	github.com/spf13/viper v1.6.1
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
-	github.com/twitchtv/twirp v5.9.0+incompatible
+	github.com/twitchtv/twirp v5.10.0+incompatible
 	gitlab.com/flimzy/testy v0.0.0-20191030154103-8f78296a3383 // indirect
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
