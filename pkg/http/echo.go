@@ -32,6 +32,21 @@ func createEchoServer(l log.Logger, errh errare.Handler) *echo.Echo {
 	e.HideBanner = true
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		errh.HandleError(err)
+
+		if he, ok := err.(*echo.HTTPError); ok {
+			var msg string
+			if he.Internal != nil {
+				msg = he.Internal.Error()
+			} else if m, ok := he.Message.(string); ok {
+				msg = m
+			} else {
+				msg = he.Error()
+			}
+
+			if e := c.JSON(he.Code, utils.HTTPError(he.Code, msg)); e != nil {
+				errh.HandleError(err)
+			}
+		}
 		e := c.JSON(http.StatusInternalServerError, utils.HTTPError(http.StatusInternalServerError, err.Error()))
 		if e != nil {
 			errh.HandleError(err)

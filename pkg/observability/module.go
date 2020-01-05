@@ -10,6 +10,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/ory/fosite"
+	"go.opencensus.io/metric"
+	"go.opencensus.io/metric/metricproducer"
+
 	"github.com/enseadaio/enseada/pkg/errare"
 	"github.com/enseadaio/enseada/pkg/log"
 	"go.opencensus.io/stats/view"
@@ -21,7 +25,8 @@ import (
 )
 
 type Module struct {
-	logger log.Logger
+	logger   log.Logger
+	Registry *metric.Registry
 }
 
 func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, error) {
@@ -33,11 +38,12 @@ func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, e
 		return nil, err
 	}
 
+	paths := fosite.Arguments{"/health", "/metrics"}
 	e.Pre(echo.WrapMiddleware(func(base http.Handler) http.Handler {
 		return &ochttp.Handler{
 			Handler: base,
 			IsHealthEndpoint: func(r *http.Request) bool {
-				return r.URL.Path == "/health"
+				return paths.Has(r.URL.Path)
 			},
 		}
 	}))
@@ -62,7 +68,15 @@ func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, e
 		return nil, err
 	}
 
-	return &Module{logger: logger}, nil
+	view.RegisterExporter(rep)
+
+	r := metric.NewRegistry()
+	metricproducer.GlobalManager().AddProducer(r)
+
+	return &Module{
+		logger:   logger,
+		Registry: r,
+	}, nil
 }
 
 func (m *Module) Start(ctx context.Context) error {

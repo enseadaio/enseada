@@ -73,7 +73,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, skb, ph, conf.GetString("root.password"))
+	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, om.Registry, skb, ph, conf.GetString("root.password"))
 	if err != nil {
 		return nil, err
 	}

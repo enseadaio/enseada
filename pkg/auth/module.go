@@ -11,8 +11,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 
-	"github.com/enseadaio/enseada/pkg/errare"
-
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -20,11 +18,13 @@ import (
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/pkg/app"
+	"github.com/enseadaio/enseada/pkg/errare"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
+	"go.opencensus.io/metric"
 )
 
 type Module struct {
@@ -39,7 +39,7 @@ type Module struct {
 	Provider fosite.OAuth2Provider
 }
 
-func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, errh errare.Handler, skb []byte, ph string, rootpwd string) (*Module, error) {
+func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, errh errare.Handler, r *metric.Registry, skb []byte, ph string, rootpwd string) (*Module, error) {
 	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
@@ -71,7 +71,15 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 		key,
 	)
 
-	mountRoutes(e, s, op, enf, middleware.Session(skb), errh)
+	m, err := auth.InitMetrics(ctx, r, s)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := mountRoutes(e, s, op, enf, middleware.Session(skb), errh, m); err != nil {
+		return nil, err
+	}
+
 	return &Module{
 		logger:   logger,
 		e:        e,

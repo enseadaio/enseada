@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc, errh errare.Handler) {
+func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc, errh errare.Handler, m *auth.Metrics) error {
 	e.Use(echo.WrapMiddleware(middleware.AuthorizationHeader(s.Logger, s, op, errh)))
 
 	g := e.Group("/oauth")
@@ -44,9 +44,10 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 	oclientshandler := authv1beta1.NewOAuthClientsAPIServer(oclients, nil)
 	e.Any(oclientshandler.PathPrefix()+"*", echo.WrapHandler(oclientshandler))
 
-	users := authv1beta1api.NewUsersAPI(s.Logger, enf, s)
+	users := authv1beta1api.NewUsersAPI(s.Logger, enf, s, m)
 	usershandler := authv1beta1.NewUsersAPIServer(users, nil)
 	e.Any(usershandler.PathPrefix()+"*", echo.WrapHandler(usershandler))
+	return nil
 }
 
 func authorizationPage() echo.HandlerFunc {

@@ -112,6 +112,7 @@ func main() {
 	}
 
 	l.Info("Enseada booting up...")
+	start := time.Now()
 
 	errh, err := errorHandler(l, c)
 	if err != nil {
@@ -123,7 +124,7 @@ func main() {
 		}
 	}()
 
-	bootctx, cancelboot := context.WithTimeout(context.Background(), 5*time.Second)
+	bootctx, cancelboot := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelboot()
 
 	mods, err := modules(bootctx, l, c, errh)
@@ -141,7 +142,6 @@ func main() {
 		}),
 	)
 
-	start := time.Now()
 	ctx, cancel := context.WithCancel(context.Background())
 	if err := a.Start(ctx); err != nil {
 		l.Fatal(err)
