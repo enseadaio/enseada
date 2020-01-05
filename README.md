@@ -100,26 +100,26 @@ The following tasks are available:
 ```bash
 $ make help
 
-all                     Build standalone server binary (default)
-build-server            Build server binary
-build-client            Build client binary
-test-bench              Run benchmarks
-test-short              Run only short tests
-test-verbose            Run tests in verbose mode with coverage reporting
-check test tests        Run tests
-test-xml                Run tests with xUnit output
-test-coverage           Run coverage tests
-lint                    Run golint
-fmt                     Run gofmt on all source files
-vet                     Run go vet on all source files
-imports                 Run goimports on all source files
-build-standalone-server Build server binary with embedded static assets
-web                     Build web assets with Webpack
-proto                   Generate RPC code
-deps                    Install dependencies
-clean                   Cleanup everything
-update-license          Update license headers
-install-hooks           Install git hooks
+all                      Build standalone server binary (default)
+build-server             Build server binary
+build-client             Build client binary
+test-bench               Run benchmarks
+test-short               Run only short tests
+test-verbose             Run tests in verbose mode with coverage reporting
+check test tests         Run tests
+test-xml                 Run tests with xUnit output
+test-coverage            Run coverage tests
+lint                     Run golint
+fmt                      Run gofmt on all source files
+vet                      Run go vet on all source files
+imports                  Run goimports on all source files
+build-standalone-server  Build server binary with embedded static assets
+web                      Build web assets with Webpack
+rpc                      Generate RPC code
+deps                     Install dependencies
+clean                    Cleanup everything
+update-license           Update license headers
+install-hooks            Install git hooks
 
 ```
 
