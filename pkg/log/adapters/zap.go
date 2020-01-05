@@ -15,7 +15,7 @@ import (
 )
 
 type ZapLoggerAdapter struct {
-	l   *zap.Logger
+	*zap.Logger
 	lvl log.Level
 }
 
@@ -34,11 +34,11 @@ func NewZapLoggerAdapter(lvl log.Level) (*ZapLoggerAdapter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ZapLoggerAdapter{l: l, lvl: lvl}, nil
+	return &ZapLoggerAdapter{Logger: l, lvl: lvl}, nil
 }
 
 func (z *ZapLoggerAdapter) Log(lvl log.Level, i ...interface{}) {
-	defer z.l.Sync()
+	defer z.Sync()
 
 	var msg string
 	f, ok := i[0].(string)
@@ -50,45 +50,45 @@ func (z *ZapLoggerAdapter) Log(lvl log.Level, i ...interface{}) {
 
 	switch lvl {
 	case log.TRACE:
-		z.l.Debug(msg)
+		z.Logger.Debug(msg)
 	case log.DEBUG:
-		z.l.Debug(msg)
+		z.Logger.Debug(msg)
 	case log.INFO:
-		z.l.Info(msg)
+		z.Logger.Info(msg)
 	case log.WARN:
-		z.l.Warn(msg)
+		z.Logger.Warn(msg)
 	case log.ERROR:
-		z.l.Error(msg)
+		z.Logger.Error(msg)
 	case log.FATAL:
-		z.l.Fatal(msg)
+		z.Logger.Fatal(msg)
 	case log.PANIC:
-		z.l.Panic(msg)
+		z.Logger.Panic(msg)
 	default:
-		z.l.Info(msg)
+		z.Logger.Info(msg)
 	}
 }
 
 func (z *ZapLoggerAdapter) Logf(lvl log.Level, msg string, params ...interface{}) {
-	defer z.l.Sync()
+	defer z.Sync()
 
 	s := fmt.Sprintf(msg, params...)
 	switch lvl {
 	case log.TRACE:
-		z.l.Debug(s)
+		z.Debug(s)
 	case log.DEBUG:
-		z.l.Debug(s)
+		z.Debug(s)
 	case log.INFO:
-		z.l.Info(s)
+		z.Info(s)
 	case log.WARN:
-		z.l.Warn(s)
+		z.Warn(s)
 	case log.ERROR:
-		z.l.Error(s)
+		z.Error(s)
 	case log.FATAL:
-		z.l.Fatal(s)
+		z.Fatal(s)
 	case log.PANIC:
-		z.l.Panic(s)
+		z.Panic(s)
 	default:
-		z.l.Info(msg)
+		z.Info(msg)
 	}
 }
 
@@ -149,13 +149,13 @@ func (z *ZapLoggerAdapter) Panicf(msg string, params ...interface{}) {
 }
 
 func (z *ZapLoggerAdapter) Child(name string) log.Logger {
-	l := z.l.Named(name)
-	return &ZapLoggerAdapter{l: l}
+	l := z.Named(name)
+	return &ZapLoggerAdapter{Logger: l}
 }
 
 func (z *ZapLoggerAdapter) WithMeta(key string, value interface{}) log.Logger {
-	l := z.l.With(zap.Any(key, value))
-	return &ZapLoggerAdapter{l: l, lvl: z.lvl}
+	l := z.Logger.With(zap.Any(key, value))
+	return &ZapLoggerAdapter{Logger: l, lvl: z.lvl}
 }
 
 func (z *ZapLoggerAdapter) GetLevel() log.Level {

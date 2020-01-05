@@ -22,7 +22,6 @@ import (
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/maven"
 	mavenv1beta1api "github.com/enseadaio/enseada/internal/maven/v1beta1"
-	"github.com/enseadaio/enseada/internal/middleware"
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/ory/fosite"
 
@@ -40,8 +39,7 @@ func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Pr
 		Enforcer: enf,
 	}
 	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
-	h := echo.WrapHandler(middleware.AuthorizationHeader(m.Logger, s, op)(mvnHandler))
-	e.Any(mvnHandler.PathPrefix()+"*", h)
+	e.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
 }
 
 func getMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {

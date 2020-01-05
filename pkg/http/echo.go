@@ -12,6 +12,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/enseadaio/enseada/pkg/errare"
+
 	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/enseadaio/enseada/internal/utils"
@@ -20,7 +22,7 @@ import (
 	elog "github.com/labstack/gommon/log"
 )
 
-func createEchoServer(l log.Logger) *echo.Echo {
+func createEchoServer(l log.Logger, errh errare.Handler) *echo.Echo {
 	e := echo.New()
 
 	e.Logger = &EchoLogger{
@@ -29,9 +31,10 @@ func createEchoServer(l log.Logger) *echo.Echo {
 	}
 	e.HideBanner = true
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		errh.HandleError(err)
 		e := c.JSON(http.StatusInternalServerError, utils.HTTPError(http.StatusInternalServerError, err.Error()))
 		if e != nil {
-			c.Logger().Error(e)
+			errh.HandleError(err)
 		}
 	}
 

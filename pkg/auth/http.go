@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/enseadaio/enseada/pkg/errare"
+
 	"github.com/enseadaio/enseada/internal/middleware"
 
 	"github.com/casbin/casbin/v2"
@@ -24,8 +26,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc) {
-	e.Use(echo.WrapMiddleware(middleware.AuthorizationHeader(s.Logger, s, op)))
+func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc, errh errare.Handler) {
+	e.Use(echo.WrapMiddleware(middleware.AuthorizationHeader(s.Logger, s, op, errh)))
 
 	g := e.Group("/oauth")
 	g.Use(sm)

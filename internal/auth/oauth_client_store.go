@@ -146,7 +146,8 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string) er
 		return err
 	}
 
-	c.Logger.Infof("created default OAuthProvider client. client_id: %s", "enseada")
+	c.Logger.Debugf("created default OAuthProvider client. client_id: %s", "enseada")
+	c.Logger.Debugf("created default OAuthProvider client. client_id: %s", "enseada-cli")
 	return nil
 }
 

@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/enseadaio/enseada/pkg/errare"
+
 	"github.com/enseadaio/enseada/internal/scope"
 
 	"github.com/enseadaio/enseada/pkg/log"
@@ -22,7 +24,7 @@ import (
 	"github.com/ory/fosite"
 )
 
-func AuthorizationHeader(logger log.Logger, s *auth.Store, op fosite.OAuth2Provider) func(http.Handler) http.Handler {
+func AuthorizationHeader(logger log.Logger, s *auth.Store, op fosite.OAuth2Provider, errh errare.Handler) func(http.Handler) http.Handler {
 	return func(base http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if strings.HasPrefix(r.RequestURI, "/oauth") {
@@ -102,6 +104,9 @@ func AuthorizationHeader(logger log.Logger, s *auth.Store, op fosite.OAuth2Provi
 			}
 			ctx = ctxutils.WithScopes(ctx, scs)
 
+			errh.SetCurrentUser(u.Username, errare.Extras{
+				"username": u.Username,
+			})
 			r = r.WithContext(ctx)
 			base.ServeHTTP(w, r)
 			return

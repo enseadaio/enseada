@@ -10,6 +10,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/enseadaio/enseada/pkg/errare"
+
 	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/labstack/echo"
@@ -28,8 +30,8 @@ type Module struct {
 	port   int
 }
 
-func NewModule(_ context.Context, logger log.Logger, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
-	e := createEchoServer(logger)
+func NewModule(_ context.Context, logger log.Logger, errh errare.Handler, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
+	e := createEchoServer(logger, errh)
 
 	mountHealthCheck(e)
 	mountUI(e, oc, middleware.Session(skb))

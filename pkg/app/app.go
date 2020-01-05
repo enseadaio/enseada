@@ -87,7 +87,7 @@ func (a *App) Start(ctx context.Context) error {
 
 	select {
 	case err := <-errs:
-		a.HandleError(err)
+		a.onError(err)
 		if err := a.Stop(ctx); err != nil {
 			return err
 		}
@@ -104,21 +104,13 @@ func (a *App) Stop(ctx context.Context) error {
 	a.emitEvent(ctx, BeforeApplicationStopEvent)
 	for _, m := range a.modules {
 		if err := m.Stop(ctx); err != nil {
-			a.HandleError(err)
+			a.onError(err)
 			return err
 		}
 	}
 
 	a.emitEvent(ctx, AfterApplicationStopEvent)
 	return nil
-}
-
-func (a *App) HandleError(err error) {
-	a.onError(err)
-}
-
-func (a *App) HandlePanic(v interface{}) {
-	a.onPanic(v)
 }
 
 func (a *App) emitEvent(ctx context.Context, e LifecycleEvent) {
@@ -136,6 +128,6 @@ func (a *App) emitEvent(ctx context.Context, e LifecycleEvent) {
 
 func recoverPanic(a *App) {
 	if r := recover(); r != nil {
-		a.HandlePanic(r)
+		a.onPanic(r)
 	}
 }

@@ -9,6 +9,8 @@ package main
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/pkg/errare"
+
 	"github.com/enseadaio/enseada/pkg/app"
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/enseadaio/enseada/pkg/couch"
@@ -20,7 +22,7 @@ import (
 	goauth "golang.org/x/oauth2"
 )
 
-func modules(ctx context.Context, logger log.Logger, conf *viper.Viper) ([]app.Module, error) {
+func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh errare.Handler) ([]app.Module, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
 	ph := conf.GetString("public.host")
 	oc := &goauth.Config{
@@ -59,12 +61,12 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper) ([]app.M
 			CertFile: conf.GetString("ssl.cert.path"),
 		}
 	}
-	hm, err := http.NewModule(ctx, logger.Child("http"), oc, skb, conf.GetInt("port"), tls)
+	hm, err := http.NewModule(ctx, logger.Child("http"), errh, oc, skb, conf.GetInt("port"), tls)
 	if err != nil {
 		return nil, err
 	}
 
-	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, skb, ph, conf.GetString("root.password"))
+	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, skb, ph, conf.GetString("root.password"))
 	if err != nil {
 		return nil, err
 	}

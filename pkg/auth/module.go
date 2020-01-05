@@ -11,6 +11,8 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 
+	"github.com/enseadaio/enseada/pkg/errare"
+
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
@@ -37,7 +39,7 @@ type Module struct {
 	Provider fosite.OAuth2Provider
 }
 
-func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, skb []byte, ph string, rootpwd string) (*Module, error) {
+func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, errh errare.Handler, skb []byte, ph string, rootpwd string) (*Module, error) {
 	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
@@ -69,7 +71,7 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 		key,
 	)
 
-	mountRoutes(e, s, op, enf, middleware.Session(skb))
+	mountRoutes(e, s, op, enf, middleware.Session(skb), errh)
 	return &Module{
 		logger:   logger,
 		e:        e,
