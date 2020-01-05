@@ -9,6 +9,8 @@ package main
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/pkg/observability"
+
 	"github.com/enseadaio/enseada/pkg/errare"
 
 	"github.com/enseadaio/enseada/pkg/app"
@@ -66,7 +68,12 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, skb, ph, conf.GetString("root.password"))
+	om, err := observability.NewModule(logger.Child("observability"), hm.Echo, errh)
+	if err != nil {
+		return nil, err
+	}
+
+	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, om.Registry, skb, ph, conf.GetString("root.password"))
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +87,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		dm,
 		sm,
 		hm,
+		om,
 		am,
 		mm,
 	}, nil
