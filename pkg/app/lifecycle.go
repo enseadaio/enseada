@@ -17,4 +17,4 @@ const (
 	AfterApplicationStopEvent
 )
 
-type OnLifecycleEventFunc func(ctx context.Context, event LifecycleEvent) error
+type OnLifecycleEventFunc func(ctx context.Context, event LifecycleEvent)

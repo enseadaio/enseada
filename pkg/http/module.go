@@ -28,7 +28,7 @@ type Module struct {
 	port   int
 }
 
-func NewModule(logger log.Logger, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
+func NewModule(_ context.Context, logger log.Logger, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
 	e := createEchoServer(logger)
 
 	mountHealthCheck(e)

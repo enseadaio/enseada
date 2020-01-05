@@ -20,13 +20,13 @@ type Module struct {
 	Data   *kivik.Client
 }
 
-func NewModule(logger log.Logger, url string, user string, pwd string) (*Module, error) {
+func NewModule(ctx context.Context, logger log.Logger, url string, user string, pwd string) (*Module, error) {
 	data, err := kivik.New("couch", url)
 	if err != nil {
 		return nil, err
 	}
 
-	up, err := data.Ping(context.TODO())
+	up, err := data.Ping(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func NewModule(logger log.Logger, url string, user string, pwd string) (*Module,
 		return nil, errors.New("database not available")
 	}
 
-	if err := data.Authenticate(context.TODO(), couchdb.BasicAuth(user, pwd)); err != nil {
+	if err := data.Authenticate(ctx, couchdb.BasicAuth(user, pwd)); err != nil {
 		return nil, err
 	}
 	logger.Debug("database authentication successful")

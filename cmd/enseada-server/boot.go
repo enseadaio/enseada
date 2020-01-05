@@ -7,6 +7,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/enseadaio/enseada/pkg/app"
 	"github.com/enseadaio/enseada/pkg/auth"
 	"github.com/enseadaio/enseada/pkg/couch"
@@ -18,7 +20,7 @@ import (
 	goauth "golang.org/x/oauth2"
 )
 
-func modules(logger log.Logger, conf *viper.Viper) ([]app.Module, error) {
+func modules(ctx context.Context, logger log.Logger, conf *viper.Viper) ([]app.Module, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
 	ph := conf.GetString("public.host")
 	oc := &goauth.Config{
@@ -33,6 +35,7 @@ func modules(logger log.Logger, conf *viper.Viper) ([]app.Module, error) {
 	}
 
 	dm, err := couch.NewModule(
+		ctx,
 		logger.Child("couch"),
 		conf.GetString("couchdb.url"),
 		conf.GetString("couchdb.user"),
@@ -42,7 +45,7 @@ func modules(logger log.Logger, conf *viper.Viper) ([]app.Module, error) {
 		return nil, err
 	}
 
-	sm, err := storage.NewModule(logger.Child("storage"), storage.Config{
+	sm, err := storage.NewModule(ctx, logger.Child("storage"), storage.Config{
 		Provider:   conf.GetString("storage.provider"),
 		StorageDir: conf.GetString("storage.dir"),
 	})
@@ -56,17 +59,17 @@ func modules(logger log.Logger, conf *viper.Viper) ([]app.Module, error) {
 			CertFile: conf.GetString("ssl.cert.path"),
 		}
 	}
-	hm, err := http.NewModule(logger.Child("http"), oc, skb, conf.GetInt("port"), tls)
+	hm, err := http.NewModule(ctx, logger.Child("http"), oc, skb, conf.GetInt("port"), tls)
 	if err != nil {
 		return nil, err
 	}
 
-	am, err := auth.NewModule(logger.Child("auth"), dm.Data, hm.Echo, skb, ph, conf.GetString("root.password"))
+	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, skb, ph, conf.GetString("root.password"))
 	if err != nil {
 		return nil, err
 	}
 
-	mm, err := maven.NewModule(logger.Child("maven"), hm.Echo, dm.Data, sm.Backend, am.Enforcer, am.Store, am.Provider)
+	mm, err := maven.NewModule(ctx, logger.Child("maven"), hm.Echo, dm.Data, sm.Backend, am.Enforcer, am.Store, am.Provider)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,6 @@ import (
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/maven"
-	"github.com/enseadaio/enseada/pkg/app"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
@@ -27,9 +26,14 @@ type Module struct {
 	data   *kivik.Client
 }
 
-func NewModule(logger log.Logger, e *echo.Echo, data *kivik.Client, storage storage.Backend, enf *casbin.Enforcer, s *auth.Store, op fosite.OAuth2Provider) (*Module, error) {
+func NewModule(ctx context.Context, logger log.Logger, e *echo.Echo, data *kivik.Client, storage storage.Backend, enf *casbin.Enforcer, s *auth.Store, op fosite.OAuth2Provider) (*Module, error) {
 	mvn := maven.New(logger, data, storage)
 	mountRoutes(e, mvn, s, op, enf)
+
+	if err := couch.Transact(ctx, logger, data, migrateDB, couch.MavenDB); err != nil {
+		return nil, err
+	}
+
 	return &Module{
 		logger: logger,
 		Maven:  mvn,
@@ -44,19 +48,5 @@ func (m *Module) Start(ctx context.Context) error {
 
 func (m *Module) Stop(ctx context.Context) error {
 	m.logger.Info("stopped maven module")
-	return nil
-}
-
-func (m *Module) EventHandlers() app.EventHandlersMap {
-	return app.EventHandlersMap{
-		app.BeforeApplicationStartEvent: m.beforeAppStart,
-	}
-}
-
-func (m *Module) beforeAppStart(ctx context.Context, event app.LifecycleEvent) error {
-	if err := couch.Transact(ctx, m.Maven.Logger, m.data, migrateDB, couch.MavenDB); err != nil {
-		return err
-	}
-
 	return nil
 }

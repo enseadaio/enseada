@@ -37,7 +37,19 @@ type Module struct {
 	Provider fosite.OAuth2Provider
 }
 
-func NewModule(logger log.Logger, data *kivik.Client, e *echo.Echo, skb []byte, ph string, rootpwd string) (*Module, error) {
+func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, skb []byte, ph string, rootpwd string) (*Module, error) {
+	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
+		return nil, err
+	}
+
+	if err := couch.Transact(ctx, logger, data, migrateOAuthDb, couch.OAuthDB); err != nil {
+		return nil, err
+	}
+
+	if err := couch.Transact(ctx, logger, data, migrateUsersDb, couch.UsersDB); err != nil {
+		return nil, err
+	}
+
 	s := createStore(data, logger)
 
 	enf, w, err := createCasbin(data, logger)
@@ -91,31 +103,17 @@ func (m *Module) EventHandlers() app.EventHandlersMap {
 	}
 }
 
-func (m *Module) beforeAppStart(ctx context.Context, event app.LifecycleEvent) error {
-	if err := couch.Transact(ctx, m.logger, m.data, migrateAclDb, couch.AclDB); err != nil {
-		return err
-	}
-
-	if err := couch.Transact(ctx, m.logger, m.data, migrateOAuthDb, couch.OAuthDB); err != nil {
-		return err
-	}
-
-	if err := couch.Transact(ctx, m.logger, m.data, migrateUsersDb, couch.UsersDB); err != nil {
-		return err
-	}
-
+func (m *Module) beforeAppStart(ctx context.Context, event app.LifecycleEvent) {
 	if err := m.Store.InitDefaultClients(ctx, m.ph); err != nil {
-		return err
+		panic(err)
 	}
 	m.logger.Debug("default OAuth clients initialized")
 
 	root := auth.RootUser(m.rootpwd)
 	if err := m.Store.SaveUser(ctx, root); err != nil && kivik.StatusCode(err) != kivik.StatusConflict {
-		return err
+		panic(err)
 	}
 	m.logger.Debug("root user initialized")
-
-	return nil
 }
 
 func migrateAclDb(ctx context.Context, logger log.Logger, client *kivik.Client) error {

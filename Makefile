@@ -73,9 +73,6 @@ $(BIN)/addlicense: PACKAGE=github.com/google/addlicense
 RICE = $(BIN)/rice
 $(BIN)/rice: PACKAGE=github.com/GeertJohan/go.rice/rice
 
-WIRE = $(BIN)/wire
-$(BIN)/wire: PACKAGE=github.com/google/wire/cmd/wire
-
 # Tests
 
 TEST_TARGETS := test-default test-bench test-short test-verbose test-race
@@ -144,10 +141,6 @@ web: ; $(info $(M) build web assets…) @ ## Build web assets with Webpack
 .PHONY: rpc
 rpc: | $(PROTOTOOL) ; $(info $(M) generating RPC code…) @ ## Generate RPC code
 	$(Q) $(PROTOTOOL) all ./rpc
-
-.PHONY: wire
-wire: | $(WIRE) ; $(info $(M) generating dependency injectors…) @ ## Generate Wire depedency injectors
-	$(Q) $(WIRE) ./cmd/enseada-server
 
 # Misc
 

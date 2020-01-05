@@ -8,6 +8,7 @@ package app
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/labstack/gommon/log"
@@ -121,23 +122,16 @@ func (a *App) HandlePanic(v interface{}) {
 }
 
 func (a *App) emitEvent(ctx context.Context, e LifecycleEvent) {
-	errs := make(chan error)
+	var w sync.WaitGroup
 	for _, eh := range a.lcHandlers[e] {
-		if err := eh(ctx, e); err != nil {
-			errs <- err
-		}
+		w.Add(1)
+		go func(eh OnLifecycleEventFunc) {
+			defer w.Done()
+			eh(ctx, e)
+		}(eh)
 	}
 
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case err := <-errs:
-				a.HandleError(err)
-			}
-		}
-	}()
+	w.Wait()
 }
 
 func recoverPanic(a *App) {

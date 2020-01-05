@@ -24,7 +24,7 @@ type Module struct {
 	Backend storage.Backend
 }
 
-func NewModule(logger log.Logger, c Config) (*Module, error) {
+func NewModule(_ context.Context, logger log.Logger, c Config) (*Module, error) {
 	var b storage.Backend
 	switch c.Provider {
 	//case "s3":
