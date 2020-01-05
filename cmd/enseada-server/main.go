@@ -78,7 +78,7 @@ func main() {
 	if err := a.Start(ctx); err != nil {
 		l.Fatal(err)
 	}
-	l.Info("started Enseada in %dms", time.Since(start).Milliseconds())
+	l.Infof("started Enseada in %dms", time.Since(start).Milliseconds())
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt, os.Kill, syscall.SIGTERM)

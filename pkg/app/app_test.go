@@ -25,25 +25,21 @@ type TestModule struct {
 
 func (m *TestModule) EventHandlers() EventHandlersMap {
 	return EventHandlersMap{
-		BeforeApplicationStartEvent: func(ctx context.Context, event LifecycleEvent) error {
+		BeforeApplicationStartEvent: func(ctx context.Context, event LifecycleEvent) {
 			assert.Equal(m.t, BeforeApplicationStartEvent, event)
 			m.BeforeStartCalled = true
-			return nil
 		},
-		AfterApplicationStartEvent: func(ctx context.Context, event LifecycleEvent) error {
+		AfterApplicationStartEvent: func(ctx context.Context, event LifecycleEvent) {
 			assert.Equal(m.t, AfterApplicationStartEvent, event)
 			m.AfterStartCalled = true
-			return nil
 		},
-		BeforeApplicationStopEvent: func(ctx context.Context, event LifecycleEvent) error {
+		BeforeApplicationStopEvent: func(ctx context.Context, event LifecycleEvent) {
 			assert.Equal(m.t, BeforeApplicationStopEvent, event)
 			m.BeforeStopCalled = true
-			return nil
 		},
-		AfterApplicationStopEvent: func(ctx context.Context, event LifecycleEvent) error {
+		AfterApplicationStopEvent: func(ctx context.Context, event LifecycleEvent) {
 			assert.Equal(m.t, AfterApplicationStopEvent, event)
 			m.AfterStopCalled = true
-			return nil
 		},
 	}
 }
@@ -77,8 +73,8 @@ func TestNewApp(t *testing.T) {
 		OnError(func(err error) {
 			assert.Fail(t, "received error:", err.Error())
 		}),
-		OnPanic(func(err error) {
-			assert.Fail(t, "received panic:", err.Error())
+		OnPanic(func(v interface{}) {
+			assert.Fail(t, "received panic:", v)
 		}),
 	)
 
