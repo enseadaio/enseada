@@ -112,14 +112,15 @@ func (c *OAuthClientStore) SaveClient(ctx context.Context, client fosite.Client)
 	return nil
 }
 
-func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, secret string) error {
+func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string) error {
 	db := c.Data.DB(ctx, couch.OAuthDB)
 
-	client, err := NewOAuthClient("enseada", secret,
+	client, err := NewOAuthClient("enseada", "",
 		OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
 		OAuthScopes("*"),
 		OAuthRedirectURIs(ph+"/ui/callback"),
+		OAuthPublic(true),
 	)
 	if err != nil {
 		return err
@@ -145,7 +146,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 		return err
 	}
 
-	c.Logger.Infof("created default OAuthProvider client. client_id: %s client_secret: %s", "enseada", secret)
+	c.Logger.Infof("created default OAuthProvider client. client_id: %s", "enseada")
 	return nil
 }
 

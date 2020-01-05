@@ -14,10 +14,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/enseadaio/enseada/pkg/app"
+
 	"github.com/enseadaio/enseada/pkg/log/adapters"
 	"github.com/spf13/viper"
 
-	"github.com/enseadaio/enseada/cmd/enseada-server/boot"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/joho/godotenv"
 )
@@ -54,23 +55,27 @@ func main() {
 		panic(err)
 	}
 
-	bootctx, cancelboot := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelboot()
-
-	s := time.Now()
-	start, stop, err := boot.Boot(bootctx, l, c)
+	mods, err := modules(l, c)
 	if err != nil {
 		l.Fatal(err)
 	}
-	d := time.Since(s)
-	l.Infof("booted Enseada in %dms", d.Milliseconds())
 
+	a := app.New(
+		app.Modules(mods...),
+		app.OnError(func(err error) {
+			l.Error(err)
+		}),
+		app.OnPanic(func(v interface{}) {
+			l.Fatalf("panic: %v", v)
+		}),
+	)
+
+	start := time.Now()
 	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		if err := start(ctx); err != nil {
-			l.Fatal(err)
-		}
-	}()
+	if err := a.Start(ctx); err != nil {
+		l.Fatal(err)
+	}
+	l.Info("started Enseada in %dms", time.Since(start).Milliseconds())
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -81,7 +86,7 @@ func main() {
 	shutdownctx, cancelshutdown := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelshutdown()
 
-	if err := stop(shutdownctx); err != nil {
+	if err := a.Stop(shutdownctx); err != nil {
 		l.Fatal(err)
 	}
 }

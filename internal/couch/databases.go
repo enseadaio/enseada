@@ -19,9 +19,9 @@ func InitDb(ctx context.Context, logger log.Logger, client *kivik.Client, name s
 		return err
 	}
 	if !does {
-		logger.Infof("initializing database %s", name)
+		logger.Debugf("initializing database %s", name)
 		return client.CreateDB(ctx, name)
 	}
-	logger.Infof("database %s already exists", name)
+	logger.Debugf("database %s already exists", name)
 	return nil
 }

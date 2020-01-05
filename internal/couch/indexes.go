@@ -16,6 +16,6 @@ import (
 
 func InitIndex(ctx context.Context, logger log.Logger, client *kivik.Client, dbName string, name string, idx map[string]interface{}) error {
 	db := client.DB(ctx, dbName)
-	logger.Infof("initializing index %s on db %s", name, dbName)
+	logger.Debugf("initializing index %s on db %s", name, dbName)
 	return db.CreateIndex(ctx, fmt.Sprintf("%s_idx", name), name, idx)
 }

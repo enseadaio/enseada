@@ -18,7 +18,7 @@ require (
 	github.com/go-kivik/kiviktest v1.1.2 // indirect
 	github.com/go-openapi/strfmt v0.19.4 // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/google/wire v0.4.0 // indirect
+	github.com/google/wire v0.4.0
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/ipfans/echo-session v3.2.0+incompatible
