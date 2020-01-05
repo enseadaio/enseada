@@ -4,7 +4,7 @@ set -e
 
 echo "running pre-commit hook"
 
-STAGED_GO_FILES=$(git diff --cached --name-only | grep ".go$")
+STAGED_GO_FILES=$(git diff --cached --name-only | grep ".go$" || true)
 
 if [[ "$STAGED_GO_FILES" = "" ]]; then
   echo "nothing to do"

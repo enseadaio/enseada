@@ -146,15 +146,31 @@ This removes the dependency between package `greeter` and `greeterimpl`, simplif
 ## Dependency Injection
 
 Since globals are not allowed, DI is used instead to pass dependencies to structs.
-Enseada uses [Google Wire](https://github.com/google/wire/) as its DI library for a couple of reasons:
+Enseada uses a custom library for application lifecycle management (located in [pkg/app](./pkg/app)) that encapsulates code into modules.
 
-1. it features compile-time code generation for defining injectors, instead of runtime reflection.
-2. it promotes using function parameters to define dependencies, which leads to more explicit code and clearer definition of mandatory vs optional dependencies.
-3. it can easily be replaced with hand-written implementations, since it only operates at compile-time.
+The minimum unit of management is a `Module`. A module is defined by the interface `app.Module` and represents
+a unit of code that can be initialized, started and stopped as a whole. Each module can export different components that can be injected into other modules. For
+example, the [http module](./pkg/http/module.go) exports an `*echo.Echo` instance to be used by the other modules.
+
+All modules are then combined into an `app.App`. An app is a structure that will start and stop modules as a cohesive group.
+The app will also handle errors and panics as well as emit application events.
+
+A module can also execute code in response to application events (like `BeforeApplicationStart` or `AfterApplicationStop`) by implementing
+`app.LifecycleAware`. Registered listeners are executed in parallel, each one in its own goroutine, so be aware that if initialization must happen
+in a specific order (because of module dependencies), this initialization must happen in the module constructor. For this reason it is strongly recommended
+accepting a `context.Context` as the constructor first param (see for example the [auth module](./pkg/auth/module.go)). 
+
+Each module is started in its own goroutine. This means that:
+
+1. A module `Start()` method CAN be blocking. If `Start()` is NOT blocking, returning `nil` indicates a successful start. Returning an error
+will cause the entire app to halt and all modules to be stopped.
+2. While modules are started in the order they are registered, there is NO guarantee that a module
+will actually start before another, since they are executed in parallel. If you need to run code before or after another dependency module either
+put it in the module constructor.
 
 **WARNING** 
 
-DI should **ONLY** be used in `cmd` executables. No injection configuration, being it managed by Wire or hand-written, should be present
+DI should **ONLY** be used in `cmd` executables. No injection configuration should be present
 in `pkg` or `internal` code. Wiring up components is the consumer responsibility, not the core application.
 
 ## Configuration

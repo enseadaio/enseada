@@ -23,7 +23,7 @@ all: fmt vet build-standalone-server ## Build standalone server binary (default)
 # Build
 
 .PHONY: build-server
-build-server: proto | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
+build-server: rpc | $(BIN); $(info $(M) building server executable…) @ ## Build server binary
 	$Q $(GO) build \
 		-race \
 		-tags release \
@@ -31,7 +31,7 @@ build-server: proto | $(BIN); $(info $(M) building server executable…) @ ## Bu
 		-o $(BIN)/enseada-server ./cmd/enseada-server
 
 .PHONY: build-client
-build-client: proto | $(BIN); $(info $(M) building client executable…) @ ## Build client binary
+build-client: rpc | $(BIN); $(info $(M) building client executable…) @ ## Build client binary
 	$Q $(GO) build \
 		-race \
 		-tags release \
@@ -138,8 +138,8 @@ web: ; $(info $(M) build web assets…) @ ## Build web assets with Webpack
 
 # Codegen
 
-.PHONY: proto
-proto: | $(PROTOTOOL) ; $(info $(M) generating RPC code…) @ ## Generate RPC code
+.PHONY: rpc
+rpc: | $(PROTOTOOL) ; $(info $(M) generating RPC code…) @ ## Generate RPC code
 	$(Q) $(PROTOTOOL) all ./rpc
 
 # Misc

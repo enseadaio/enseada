@@ -9,7 +9,7 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.13-alpine
+      image: golang:1.13
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
@@ -20,7 +20,7 @@ jobs:
             ${{ runner.os }}-go-
       - name: Install Dependencies
         run: |
-          apk update && apk add build-base git curl
+          apt-get update -y && apt-get install -y build-essential git curl
           make deps
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter

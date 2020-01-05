@@ -6,9 +6,15 @@
 
 package enseada
 
+import "fmt"
+
 const (
 	VersionMajor  = 0
 	VersionMinor  = 1
 	VersionPatch  = 0
 	VersionSuffix = "-DEVEL"
 )
+
+func VersionString() string {
+	return fmt.Sprintf("%d.%d.%d%s", VersionMajor, VersionMinor, VersionPatch, VersionSuffix)
+}
