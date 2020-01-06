@@ -1,0 +1,41 @@
+{template "Prolog" .{ate "StatusTable" .{template "Epilog" .{>
+		body {
+			font1{}
+<table id="ge tr1{
+		{{$f := index $1{d}}">{{end}}
+		[{{1[fam}}&b={{add $nb 2[ "Epilog"}}
+{{if $1[{end}}
+
+{{if not $1[}}
+	{{if or (not $1[}}
+{{end}}
+
+{{if $1{e"}}
+<table id="tr1{
+		{{$f := index $1{d}}">{{end}}
+		[{{1[fam}}&b={{add $nb 2[ "Epilog"}}
+{{if $1[{end}}
+
+{{if not $1[}}
+	{{if or (not $1[}}
+{{end}}
+
+{{if $1{d}}">{{end}}
+		[{{1[fam}}&b={{add $nb 2[ "Epilog"}}
+{{if $1[{end}}
+
+{{if not $1[}}
+	{{if or (not $1[}}
+{{end}}
+
+{{if $1{e"}}
+<table id="tr1{
+		{{$f := index $1{d}}">{{end}}
+		[{{1[fam}}&b={{add $nb 2[ "Epilog"}}
+{{if $1[{end}}
+
+{{if not $1[}}
+	{{if or (not $1[}}
+{{end}}
+
+{{if $
