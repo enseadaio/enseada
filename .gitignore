@@ -187,3 +187,5 @@ $RECYCLE.BIN/
 uploads/
 .env
 coverage/
+test/
+fuzz/*.zip
