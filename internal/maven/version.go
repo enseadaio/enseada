@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -49,7 +50,7 @@ func (v *Version) Compare(ov *Version) int {
 
 func Parse(v string) (*Version, error) {
 	vv := []rune(v)
-	if len(vv) == 0 || isSeparator(vv[0]) {
+	if len(vv) == 0 || isSeparator(vv[0]) || !unicode.IsDigit(vv[0]) {
 		return nil, fmt.Errorf("illegal version string: %s", v)
 	}
 
@@ -59,9 +60,12 @@ func Parse(v string) (*Version, error) {
 
 	b := &strings.Builder{}
 	var pr rune
-	for _, r := range vv {
-		d := string(r)
-		if isSeparator(r) && d != "" {
+	for i, r := range vv {
+		if isSeparator(r) {
+			if r == dotRune && !unicode.IsDigit(vv[i+1]) {
+				return nil, fmt.Errorf("invalid version %s, qualifiers must be preceded by a '-' character", v)
+			}
+
 			cc = appendBuffer(cc, b)
 			if r == dashRune {
 				if ver.Components == nil {
@@ -80,12 +84,12 @@ func Parse(v string) (*Version, error) {
 			continue
 		}
 
-		_, perr := strconv.Atoi(string(pr))
-		_, err := strconv.Atoi(string(r))
+		pn := unicode.IsDigit(pr)
+		n := unicode.IsDigit(r)
 		pr = r
 
-		if perr == nil {
-			if err == nil {
+		if pn {
+			if n {
 				b.WriteRune(r)
 				continue
 			}
@@ -94,7 +98,7 @@ func Parse(v string) (*Version, error) {
 			continue
 		}
 
-		if err != nil {
+		if !n {
 			b.WriteRune(r)
 			continue
 		}
@@ -117,7 +121,7 @@ func isSeparator(r rune) bool {
 }
 
 func appendBuffer(cc []VersionComponent, b *strings.Builder) []VersionComponent {
-	s := b.String()
+	s := strings.ToLower(b.String())
 	b.Reset()
 	if n, err := strconv.Atoi(s); err == nil {
 		return append(cc, IntComponent(n))
