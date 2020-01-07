@@ -21,5 +21,11 @@ services:
       - "5984:5984"
     volumes:
       - couchdb_data:/opt/couchdb/data
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/
 volumes:
   couchdb_data:

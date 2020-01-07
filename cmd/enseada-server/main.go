@@ -50,10 +50,16 @@ func conf() *viper.Viper {
 	c.SetDefault("log.level", "info")
 	c.SetDefault("port", "9623")
 	c.SetDefault("storage.provider", "local")
-	c.SetDefault("storage.dir", "uploads")
+	c.SetDefault("local.storage.dir", "uploads")
 	c.SetDefault("root.password", "root")
 	c.SetDefault("sentry.environment", "development")
 	c.SetDefault("airbrake.environment", "development")
+
+	c.RegisterAlias("aws.region", "s3.region")
+	c.RegisterAlias("aws.bucket", "s3.bucket")
+	c.RegisterAlias("aws.bucket.prefix", "s3.bucket.prefix")
+	c.RegisterAlias("aws.s3.endpoint", "s3.endpoint")
+	c.RegisterAlias("aws.s3.sse", "s3.sse")
 
 	c.AutomaticEnv()
 	return c

@@ -49,10 +49,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	sm, err := storage.NewModule(ctx, logger.Child("storage"), storage.Config{
-		Provider:   conf.GetString("storage.provider"),
-		StorageDir: conf.GetString("storage.dir"),
-	})
+	sm, err := storage.NewModule(ctx, logger.Child("storage"), storageConfig(conf))
 
 	sslVar := conf.GetString("ssl")
 	ssl := sslVar != "" && sslVar != "false" && sslVar != "no"
@@ -91,4 +88,28 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		am,
 		mm,
 	}, nil
+}
+
+func storageConfig(c *viper.Viper) storage.Config {
+	return storage.Config{
+		Provider: c.GetString("storage.provider"),
+		Local: storage.LocalConfig{
+			StorageDir: c.GetString("local.storage.dir"),
+		},
+		S3: storage.S3Config{
+			Bucket:   c.GetString("s3.bucket"),
+			Prefix:   c.GetString("s3.bucket.prefix"),
+			Region:   c.GetString("s3.bucket"),
+			Endpoint: c.GetString("s3.endpoint"),
+			SSE:      c.GetString("s3.sse"),
+		},
+		Azure: storage.AzureConfig{
+			Bucket: c.GetString("azure.bucket"),
+			Prefix: c.GetString("azure.bucket.prefix"),
+		},
+		GCS: storage.GCSConfig{
+			Bucket: c.GetString("gcs.bucket"),
+			Prefix: c.GetString("gcs.bucket.prefix"),
+		},
+	}
 }
