@@ -9,7 +9,7 @@
 package maven
 
 func Fuzz(data []byte) int {
-	v, err := Parse(string(data))
+	v, err := ParseVersion(string(data))
 	if err != nil {
 		if v != nil {
 			panic("v != nil on error")

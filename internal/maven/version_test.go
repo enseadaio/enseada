@@ -15,35 +15,37 @@ import (
 )
 
 var validParseTests = []struct {
-	in  string
-	out ListComponent
+	in   string
+	out  ListComponent
+	snap bool
 }{
-	{"1", ListComponent{IntComponent(1)}},
-	{"1.5", ListComponent{IntComponent(1), IntComponent(5)}},
-	{"1.5-", ListComponent{IntComponent(1), IntComponent(5)}},
-	{"1.5.2", ListComponent{IntComponent(1), IntComponent(5), IntComponent(2)}},
-	{"1.0-snapshot", ListComponent{IntComponent(1), ListComponent{StringComponent("snapshot")}}},
-	{"1.0-snapshot.", ListComponent{IntComponent(1), ListComponent{StringComponent("snapshot")}}},
-	{"1.0-alpha-1", ListComponent{IntComponent(1), ListComponent{StringComponent("alpha")}, ListComponent{IntComponent(1)}}},
-	{"1.0-alpha-1-", ListComponent{IntComponent(1), ListComponent{StringComponent("alpha")}, ListComponent{IntComponent(1)}}},
-	{"1.0-alpha10-snapshot", ListComponent{IntComponent(1), ListComponent{StringComponent("alpha"), IntComponent(10)}, ListComponent{StringComponent("snapshot")}}},
-	{"1.0-1", ListComponent{IntComponent(1), ListComponent{IntComponent(1)}}},
-	{"1.0alpha1", ListComponent{IntComponent(1), IntComponent(0), StringComponent("alpha"), IntComponent(1)}},
-	{"1alpha1", ListComponent{IntComponent(1), StringComponent("alpha"), IntComponent(1)}},
-	{"1.0.Final", ListComponent{IntComponent(1), IntComponent(0), StringComponent("final")}},
+	{"1", ListComponent{IntComponent(1)}, false},
+	{"1.5", ListComponent{IntComponent(1), IntComponent(5)}, false},
+	{"1.5-", ListComponent{IntComponent(1), IntComponent(5)}, false},
+	{"1.5.2", ListComponent{IntComponent(1), IntComponent(5), IntComponent(2)}, false},
+	{"1.0-snapshot", ListComponent{IntComponent(1), ListComponent{StringComponent("snapshot")}}, true},
+	{"1.0-snapshot.", ListComponent{IntComponent(1), ListComponent{StringComponent("snapshot")}}, true},
+	{"1.0-alpha-1", ListComponent{IntComponent(1), ListComponent{StringComponent("alpha")}, ListComponent{IntComponent(1)}}, false},
+	{"1.0-alpha-1-", ListComponent{IntComponent(1), ListComponent{StringComponent("alpha")}, ListComponent{IntComponent(1)}}, false},
+	{"1.0-alpha10-snapshot", ListComponent{IntComponent(1), ListComponent{StringComponent("alpha"), IntComponent(10)}, ListComponent{StringComponent("snapshot")}}, true},
+	{"1.0-1", ListComponent{IntComponent(1), ListComponent{IntComponent(1)}}, false},
+	{"1.0alpha1", ListComponent{IntComponent(1), IntComponent(0), StringComponent("alpha"), IntComponent(1)}, false},
+	{"1alpha1", ListComponent{IntComponent(1), StringComponent("alpha"), IntComponent(1)}, false},
+	{"1.0.Final", ListComponent{IntComponent(1), IntComponent(0), StringComponent("final")}, false},
 }
 
-func TestParseValid(t *testing.T) {
+func TestParseValidVersion(t *testing.T) {
 	for _, tt := range validParseTests {
 		t.Run(tt.in, func(t *testing.T) {
-			v, err := Parse(tt.in)
+			v, err := ParseVersion(tt.in)
 			require.NoError(t, err)
 			assert.Equal(t, tt.out, v.Components)
+			assert.Equal(t, tt.snap, v.IsSnapshot())
 		})
 	}
 }
 
-func TestParseInvalid(t *testing.T) {
+func TestParseInvalidVersion(t *testing.T) {
 	for _, tt := range []struct {
 		in  string
 		err error
@@ -53,7 +55,7 @@ func TestParseInvalid(t *testing.T) {
 		{"not.a.version", fmt.Errorf("illegal version string: not.a.version")},
 	} {
 		t.Run(tt.in, func(t *testing.T) {
-			v, err := Parse(tt.in)
+			v, err := ParseVersion(tt.in)
 			assert.Error(t, err)
 			assert.Equal(t, tt.err, err)
 			assert.Nil(t, v)
@@ -61,11 +63,11 @@ func TestParseInvalid(t *testing.T) {
 	}
 }
 
-func BenchmarkParse(b *testing.B) {
+func BenchmarkParseVersion(b *testing.B) {
 	for _, tt := range validParseTests {
 		b.Run(tt.in, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				v, err := Parse(tt.in)
+				v, err := ParseVersion(tt.in)
 				require.NoError(b, err)
 				assert.Equal(b, tt.out, v.Components)
 			}
@@ -73,7 +75,7 @@ func BenchmarkParse(b *testing.B) {
 	}
 }
 
-func TestCompare(t *testing.T) {
+func TestCompareVersion(t *testing.T) {
 	for _, tt := range []struct {
 		l   string
 		r   string
@@ -82,6 +84,7 @@ func TestCompare(t *testing.T) {
 		{"1", "1.0", 0},
 		{"1", "1.0-ga", 0},
 		{"1", "1.0-final", 0},
+		{"1", "1.0-release", 0},
 		{"1-a", "1.0-alpha", 0},
 		{"1a", "1.alpha", 0},
 		{"1b", "1.beta", 0},
@@ -100,9 +103,9 @@ func TestCompare(t *testing.T) {
 		{"1", "1.0-whatever", -1},
 	} {
 		t.Run(fmt.Sprintf("%s vs %v", tt.l, tt.r), func(t *testing.T) {
-			v1, err := Parse(tt.l)
+			v1, err := ParseVersion(tt.l)
 			require.NoError(t, err)
-			v2, err := Parse(tt.r)
+			v2, err := ParseVersion(tt.r)
 			require.NoError(t, err)
 
 			res := v1.Compare(v2)

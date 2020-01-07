@@ -22,7 +22,7 @@ const StoragePrefix = couch.MavenDB
 type RepoFile struct {
 	Repo     *Repo
 	Filename string
-	Version  string
+	Version  *Version
 	content  []byte
 	path     string
 	storage  storage.Backend
@@ -39,14 +39,8 @@ func (f *RepoFile) Content() ([]byte, error) {
 	return f.content, nil
 }
 func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
-	m.Logger.Infof("looking up file with path %s", fmt.Sprintf(`"%s"`, path))
-	repo, err := m.FindRepo(ctx, couch.Query{
-		"files": couch.Query{
-			"$elemMatch": couch.Query{
-				"$eq": path,
-			},
-		},
-	})
+	m.Logger.Infof(`looking up file with path "%s"`, path)
+	repo, err := m.GetRepoByFile(ctx, path)
 	if err != nil {
 		return nil, err
 	}
@@ -71,17 +65,40 @@ func (m *Maven) PutFile(ctx context.Context, path string, content []byte) error 
 func (m *Maven) PutFileInRepo(ctx context.Context, repo *Repo, path string, content []byte) (*RepoFile, error) {
 	trimmed := strings.TrimPrefix(path, repo.StoragePath)
 	trimmed = strings.TrimPrefix(trimmed, "/")
-	slices := strings.Split(trimmed, "/")
-	filename := slices[len(slices)-1]
-	var version string
-	if len(slices) == 2 {
-		version = slices[0]
-	}
+	filename, version := parseFilePath(trimmed)
 	file := &RepoFile{
 		Repo:     repo,
 		Filename: filename,
-		Version:  version,
 		content:  content,
+	}
+	if version != "" {
+		v, err := ParseVersion(version)
+		if err != nil {
+			return nil, err
+		}
+		if !v.IsSnapshot() {
+			for _, f := range repo.Files {
+				tr := strings.TrimPrefix(f, repoPrefix(repo))
+				tr = strings.TrimPrefix(tr, "/")
+				fn, fv := parseFilePath(tr)
+				if fv == "" {
+					continue
+				}
+				l := strings.ReplaceAll(fn, fv, "")
+				r := strings.ReplaceAll(filename, version, "")
+				if l == r {
+					ov, err := ParseVersion(fv)
+					if err != nil {
+						return nil, err
+					}
+
+					if v.Compare(ov) == 0 {
+						return nil, ErrImmutableVersion(v.String())
+					}
+				}
+			}
+		}
+		file.Version = v
 	}
 	m.Logger.Infof("storing file %+v", file)
 	spath := filePath(file)
@@ -106,7 +123,7 @@ func (m *Maven) PutFileInRepo(ctx context.Context, repo *Repo, path string, cont
 }
 
 func (m *Maven) ClearRepoStorage(ctx context.Context, repo *Repo) error {
-	prefix := fmt.Sprintf("%s/%s/", StoragePrefix, repo.StoragePath)
+	prefix := repoPrefix(repo)
 	objs, err := m.storage.ListObjects(prefix)
 	if err != nil {
 		return err
@@ -122,11 +139,25 @@ func (m *Maven) ClearRepoStorage(ctx context.Context, repo *Repo) error {
 	return m.SaveRepo(ctx, repo)
 }
 
+func repoPrefix(repo *Repo, s ...string) string {
+	path := strings.Join(s, "/")
+	return fmt.Sprintf("%s/%s/%s", StoragePrefix, repo.StoragePath, path)
+}
+
 func filePath(file *RepoFile) string {
 	repo := file.Repo
-	if file.Version == "" {
-		return fmt.Sprintf("%s/%s/%s", StoragePrefix, repo.StoragePath, file.Filename)
+	if file.Version == nil {
+		return repoPrefix(repo, file.Filename)
 	} else {
-		return fmt.Sprintf("%s/%s/%s/%s", StoragePrefix, repo.StoragePath, file.Version, file.Filename)
+		return repoPrefix(repo, file.Version.String(), file.Filename)
 	}
+}
+
+func parseFilePath(path string) (filename string, version string) {
+	slices := strings.Split(path, "/")
+	filename = slices[len(slices)-1]
+	if len(slices) == 2 {
+		version = slices[0]
+	}
+	return
 }

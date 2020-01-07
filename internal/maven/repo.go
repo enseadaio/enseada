@@ -106,6 +106,16 @@ func (m *Maven) GetRepoByCoordinates(ctx context.Context, groupID string, artifa
 	return m.GetRepo(ctx, repoID(groupID, artifactID))
 }
 
+func (m *Maven) GetRepoByFile(ctx context.Context, path string) (*Repo, error) {
+	return m.FindRepo(ctx, couch.Query{
+		"files": couch.Query{
+			"$elemMatch": couch.Query{
+				"$eq": path,
+			},
+		},
+	})
+}
+
 func (m *Maven) FindRepo(ctx context.Context, selector couch.Query) (*Repo, error) {
 	s := couch.Query{
 		"kind": couch.KindRepository,
@@ -254,7 +264,7 @@ func save(ctx context.Context, db *kivik.DB, repo *Repo) error {
 	if err != nil {
 		switch kivik.StatusCode(err) {
 		case kivik.StatusConflict:
-			return ErrorRepoAlreadyPresent
+			return ErrRepoAlreadyPresent
 		default:
 			return err
 		}

@@ -11,17 +11,16 @@ import (
 	"fmt"
 )
 
-func formatError(format string, args ...interface{}) error {
-	return errors.New(fmt.Sprintf(format, args...))
-}
-
 var (
-	ErrorRepoAlreadyPresent = errors.New("repository already present")
-	ErrorRepoNotFound       = errors.New("repository not found")
-	ErrorTooManyFilesForKey = func(expected, actual int) error {
-		return formatError("too many files found. Expected %d, found %d", expected, actual)
+	ErrRepoAlreadyPresent = errors.New("repository already present")
+	ErrRepoNotFound       = errors.New("repository not found")
+	ErrTooManyFilesForKey = func(expected, actual int) error {
+		return fmt.Errorf("too many files found. Expected %d, found %d", expected, actual)
 	}
-	ErrorInvalidRepoId = func(id string) error {
-		return formatError("invalid repo id. %s is not a valid Maven repo identifier", id)
+	ErrInvalidRepoId = func(id string) error {
+		return fmt.Errorf("invalid repo id. %s is not a valid Maven repo identifier", id)
+	}
+	ErrImmutableVersion = func(v string) error {
+		return fmt.Errorf("version %v is immutable. Deploy a new version or use a SNAPSHOT qualifier", v)
 	}
 )

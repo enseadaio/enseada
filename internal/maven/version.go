@@ -7,6 +7,7 @@
 package maven
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -49,6 +50,7 @@ var wellKnownAliases = map[string]string{
 	QualifierRelease:   QualifierRelease,
 	"ga":               QualifierRelease,
 	"final":            QualifierRelease,
+	"release":          QualifierRelease,
 }
 
 type VersionComponent interface {
@@ -197,6 +199,7 @@ func (l ListComponent) isEmpty() bool {
 type Version struct {
 	Components ListComponent
 	s          string
+	isSnapshot sql.NullBool
 }
 
 func (v *Version) Compare(ov *Version) int {
@@ -207,7 +210,14 @@ func (v *Version) String() string {
 	return v.s
 }
 
-func Parse(v string) (*Version, error) {
+func (v *Version) IsSnapshot() bool {
+	if !v.isSnapshot.Valid {
+		v.isSnapshot.Bool, v.isSnapshot.Valid = strings.Contains(strings.ToLower(v.String()), "snapshot"), true
+	}
+	return v.isSnapshot.Bool
+}
+
+func ParseVersion(v string) (*Version, error) {
 	if v == "" || !unicode.IsDigit(rune(v[0])) {
 		return nil, fmt.Errorf("illegal version string: %s", v)
 	}
