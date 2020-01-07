@@ -7,6 +7,7 @@
 [![license](https://img.shields.io/github/license/enseadaio/enseada)](./LICENSE)
 [![maintainability](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/maintainability)](https://codeclimate.com/github/enseadaio/enseada/maintainability)
 [![test coverage](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/test_coverage)](https://codeclimate.com/github/enseadaio/enseada/test_coverage)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada?ref=badge_shield)
 
 ![logo](./.github/logo-white.png)
 
@@ -162,3 +163,5 @@ single node deployment by visiting http://localhost:5984/_utils/#setup and follo
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada?ref=badge_large)
