@@ -59,12 +59,14 @@ func createEchoServer(l log.Logger, errh errare.Handler) *echo.Echo {
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Logger())
+	e.Use(middleware.Secure())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/metrics"
 		},
 	}))
+
 	e.Pre(middleware.RemoveTrailingSlashWithConfig(
 		middleware.TrailingSlashConfig{
 			RedirectCode: http.StatusMovedPermanently,

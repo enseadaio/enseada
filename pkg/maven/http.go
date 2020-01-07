@@ -7,10 +7,13 @@
 package maven
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/enseadaio/enseada/internal/cachecontrol"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/ctxutils"
 	"github.com/enseadaio/enseada/internal/guid"
@@ -38,8 +41,8 @@ func mountRoutes(e *echo.Echo, m *maven.Maven, s *auth.Store, op fosite.OAuth2Pr
 		Maven:    m,
 		Enforcer: enf,
 	}
-	mvnHandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
-	e.Any(mvnHandler.PathPrefix()+"*", echo.WrapHandler(mvnHandler))
+	mvnhandler := mavenv1beta1.NewMavenAPIServer(mvnsvc, nil)
+	e.Any(mvnhandler.PathPrefix()+"*", echo.WrapHandler(mvnhandler))
 }
 
 func getMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {
@@ -84,6 +87,40 @@ func getMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {
 		if err != nil {
 			return err
 		}
+
+		lm, err := file.LastModified()
+		if err != nil {
+			return err
+		}
+
+		sha, err := file.Checksum()
+		if err != nil {
+			return err
+		}
+		cs := fmt.Sprintf("%x", sha)
+
+		ret := c.Request().Header.Get("etag")
+		if ret != "" && ret == cs {
+			return c.NoContent(http.StatusNotModified)
+		}
+
+		cc := &cachecontrol.Config{
+			NoTransform:  true,
+			LastModified: lm,
+		}
+
+		if file.Version != nil && !file.Version.IsSnapshot() {
+			cc.Immutable = true
+		} else {
+			cc.MaxAge = 30 * time.Second
+		}
+
+		if cc.Immutable {
+			cc.ETag = cs
+		} else {
+			cc.ETag = fmt.Sprintf("W/%s", cs)
+		}
+		cc.Write(c.Response().Writer)
 		return c.Blob(http.StatusOK, "application/octet-stream", body)
 	}
 }
@@ -148,6 +185,14 @@ func storeMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {
 			return err
 		}
 
+		cc := &cachecontrol.Config{
+			NoCache: true,
+			MaxAge:  0,
+		}
+		if file.Version != nil {
+			cc.Immutable = !file.Version.IsSnapshot()
+		}
+		cc.Write(c.Response().Writer)
 		c.Logger().Info("stored Maven artifact %s at %s", file.Filename, path)
 		return c.NoContent(http.StatusCreated)
 	}

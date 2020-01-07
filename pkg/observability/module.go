@@ -10,6 +10,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/enseadaio/enseada/internal/cachecontrol"
+
 	"github.com/ory/fosite"
 	"go.opencensus.io/metric"
 	"go.opencensus.io/metric/metricproducer"
@@ -47,7 +49,11 @@ func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, e
 			},
 		}
 	}))
-	e.GET("/metrics", echo.WrapHandler(rep))
+	e.GET("/metrics", echo.WrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cc := cachecontrol.NoCache(true)
+		cc.Write(w)
+		rep.ServeHTTP(w, r)
+	})))
 
 	if err := runmetrics.Enable(runmetrics.RunMetricOptions{
 		EnableCPU:    true,

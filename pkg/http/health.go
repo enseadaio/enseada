@@ -9,6 +9,8 @@ package http
 import (
 	"net/http"
 
+	"github.com/enseadaio/enseada/internal/cachecontrol"
+
 	"github.com/labstack/echo"
 )
 
@@ -32,6 +34,8 @@ func mountHealthCheck(e *echo.Echo) {
 			Method:   req.Method,
 			Path:     req.URL.Path,
 		}
+		cc := cachecontrol.NoCache(true)
+		cc.Write(c.Response().Writer)
 		return c.JSON(http.StatusOK, res)
 	})
 }

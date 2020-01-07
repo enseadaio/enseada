@@ -26,7 +26,7 @@ func NewGoViewRenderer() *TemplateRenderer {
 		Root:         "views",
 		Extension:    ".html",
 		Master:       "layouts/master",
-		Partials:     []string{"partials/navbar"},
+		Partials:     []string{"partials/navbar", "partials/errors"},
 		Funcs:        make(template.FuncMap),
 		DisableCache: false,
 		Delims:       goview.Delims{Left: "{{", Right: "}}"},
