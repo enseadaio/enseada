@@ -50,7 +50,7 @@ func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, e
 		}
 	}))
 	e.GET("/metrics", echo.WrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cc := cachecontrol.NoCache(true)
+		cc := cachecontrol.NoStore(true)
 		cc.Write(w)
 		rep.ServeHTTP(w, r)
 	})))

@@ -34,7 +34,7 @@ func mountHealthCheck(e *echo.Echo) {
 			Method:   req.Method,
 			Path:     req.URL.Path,
 		}
-		cc := cachecontrol.NoCache(true)
+		cc := cachecontrol.NoStore(true)
 		cc.Write(c.Response().Writer)
 		return c.JSON(http.StatusOK, res)
 	})
