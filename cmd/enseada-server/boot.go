@@ -9,6 +9,16 @@ package main
 import (
 	"context"
 	"errors"
+	"strings"
+
+	"cloud.google.com/go/errorreporting"
+	"github.com/airbrake/gobrake/v4"
+	enseada "github.com/enseadaio/enseada/pkg"
+	"github.com/enseadaio/enseada/pkg/errare/airbrake"
+	logerr "github.com/enseadaio/enseada/pkg/errare/log"
+	sentryerr "github.com/enseadaio/enseada/pkg/errare/sentry"
+	"github.com/enseadaio/enseada/pkg/errare/stackdriver"
+	"github.com/getsentry/sentry-go"
 
 	"github.com/enseadaio/enseada/pkg/observability"
 
@@ -121,4 +131,48 @@ func storageConfig(c *viper.Viper) storage.Config {
 			Prefix: c.GetString("gcs.bucket.prefix"),
 		},
 	}
+}
+
+func errorHandler(logger log.Logger, c *viper.Viper) (errare.Handler, error) {
+	l := logerr.NewHandler(logger, true)
+
+	var erh errare.Handler
+	reporter := strings.ToLower(c.GetString("error.reporter"))
+	switch reporter {
+	case "sentry":
+		sen, err := sentryerr.NewHandler(sentry.ClientOptions{
+			Dsn:              c.GetString("sentry.dsn"),
+			Debug:            false,
+			AttachStacktrace: true,
+			Environment:      c.GetString("sentry.environment"),
+		})
+		if err != nil {
+			return nil, err
+		}
+		erh = sen
+	case "stackdriver":
+		sd, err := stackdriver.NewHandler(context.Background(), c.GetString("google.project.id"), errorreporting.Config{
+			ServiceName:    "enseada",
+			ServiceVersion: enseada.VersionString(),
+			OnError: func(err error) {
+				l.HandleError(err)
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		erh = sd
+	case "airbrake":
+		erh = airbrake.NewHandler(&gobrake.NotifierOptions{
+			ProjectId:   c.GetInt64("airbrake.project.id"),
+			ProjectKey:  c.GetString("airbrake.project.key"),
+			Environment: c.GetString("airbrake.environment"),
+		})
+	default:
+		logger.Info("no error reporter configured. Defaulting to log")
+		return l, nil
+	}
+
+	logger.Infof("configured error reporting with %s", reporter)
+	return errare.Compose(l, erh), nil
 }
