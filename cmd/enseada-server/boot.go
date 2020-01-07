@@ -8,6 +8,7 @@ package main
 
 import (
 	"context"
+	"errors"
 
 	"github.com/enseadaio/enseada/pkg/observability"
 
@@ -26,7 +27,15 @@ import (
 
 func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh errare.Handler) ([]app.Module, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
+	if skb == nil {
+		return nil, errors.New("no secret key base configured")
+	}
+
 	ph := conf.GetString("public.host")
+	if ph == "" {
+		return nil, errors.New("no public host configured")
+	}
+
 	oc := &goauth.Config{
 		ClientID: "enseada",
 		Endpoint: goauth.Endpoint{
@@ -99,7 +108,7 @@ func storageConfig(c *viper.Viper) storage.Config {
 		S3: storage.S3Config{
 			Bucket:   c.GetString("s3.bucket"),
 			Prefix:   c.GetString("s3.bucket.prefix"),
-			Region:   c.GetString("s3.bucket"),
+			Region:   c.GetString("s3.region"),
 			Endpoint: c.GetString("s3.endpoint"),
 			SSE:      c.GetString("s3.sse"),
 		},
