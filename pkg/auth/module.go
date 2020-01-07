@@ -10,6 +10,9 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"time"
+
+	"github.com/ory/fosite/token/jwt"
 
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/casbin/casbin/v2"
@@ -64,11 +67,36 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 		return nil, err
 	}
 
-	op := compose.ComposeAllEnabled(
-		&compose.Config{},
+	cfg := &compose.Config{
+		AccessTokenLifespan: 5 * time.Minute,
+		RefreshTokenScopes:  []string{},
+	}
+	op := compose.Compose(
+		cfg,
 		s,
-		skb,
-		key,
+		&compose.CommonStrategy{
+			CoreStrategy:               compose.NewOAuth2HMACStrategy(cfg, skb, nil),
+			OpenIDConnectTokenStrategy: compose.NewOpenIDConnectStrategy(cfg, key),
+			JWTStrategy: &jwt.RS256JWTStrategy{
+				PrivateKey: key,
+			},
+		},
+		nil,
+
+		compose.OAuth2AuthorizeExplicitFactory,
+		compose.OAuth2AuthorizeImplicitFactory,
+		compose.OAuth2ClientCredentialsGrantFactory,
+		compose.OAuth2RefreshTokenGrantFactory,
+		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+
+		compose.OpenIDConnectExplicitFactory,
+		compose.OpenIDConnectImplicitFactory,
+		compose.OpenIDConnectHybridFactory,
+		compose.OpenIDConnectRefreshFactory,
+
+		compose.OAuth2TokenIntrospectionFactory,
+
+		compose.OAuth2PKCEFactory,
 	)
 
 	m, err := auth.InitMetrics(ctx, r, s)
@@ -147,6 +175,12 @@ func migrateOAuthDb(ctx context.Context, logger log.Logger, client *kivik.Client
 
 	if err := couch.InitIndex(ctx, logger, client, couch.OAuthDB, "oauth_reqs_index", couch.Query{
 		"fields": []string{"req.id"},
+	}); err != nil {
+		return err
+	}
+
+	if err := couch.InitIndex(ctx, logger, client, couch.OAuthDB, "oauth_requested_at_sort_index", couch.Query{
+		"fields": []couch.Query{{"req.requested_at": "desc"}},
 	}); err != nil {
 		return err
 	}

@@ -8,7 +8,6 @@ package auth
 
 import (
 	"context"
-	"errors"
 
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/pkg/log"
@@ -252,7 +251,12 @@ func (t *OAuthRequestStore) find(ctx context.Context, query interface{}) ([]*OAu
 	return tokens, nil
 }
 
-func (t *OAuthRequestStore) findOne(ctx context.Context, query interface{}) (*OAuthRequestWrapper, error) {
+func (t *OAuthRequestStore) findOne(ctx context.Context, query couch.Query) (*OAuthRequestWrapper, error) {
+	_, ok := query["selector"].(couch.Query)["req.id"]
+	if query["sort"] == nil && ok {
+		query["selector"].(couch.Query)["req.requested_at"] = couch.Query{"$exists": true}
+		query["sort"] = []couch.Query{{"req.requested_at": "desc"}}
+	}
 	tokens, err := t.find(ctx, query)
 	if err != nil {
 		return nil, err
@@ -260,10 +264,6 @@ func (t *OAuthRequestStore) findOne(ctx context.Context, query interface{}) (*OA
 
 	if len(tokens) == 0 {
 		return nil, fosite.ErrNotFound
-	}
-
-	if len(tokens) > 1 {
-		return nil, errors.New("too many results")
 	}
 
 	return tokens[0], nil

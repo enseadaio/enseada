@@ -124,6 +124,7 @@ func (r *OAuthRequest) Merge(request fosite.Requester) {
 	r.Client = request.GetClient().(*OAuthClient)
 	r.SetSession(request.GetSession())
 	r.Form = request.GetRequestForm()
+	r.ID = request.GetID()
 }
 
 func (r *OAuthRequest) Sanitize(allowedParameters []string) fosite.Requester {
