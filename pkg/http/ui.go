@@ -8,10 +8,13 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/labstack/echo/middleware"
 
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/enseadaio/enseada/internal/auth"
@@ -32,6 +35,7 @@ func mountUI(e *echo.Echo, oc *goauth.Config, sm echo.MiddlewareFunc) {
 
 	u := e.Group("/ui")
 	u.Use(sm)
+	u.Use(middleware.CSRF())
 	u.GET("", home(oc))
 	u.GET("/profile", profile(oc))
 	u.GET("/repositories", repos(oc))
@@ -81,7 +85,6 @@ func callback(oc *goauth.Config) echo.HandlerFunc {
 			return err
 		}
 
-		req.SetBasicAuth(oc.ClientID, oc.ClientSecret)
 		req.Header.Set("content-type", "application/x-www-form-urlencoded")
 		req.Header.Add("Accept-Encoding", "identity")
 		res, err := cl.Do(req)
@@ -114,6 +117,7 @@ func callback(oc *goauth.Config) echo.HandlerFunc {
 			}
 		} else {
 			s.Clear()
+			s.AddFlash(fmt.Sprintf("%s. %s", body["error_description"], body["error_hint"]), "errors")
 		}
 
 		return c.Redirect(http.StatusTemporaryRedirect, "/ui")
@@ -148,6 +152,7 @@ func renderPage(c echo.Context, name string, oc *goauth.Config, data echo.Map) e
 	}
 
 	s := session.Default(c)
+	addFlashes(s, data)
 	addCurrentUser(s, data)
 	data["LoginURL"] = oc.AuthCodeURL(random.String(32))
 	return c.Render(http.StatusOK, name, data)
@@ -161,4 +166,9 @@ func addCurrentUser(s session.Session, params echo.Map) {
 			Username: i.(string),
 		}
 	}
+}
+
+func addFlashes(s session.Session, params echo.Map) {
+	errs := s.Flashes("errors")
+	params["Errors"] = errs
 }

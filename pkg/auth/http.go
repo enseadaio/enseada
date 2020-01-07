@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/enseadaio/enseada/internal/cachecontrol"
+
 	"github.com/enseadaio/enseada/pkg/errare"
 
 	"github.com/enseadaio/enseada/internal/middleware"
@@ -127,6 +129,9 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 		req := c.Request()
 		resw := c.Response()
 		ctx := req.Context()
+
+		cc := cachecontrol.NoStore(true)
+		cc.Write(resw.Writer)
 
 		os := auth.NewSession(nil)
 		c.Logger().Debug(req)

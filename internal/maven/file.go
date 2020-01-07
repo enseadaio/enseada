@@ -8,9 +8,11 @@ package maven
 
 import (
 	"context"
+	"crypto/sha1"
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/chartmuseum/storage"
 
@@ -19,13 +21,17 @@ import (
 
 const StoragePrefix = couch.MavenDB
 
+type SHA1Checksum [20]byte
+
 type RepoFile struct {
-	Repo     *Repo
-	Filename string
-	Version  *Version
-	content  []byte
-	path     string
-	storage  storage.Backend
+	Repo         *Repo
+	Filename     string
+	Version      *Version
+	content      []byte
+	path         string
+	storage      storage.Backend
+	lastModified time.Time
+	checksum     SHA1Checksum
 }
 
 func (f *RepoFile) Content() ([]byte, error) {
@@ -35,9 +41,37 @@ func (f *RepoFile) Content() ([]byte, error) {
 			return nil, err
 		}
 		f.content = obj.Content
+		f.lastModified = obj.LastModified
 	}
 	return f.content, nil
 }
+
+func (f *RepoFile) LastModified() (time.Time, error) {
+	if f.lastModified.IsZero() {
+		_, err := f.Content()
+		if err != nil {
+			return time.Time{}, err
+		}
+	}
+
+	return f.lastModified, nil
+}
+
+func (f *RepoFile) Checksum() (SHA1Checksum, error) {
+	if f.checksum != [20]byte{} {
+		return f.checksum, nil
+	}
+
+	c, err := f.Content()
+	if err != nil {
+		return SHA1Checksum{}, err
+	}
+
+	cs := sha1.Sum(c)
+	f.checksum = cs
+	return cs, nil
+}
+
 func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 	m.Logger.Infof(`looking up file with path "%s"`, path)
 	repo, err := m.GetRepoByFile(ctx, path)
@@ -49,13 +83,24 @@ func (m *Maven) GetFile(ctx context.Context, path string) (*RepoFile, error) {
 		return nil, nil
 	}
 
-	slices := strings.Split(path, "/")
-	return &RepoFile{
+	trimmed := strings.TrimPrefix(path, repoPrefix(repo))
+	filename, version := parseFilePath(trimmed)
+
+	f := &RepoFile{
 		Repo:     repo,
-		Filename: slices[len(slices)-1],
+		Filename: filename,
 		path:     path,
 		storage:  m.storage,
-	}, nil
+	}
+
+	if version != "" {
+		v, err := ParseVersion(version)
+		if err != nil {
+			return nil, err
+		}
+		f.Version = v
+	}
+	return f, nil
 }
 
 func (m *Maven) PutFile(ctx context.Context, path string, content []byte) error {

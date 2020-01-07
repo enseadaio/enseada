@@ -169,7 +169,7 @@ func errorHandler(logger log.Logger, c *viper.Viper) (errare.Handler, error) {
 			Environment: c.GetString("airbrake.environment"),
 		})
 	default:
-		logger.Info("no error reporter configured. Defaulting to log")
+		logger.Debug("no error reporter configured. Defaulting to log")
 		return l, nil
 	}
 
