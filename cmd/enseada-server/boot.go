@@ -8,6 +8,17 @@ package main
 
 import (
 	"context"
+	"errors"
+	"strings"
+
+	"cloud.google.com/go/errorreporting"
+	"github.com/airbrake/gobrake/v4"
+	enseada "github.com/enseadaio/enseada/pkg"
+	"github.com/enseadaio/enseada/pkg/errare/airbrake"
+	logerr "github.com/enseadaio/enseada/pkg/errare/log"
+	sentryerr "github.com/enseadaio/enseada/pkg/errare/sentry"
+	"github.com/enseadaio/enseada/pkg/errare/stackdriver"
+	"github.com/getsentry/sentry-go"
 
 	"github.com/enseadaio/enseada/pkg/observability"
 
@@ -26,7 +37,15 @@ import (
 
 func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh errare.Handler) ([]app.Module, error) {
 	skb := []byte(conf.GetString("secret.key.base"))
+	if skb == nil {
+		return nil, errors.New("no secret key base configured")
+	}
+
 	ph := conf.GetString("public.host")
+	if ph == "" {
+		return nil, errors.New("no public host configured")
+	}
+
 	oc := &goauth.Config{
 		ClientID: "enseada",
 		Endpoint: goauth.Endpoint{
@@ -49,10 +68,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	sm, err := storage.NewModule(ctx, logger.Child("storage"), storage.Config{
-		Provider:   conf.GetString("storage.provider"),
-		StorageDir: conf.GetString("storage.dir"),
-	})
+	sm, err := storage.NewModule(ctx, logger.Child("storage"), storageConfig(conf))
 
 	sslVar := conf.GetString("ssl")
 	ssl := sslVar != "" && sslVar != "false" && sslVar != "no"
@@ -91,4 +107,72 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		am,
 		mm,
 	}, nil
+}
+
+func storageConfig(c *viper.Viper) storage.Config {
+	return storage.Config{
+		Provider: c.GetString("storage.provider"),
+		Local: storage.LocalConfig{
+			StorageDir: c.GetString("local.storage.dir"),
+		},
+		S3: storage.S3Config{
+			Bucket:   c.GetString("s3.bucket"),
+			Prefix:   c.GetString("s3.bucket.prefix"),
+			Region:   c.GetString("s3.region"),
+			Endpoint: c.GetString("s3.endpoint"),
+			SSE:      c.GetString("s3.sse"),
+		},
+		Azure: storage.AzureConfig{
+			Bucket: c.GetString("azure.bucket"),
+			Prefix: c.GetString("azure.bucket.prefix"),
+		},
+		GCS: storage.GCSConfig{
+			Bucket: c.GetString("gcs.bucket"),
+			Prefix: c.GetString("gcs.bucket.prefix"),
+		},
+	}
+}
+
+func errorHandler(logger log.Logger, c *viper.Viper) (errare.Handler, error) {
+	l := logerr.NewHandler(logger, true)
+
+	var erh errare.Handler
+	reporter := strings.ToLower(c.GetString("error.reporter"))
+	switch reporter {
+	case "sentry":
+		sen, err := sentryerr.NewHandler(sentry.ClientOptions{
+			Dsn:              c.GetString("sentry.dsn"),
+			Debug:            false,
+			AttachStacktrace: true,
+			Environment:      c.GetString("sentry.environment"),
+		})
+		if err != nil {
+			return nil, err
+		}
+		erh = sen
+	case "stackdriver":
+		sd, err := stackdriver.NewHandler(context.Background(), c.GetString("google.project.id"), errorreporting.Config{
+			ServiceName:    "enseada",
+			ServiceVersion: enseada.VersionString(),
+			OnError: func(err error) {
+				l.HandleError(err)
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		erh = sd
+	case "airbrake":
+		erh = airbrake.NewHandler(&gobrake.NotifierOptions{
+			ProjectId:   c.GetInt64("airbrake.project.id"),
+			ProjectKey:  c.GetString("airbrake.project.key"),
+			Environment: c.GetString("airbrake.environment"),
+		})
+	default:
+		logger.Info("no error reporter configured. Defaulting to log")
+		return l, nil
+	}
+
+	logger.Infof("configured error reporting with %s", reporter)
+	return errare.Compose(l, erh), nil
 }

@@ -5,13 +5,23 @@ services:
     build:
       context: .
     environment:
+      LOG_LEVEL: info
+      PUBLIC_HOST: http://localhost:9623
+      SECRET_KEY_BASE: D96BhFx8RmWwfkNzDvCqTMpchn4mhrhN9LMYeYeH7wpnY4JwdVWVbGJWUiq
       COUCHDB_URL: http://couchdb:5984/
       COUCHDB_USER: enseada
       COUCHDB_PASSWORD: enseada
+      STORAGE_PROVIDER: s3
+      S3_BUCKET: enseada
+      S3_REGION: eu-west-1
+      S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: enseada
+      AWS_SECRET_ACCESS_KEY: enseadaminio
     ports:
       - "9623:9623"
     depends_on:
       - couchdb
+      - minio
   couchdb:
     image: couchdb:2
     environment:
@@ -21,5 +31,16 @@ services:
       - "5984:5984"
     volumes:
       - couchdb_data:/opt/couchdb/data
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: enseada
+      MINIO_SECRET_KEY: enseadaminio
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/data
 volumes:
   couchdb_data:
+  minio_data:

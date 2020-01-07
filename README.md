@@ -7,6 +7,7 @@
 [![license](https://img.shields.io/github/license/enseadaio/enseada)](./LICENSE)
 [![maintainability](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/maintainability)](https://codeclimate.com/github/enseadaio/enseada/maintainability)
 [![test coverage](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/test_coverage)](https://codeclimate.com/github/enseadaio/enseada/test_coverage)
+[![Go Report Card](https://goreportcard.com/badge/github.com/enseadaio/enseada)](https://goreportcard.com/report/github.com/enseadaio/enseada)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada?ref=badge_shield)
 
 ![logo](./.github/logo-white.png)
@@ -25,6 +26,7 @@ Check out the [official documentation](https://docs.enseada.io) for a complete m
 - Strong authentication based on [OAuth 2.0](https://auth0.com/docs/protocols/oauth2) tokens
 - Flexible ACL engine to manage user permissions 
 - Complete [management API](https://docs.enseada.io/developers/apis.html)
+- CDN and cache friendly
 
 The registry itself is written in [Golang](https://golang.org/), a fast, resource efficient and statically compiled programming language
 built for the Cloud.
@@ -56,9 +58,10 @@ See the [configuration guide](https://docs.enseada.io/users/configuration.html) 
 
 At the moment, only these providers are supported:
 
-- Local disk
 - S3 compatible (AWS S3, Minio, DigitalOcean Spaces, Scaleway Object Storage, Ceph, etc)
 - Google Cloud Storage
+- Microsoft Azure Blobs
+- Local disk
 
 Local disk is only supported in single-node mode. To run multiple instances use an object storage provider.
 
@@ -158,6 +161,15 @@ persist data in a Docker volume.
 
 Upon first run, the database server is uninitialized. Please run the initialization setup for 
 single node deployment by visiting http://localhost:5984/_utils/#setup and following the instructions.
+
+## Local Minio Server
+
+A local [Minio](https://minio.io) server can be started using the provided [docker-compose.yml](./docker-compose.yml) file.
+Simply run `docker-compose up -d` to start it in background, it will be available on `http://localhost:9000` and will
+persist data in a Docker volume.
+
+Upon first run no bucket is present. Create a new one and configure the name in the appropriate environment variable 
+in the Enseada configuration.
 
 ## License
 This Source Code Form is subject to the terms of the Mozilla Public
