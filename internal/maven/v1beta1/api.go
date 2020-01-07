@@ -149,7 +149,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 	repo := maven.NewRepo(req.GroupId, req.ArtifactId)
 	err := s.Maven.InitRepo(ctx, &repo)
 	if err != nil {
-		if err == maven.ErrorRepoAlreadyPresent {
+		if err == maven.ErrRepoAlreadyPresent {
 			return nil, twirp.NewError(twirp.AlreadyExists, "Maven repository already present")
 		}
 		return nil, twirp.InternalErrorWith(err)

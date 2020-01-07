@@ -11,6 +11,7 @@ require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/casbin/casbin/v2 v2.1.2
 	github.com/chartmuseum/storage v0.5.0
+	github.com/dvyukov/go-fuzz v0.0.0-20191206100749-a378175e205c // indirect
 	github.com/flimzy/diff v0.1.6 // indirect
 	github.com/flimzy/kivik v1.8.1 // indirect
 	github.com/flimzy/testy v0.1.16 // indirect

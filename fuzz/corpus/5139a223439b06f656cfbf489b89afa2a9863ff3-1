@@ -1,0 +1,51 @@
+½1a0p0{template "Prolog" .{ate "StatusTable" .{template "Epilog" .{>
+		body {
+			font-s-rif;
+		}
+		table#tr-d.family {
+			padding- 2r-d.active {
+			padding- 1r-d.y-g- 1r-d.ye#reqs {
+			margin- 1m	}
+		table#reqs tr.$.t-t#reqs td {
+			font-y	}
+		table#reqs td.t-gn: right;
+			white-e	}
+		table#reqs td.psed {
+			padding: 0 0.5t-gn: right;
+			white-ce: pre;
+			width: 0m	address {
+			font-esmaller;
+			margin- 5m/head>
+	<body>
+
+<h1>/debug/requests</h1{e"}}
+<table id="tr-s
+	{{range $fam := .s
+		{{$n := index $.t="?fam={{$fam}}&b=-1$.=1{
+		{{$f := index $.srange $i, $b := $f.s}
+		{{$empty := $b.ym}}&b={{$i}}{{if $.=1{d}}">{{end}}
+		[{{.d
+		{{$nb := len $f.s<td class="latency-tfam}}&b={{add $nb 1[fam}}&b={{add $nb 2[ "Epilog"}}
+{{if $.h3$.h3$.$.d <a href="?fam={{$.$.t}}
+
+{{if or (not $.$.d <a href="?fam={{$.$.=1[{end}}
+
+{{if not $.Active}}
+	{{if or $.$.d	<a href="?fam={{$.$.=1[}}
+	{{if or (not $.$.d	<a href="?fam={{$.$.=1=1[}}
+{{end}}
+
+{{if $.lShowing <b>{{len $.ces}}</b> of <b>{{$.s./<caption>
+		{{if $.e
+	{{range $tr := $.sclass="when">{{$tr.nss="elapsed">{{$tr.e}</td>
+		<td>{{$tr.e/}}
+	</tr>
+	{{if $.nded}}
+	{{range $tr.std class="when">{{.glapsed">{{elapsed .dd>
+		<td>{{if or $.ShowSensitive (not .}...{.t
+{{end}} {{/* if $.Traces */}}
+
+{{if $.h4> (&micro;s) of {{$.$.istogramWindow}}</h4$.m
+{{end}} {{/* if $.Histogram */}}
+
+	</

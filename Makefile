@@ -73,6 +73,12 @@ $(BIN)/addlicense: PACKAGE=github.com/google/addlicense
 RICE = $(BIN)/rice
 $(BIN)/rice: PACKAGE=github.com/GeertJohan/go.rice/rice
 
+GOFUZZ = $(BIN)/go-fuzz
+$(BIN)/go-fuzz: PACKAGE=github.com/dvyukov/go-fuzz/go-fuzz
+
+GOFUZZ-BUILD = $(BIN)/go-fuzz-build
+$(BIN)/go-fuzz-build: PACKAGE=github.com/dvyukov/go-fuzz/go-fuzz-build
+
 # Tests
 
 TEST_TARGETS := test-default test-bench test-short test-verbose test-race
@@ -108,6 +114,13 @@ test-coverage: fmt vet test-coverage-tools ; $(info $(M) running coverage testsâ
 		-coverprofile="$(COVERAGE_PROFILE)" $(TESTPKGS)
 	$Q $(GO) tool cover -html=$(COVERAGE_PROFILE) -o $(COVERAGE_HTML)
 	$Q $(GOCOV) convert $(COVERAGE_PROFILE) | $(GOCOVXML) > $(COVERAGE_XML)
+
+fuzz/maven-version.zip: $(GOFUZZ-BUILD) ; $(info $(M) building maven gofuzz archive...)
+	$Q $(GOFUZZ-BUILD) -race -o fuzz/maven-version.zip github.com/enseadaio/enseada/internal/maven
+
+.PHONY: test-fuzzy
+test-fuzzy: fuzz/maven-version.zip | $(GOFUZZ) ; $(info $(M) running fuzzy testing...) ## Run fuzzy testing
+	$Q $(GOFUZZ) -workdir fuzz -bin fuzz/maven-version.zip
 
 .PHONY: lint
 lint: | $(GOLINT) ; $(info $(M) running golintâ€¦) @ ## Run golint

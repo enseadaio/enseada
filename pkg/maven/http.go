@@ -139,8 +139,11 @@ func storeMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {
 		file, err := mvn.PutFileInRepo(ctx, repo, path, body)
 		if err != nil {
 			c.Logger().Error(err)
-			if err == maven.ErrorRepoNotFound {
-				return c.NoContent(http.StatusNotFound)
+			if err == maven.ErrRepoNotFound {
+				return c.String(http.StatusNotFound, err.Error())
+			}
+			if strings.Contains(err.Error(), "is immutable") {
+				return c.String(http.StatusConflict, err.Error())
 			}
 			return err
 		}
