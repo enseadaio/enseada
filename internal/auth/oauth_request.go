@@ -16,12 +16,13 @@ import (
 )
 
 type OAuthRequestWrapper struct {
-	ID      string        `json:"_id,omitempty"`
-	Rev     string        `json:"_rev,omitempty"`
-	Kind    couch.Kind    `json:"kind"`
-	Req     *OAuthRequest `json:"req"`
-	Revoked bool          `json:"revoked,omitempty"`
-	Sig     string        `json:"sig,omitempty"`
+	ID        string        `json:"_id,omitempty"`
+	Rev       string        `json:"_rev,omitempty"`
+	Kind      couch.Kind    `json:"kind"`
+	Req       *OAuthRequest `json:"req"`
+	Revoked   bool          `json:"revoked,omitempty"`
+	Sig       string        `json:"sig,omitempty"`
+	GrantType string        `json:"grant_type,omitempty"`
 }
 
 type OAuthRequest struct {
@@ -128,5 +129,9 @@ func (r *OAuthRequest) Merge(request fosite.Requester) {
 }
 
 func (r *OAuthRequest) Sanitize(allowedParameters []string) fosite.Requester {
+	// Delete known critical values
+	r.GetRequestForm().Del("password")
+	r.GetRequestForm().Del("client_secret")
+	r.GetRequestForm().Del("token")
 	return r
 }

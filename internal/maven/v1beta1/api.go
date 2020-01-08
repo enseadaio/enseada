@@ -9,6 +9,8 @@ package mavenv1beta1api
 import (
 	"context"
 
+	"github.com/ory/fosite"
+
 	"github.com/enseadaio/enseada/internal/ctxutils"
 
 	"github.com/casbin/casbin/v2"
@@ -32,7 +34,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.MavenRepoRead) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.MavenRepoRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -91,7 +93,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.MavenRepoRead) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.MavenRepoRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -134,7 +136,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.MavenRepoWrite) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.MavenRepoWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -180,7 +182,7 @@ func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReq
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.MavenRepoWrite) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.MavenRepoWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 

@@ -41,7 +41,7 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.OAuthClientRead) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.OAuthClientRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -97,7 +97,7 @@ func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetCli
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.OAuthClientRead) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.OAuthClientRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -136,7 +136,7 @@ func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.Cre
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.OAuthClientWrite) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -183,7 +183,7 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.OAuthClientWrite) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -242,7 +242,7 @@ func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.Del
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
-	if !scopes.Has(scope.OAuthClientWrite) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.OAuthClientWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 

@@ -55,7 +55,7 @@ func getMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {
 		}
 
 		scopes, _ := ctxutils.Scopes(ctx)
-		if !scopes.Has(scope.MavenFileRead) {
+		if !fosite.WildcardScopeStrategy(scopes, scope.MavenFileRead) {
 			return c.JSON(http.StatusForbidden, utils.HTTPError(http.StatusForbidden, "insufficient scopes"))
 		}
 
@@ -135,7 +135,7 @@ func storeMaven(mvn *maven.Maven, enf *casbin.Enforcer) echo.HandlerFunc {
 		}
 
 		scopes, _ := ctxutils.Scopes(ctx)
-		if !scopes.Has(scope.MavenFileWrite) {
+		if !fosite.WildcardScopeStrategy(scopes, scope.MavenFileWrite) {
 			return c.JSON(http.StatusForbidden, utils.HTTPError(http.StatusForbidden, "insufficient scopes"))
 		}
 

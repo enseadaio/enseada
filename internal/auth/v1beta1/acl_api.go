@@ -9,6 +9,8 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/ory/fosite"
+
 	"github.com/enseadaio/enseada/pkg/log"
 
 	"github.com/enseadaio/enseada/internal/ctxutils"
@@ -35,7 +37,7 @@ func (s *AclAPI) ListRules(ctx context.Context, req *authv1beta1.ListRulesReques
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	if !scopes.Has(scope.ACLRuleRead) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.ACLRuleRead) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -66,7 +68,7 @@ func (s *AclAPI) AddRule(ctx context.Context, req *authv1beta1.AddRuleRequest) (
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	if !scopes.Has(scope.ACLRuleWrite) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.ACLRuleWrite) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
@@ -101,7 +103,7 @@ func (s *AclAPI) DeleteRule(ctx context.Context, req *authv1beta1.DeleteRuleRequ
 		return nil, twirp.NewError(twirp.Unauthenticated, "")
 	}
 
-	if !scopes.Has(scope.ACLRuleDelete) {
+	if !fosite.WildcardScopeStrategy(scopes, scope.ACLRuleDelete) {
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 

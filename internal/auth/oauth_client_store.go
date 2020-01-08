@@ -112,15 +112,14 @@ func (c *OAuthClientStore) SaveClient(ctx context.Context, client fosite.Client)
 	return nil
 }
 
-func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string) error {
+func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, sec string) error {
 	db := c.Data.DB(ctx, couch.OAuthDB)
 
-	client, err := NewOAuthClient("enseada", "",
-		OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials"),
+	client, err := NewOAuthClient("enseada", sec,
+		OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials", "personal_access_token"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
 		OAuthScopes("*"),
 		OAuthRedirectURIs(ph+"/ui/callback"),
-		OAuthPublic(true),
 	)
 	if err != nil {
 		return err
@@ -132,7 +131,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string) er
 	}
 
 	cli, err := NewOAuthClient("enseada-cli", "",
-		OAuthGrantTypes("refresh_token", "password", "client_credentials"),
+		OAuthGrantTypes("refresh_token", "password", "client_credentials", "personal_access_token"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
 		OAuthScopes("*"),
 		OAuthPublic(true),
