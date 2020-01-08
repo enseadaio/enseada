@@ -12,6 +12,9 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
+	session "github.com/ipfans/echo-session"
 
 	"github.com/enseadaio/enseada/pkg/errare"
 
@@ -50,6 +53,20 @@ func createEchoServer(l log.Logger, errh errare.Handler) *echo.Echo {
 				msg = m
 			} else {
 				msg = he.Error()
+			}
+
+			s := session.Default(c)
+			if strings.Contains(c.Request().Header.Get("accept"), "html") && s != nil {
+				s.AddFlash(msg, "HTTPError")
+				if err := s.Save(); err != nil {
+					errh.HandleError(err)
+					return
+				}
+
+				if e := c.Redirect(http.StatusTemporaryRedirect, "/ui/error"); e != nil {
+					errh.HandleError(err)
+				}
+				return
 			}
 
 			if e := c.JSON(he.Code, utils.HTTPError(he.Code, msg)); e != nil {

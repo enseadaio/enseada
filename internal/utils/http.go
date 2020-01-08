@@ -42,3 +42,13 @@ func QueryWithDefault(c echo.Context, name string, def string) string {
 
 	return p
 }
+
+func RequiredQuery(c echo.Context, name string) (string, error) {
+	p := c.QueryParam(name)
+	if p == "" {
+		return p, fmt.Errorf("query param %s is required", name)
+
+	}
+
+	return p, nil
+}

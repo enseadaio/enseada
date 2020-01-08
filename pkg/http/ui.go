@@ -37,32 +37,13 @@ func mountUI(e *echo.Echo, oc *goauth.Config, sm echo.MiddlewareFunc) {
 	u.Use(sm)
 	u.Use(middleware.CSRF())
 	u.GET("", home(oc))
-	u.GET("/profile", profile(oc))
-	u.GET("/repositories", repos(oc))
 	u.GET("/callback", callback(oc))
+	u.GET("/error", errorPage(oc))
 }
 
 func home(oc *goauth.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return renderPage(c, "index", oc, echo.Map{})
-	}
-}
-
-func repos(oc *goauth.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		return renderPage(c, "repos", oc, echo.Map{})
-	}
-}
-
-func profile(oc *goauth.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		s := session.Default(c)
-		id := s.Get("current_user_id")
-		if id == nil {
-			return c.Redirect(http.StatusSeeOther, oc.AuthCodeURL(random.String(32)))
-		}
-
-		return renderPage(c, "profile", oc, echo.Map{})
+		return renderPage(c, http.StatusOK, "index", oc, echo.Map{})
 	}
 }
 
@@ -132,13 +113,52 @@ func root(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/ui")
 	}
 
-	return c.JSON(http.StatusNotFound, echo.Map{
-		"error":   "not_found",
-		"message": "NotFound",
-	})
+	return echo.ErrNotFound
 }
 
-func renderPage(c echo.Context, name string, oc *goauth.Config, data echo.Map) error {
+func errorPage(oc *goauth.Config) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if err := http2Push(c); err != nil {
+			return err
+		}
+
+		params := echo.Map{}
+		s := session.Default(c)
+		errs := s.Flashes("errors")
+		he := s.Flashes("HTTPError")
+		if len(errs) == 0 && len(he) == 0 {
+			return c.Redirect(http.StatusTemporaryRedirect, "/ui")
+		}
+
+		params["Errors"] = errs
+		if len(he) > 0 {
+			params["HTTPError"] = he[0]
+		}
+		addCurrentUser(s, params)
+		params["LoginURL"] = oc.AuthCodeURL(random.String(32))
+		if err := s.Save(); err != nil {
+			return err
+		}
+		return c.Render(http.StatusBadRequest, "error", params)
+	}
+}
+
+func renderPage(c echo.Context, sc int, name string, oc *goauth.Config, params echo.Map) error {
+	if err := http2Push(c); err != nil {
+		return err
+	}
+
+	s := session.Default(c)
+	addFlashes(s, params)
+	addCurrentUser(s, params)
+	params["LoginURL"] = oc.AuthCodeURL(random.String(32))
+	if err := s.Save(); err != nil {
+		return err
+	}
+	return c.Render(sc, name, params)
+}
+
+func http2Push(c echo.Context) error {
 	pusher, ok := c.Response().Writer.(http.Pusher)
 	if ok {
 		if err := pusher.Push("/static/main.css", nil); err != nil {
@@ -151,12 +171,7 @@ func renderPage(c echo.Context, name string, oc *goauth.Config, data echo.Map) e
 			return err
 		}
 	}
-
-	s := session.Default(c)
-	addFlashes(s, data)
-	addCurrentUser(s, data)
-	data["LoginURL"] = oc.AuthCodeURL(random.String(32))
-	return c.Render(http.StatusOK, name, data)
+	return nil
 }
 
 func addCurrentUser(s session.Session, params echo.Map) {
@@ -172,4 +187,8 @@ func addCurrentUser(s session.Session, params echo.Map) {
 func addFlashes(s session.Session, params echo.Map) {
 	errs := s.Flashes("errors")
 	params["Errors"] = errs
+	he := s.Flashes("HTTPError")
+	if len(he) > 0 {
+		params["HTTPError"] = he[0]
+	}
 }

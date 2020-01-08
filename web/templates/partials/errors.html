@@ -7,9 +7,17 @@
 -->
 
 {{define "errors"}}
-	<div>
-        {{range .Errors}}
-			<span class="bg-red-500 text-white">{{.}}</span>
-        {{end}}
-	</div>
+    {{ with $errs := .Errors }}
+		<div class="container mx-auto max-w-2xl mt-10 flex flex-col items-center bg-grey-200">
+            {{range $errs }}
+				<span class="flex-auto m-2 p-2 rounded bg-red-600 text-white">{{.}}</span>
+            {{end}}
+		</div>
+    {{end}}
+
+	{{with $he := .HTTPError}}
+		<div class="container mx-auto max-w-2xl mt-10 flex flex-col items-center bg-grey-200">
+			<span class="flex-auto m-2 p-2 rounded bg-red-600 text-white">{{$he}}</span>
+		</div>
+	{{end}}
 {{end}}

@@ -19,6 +19,7 @@ func Session(skb []byte) echo.MiddlewareFunc {
 	s.Options(session.Options{
 		MaxAge:   int(exp),
 		HttpOnly: true,
+		Path:     "/",
 	})
 	return session.Sessions("enseada-session", s)
 }

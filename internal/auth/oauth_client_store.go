@@ -120,6 +120,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
 		OAuthScopes("*"),
 		OAuthRedirectURIs(ph+"/ui/callback"),
+		OAuthAudiences("enseada"),
 	)
 	if err != nil {
 		return err
@@ -134,6 +135,7 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 		OAuthGrantTypes("refresh_token", "password", "client_credentials", "personal_access_token"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
 		OAuthScopes("*"),
+		OAuthAudiences("enseada"),
 		OAuthPublic(true),
 	)
 	if err != nil {

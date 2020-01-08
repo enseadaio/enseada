@@ -7,8 +7,12 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/labstack/gommon/random"
+	"go.uber.org/multierr"
 
 	"github.com/enseadaio/enseada/internal/cachecontrol"
 
@@ -19,11 +23,9 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	authv1beta1api "github.com/enseadaio/enseada/internal/auth/v1beta1"
-	"github.com/enseadaio/enseada/internal/utils"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
 	session "github.com/ipfans/echo-session"
 	"github.com/labstack/echo"
-	"github.com/labstack/gommon/random"
 	"github.com/ory/fosite"
 )
 
@@ -52,23 +54,82 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 	return nil
 }
 
+type LoginQueryParams struct {
+	ClientID     string `query:"client_id"`
+	RedirectURI  string `query:"redirect_uri"`
+	State        string `query:"state"`
+	Scope        string `query:"scope"`
+	Audience     string `query:"audience"`
+	ResponseType string `query:"response_type"`
+}
+
 func authorizationPage() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		s := session.Default(c)
-		e := s.Flashes("errors")
-		params := echo.Map{
-			"ClientID":     utils.QueryWithDefault(c, "client_id", ""),
-			"RedirectURI":  utils.QueryWithDefault(c, "redirect_uri", ""),
-			"State":        utils.QueryWithDefault(c, "state", random.String(32)),
-			"Scope":        utils.QueryWithDefault(c, "scope", ""),
-			"Audience":     utils.QueryWithDefault(c, "audience", ""),
-			"ResponseType": utils.QueryWithDefault(c, "response_type", "code"),
-		}
-		if len(e) > 0 {
-			params["Errors"] = e
+
+		p := new(LoginQueryParams)
+		if err := c.Bind(p); err != nil {
+			return err
 		}
 
-		return c.Render(http.StatusOK, "login", params)
+		var err error
+		if p.ClientID == "" {
+			err = multierr.Append(err, errors.New("client_id is required"))
+		}
+		if p.RedirectURI == "" {
+			err = multierr.Append(err, errors.New("redirect_uri is required"))
+		}
+		if p.State == "" {
+			p.State = random.String(64)
+		}
+		if p.Scope == "" {
+			err = multierr.Append(err, errors.New("scope is required"))
+		}
+		if p.Audience == "" {
+			p.Audience = "enseada"
+		}
+		if p.ResponseType == "" {
+			err = multierr.Append(err, errors.New("response_type is required"))
+		}
+		errs := multierr.Errors(err)
+		if len(errs) > 0 {
+			for _, e := range errs {
+				s.AddFlash(e.Error(), "errors")
+			}
+			if err := s.Save(); err != nil {
+				return err
+			}
+			return c.Redirect(http.StatusTemporaryRedirect, "/ui/error")
+		}
+
+		params := echo.Map{
+			"ClientID":     p.ClientID,
+			"RedirectURI":  p.RedirectURI,
+			"State":        p.State,
+			"Scope":        p.Scope,
+			"Audience":     p.Audience,
+			"ResponseType": p.ResponseType,
+		}
+
+		sc := http.StatusOK
+		e := s.Flashes("errors")
+		if len(e) > 0 {
+			params["Errors"] = e
+			sc = http.StatusBadRequest
+		}
+		ue := s.Flashes("UsernameError")
+		if len(ue) > 0 {
+			params["UsernameError"] = ue[0]
+			sc = http.StatusUnprocessableEntity
+		}
+
+		pe := s.Flashes("PasswordError")
+		if len(pe) > 0 {
+			params["PasswordError"] = pe[0]
+			sc = http.StatusUnprocessableEntity
+		}
+
+		return c.Render(sc, "login", params)
 	}
 }
 
@@ -77,11 +138,14 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 		req := c.Request()
 		resw := c.Response()
 		ctx := req.Context()
+		s := session.Default(c)
 
 		ar, err := oauth.NewAuthorizeRequest(ctx, req)
 		if err != nil {
-			c.Logger().Error(err)
-			oauth.WriteAuthorizeError(resw, ar, err)
+			rfce := fosite.ErrorToRFC6749Error(err)
+			rfce = rfce.WithDescription(rfce.Hint)
+			c.Logger().Error(rfce)
+			oauth.WriteAuthorizeError(resw, ar, rfce)
 			return nil
 		}
 
@@ -91,16 +155,40 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 
 		username := strings.TrimSpace(req.FormValue("username"))
 		password := strings.TrimSpace(req.FormValue("password"))
+		accepsHTML := strings.Contains(req.Header.Get("accept"), "html")
+
+		formErrs := echo.Map{}
+		if username == "" {
+			formErrs["UsernameError"] = "username cannot be blank"
+		}
+
+		if password == "" {
+			formErrs["PasswordError"] = "password cannot be blank"
+		}
+
+		if len(formErrs) > 0 {
+			s.Clear()
+			if accepsHTML {
+				s.AddFlash(formErrs["UsernameError"], "UsernameError")
+				s.AddFlash(formErrs["PasswordError"], "PasswordError")
+				if err := s.Save(); err != nil {
+					return err
+				}
+				return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
+			} else {
+				return echo.NewHTTPError(http.StatusBadRequest, formErrs["UsernameError"], formErrs["PasswordError"])
+			}
+		}
 
 		err = store.Authenticate(ctx, username, password)
 		if err != nil {
-			if strings.Contains(req.Header.Get("accept"), "html") {
-				s := session.Default(c)
+			s.Clear()
+			if accepsHTML {
 				s.AddFlash("Invalid username of password", "errors")
 				if err := s.Save(); err != nil {
 					return err
 				}
-				return c.Redirect(http.StatusSeeOther, c.Request().Header.Get("Referer"))
+				return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
 			}
 			oauth.WriteAuthorizeError(resw, ar, fosite.ErrAccessDenied)
 			return nil
@@ -114,8 +202,10 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 		os := auth.NewSession(u)
 		res, err := oauth.NewAuthorizeResponse(ctx, ar, os)
 		if err != nil {
-			c.Logger().Error(err)
-			oauth.WriteAuthorizeError(resw, ar, err)
+			rfce := fosite.ErrorToRFC6749Error(err)
+			rfce = rfce.WithDescription(rfce.Hint)
+			c.Logger().Error(rfce)
+			oauth.WriteAuthorizeError(resw, ar, rfce)
 			return nil
 		}
 
@@ -144,6 +234,7 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 				return nil
 
 			}
+			rfce = rfce.WithDescription(rfce.Hint)
 			c.Logger().Error(rfce)
 			oauth.WriteAccessError(resw, ar, rfce)
 			return nil
@@ -169,6 +260,7 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 		res, err := oauth.NewAccessResponse(ctx, ar)
 		if err != nil {
 			rfce := fosite.ErrorToRFC6749Error(err)
+			rfce = rfce.WithDescription(rfce.Hint)
 			c.Logger().Error(rfce)
 			oauth.WriteAccessError(resw, ar, rfce)
 			return nil
@@ -200,8 +292,10 @@ func introspect(oauth fosite.OAuth2Provider) echo.HandlerFunc {
 
 		ir, err := oauth.NewIntrospectionRequest(ctx, req, os)
 		if err != nil {
-			c.Logger().Error(err)
-			oauth.WriteIntrospectionError(resw, err)
+			rfce := fosite.ErrorToRFC6749Error(err)
+			rfce = rfce.WithDescription(rfce.Hint)
+			c.Logger().Error(rfce)
+			oauth.WriteIntrospectionError(resw, rfce)
 			return nil
 		}
 
