@@ -122,7 +122,9 @@ func errorPage(oc *goauth.Config) echo.HandlerFunc {
 			return err
 		}
 
-		params := echo.Map{}
+		params := echo.Map{
+			"Title": "Error",
+		}
 		s := session.Default(c)
 		errs := s.Flashes("errors")
 		he := s.Flashes("HTTPError")

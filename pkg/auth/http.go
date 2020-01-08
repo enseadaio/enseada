@@ -103,6 +103,7 @@ func authorizationPage() echo.HandlerFunc {
 		}
 
 		params := echo.Map{
+			"Title":        "Login",
 			"ClientID":     p.ClientID,
 			"RedirectURI":  p.RedirectURI,
 			"State":        p.State,

@@ -7,6 +7,5 @@
  */
 
 module.exports = {
-  theme: {
-  }
+  textColor: ['responsive', 'hover', 'focus', 'visited'],
 }
