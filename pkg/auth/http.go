@@ -35,6 +35,7 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 	g.GET("/authorize", authorizationPage())
 	g.POST("/authorize", authorize(op, s))
 	g.POST("/token", token(op, s))
+	g.POST("/revoke", revoke(op))
 	g.POST("/token/introspect", introspect(op))
 
 	acl := authv1beta1api.NewAclAPI(s.Logger, enf)
@@ -174,6 +175,18 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 		}
 
 		oauth.WriteAccessResponse(resw, ar, res)
+		return nil
+	}
+}
+
+func revoke(oauth fosite.OAuth2Provider) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := c.Request()
+		resw := c.Response().Writer
+		ctx := req.Context()
+
+		err := oauth.NewRevocationRequest(ctx, req)
+		oauth.WriteRevocationResponse(resw, err)
 		return nil
 	}
 }

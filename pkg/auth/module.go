@@ -89,6 +89,7 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 		compose.OAuth2ClientCredentialsGrantFactory,
 		compose.OAuth2RefreshTokenGrantFactory,
 		compose.OAuth2ResourceOwnerPasswordCredentialsFactory,
+		compose.OAuth2TokenRevocationFactory,
 
 		compose.OpenIDConnectExplicitFactory,
 		compose.OpenIDConnectImplicitFactory,

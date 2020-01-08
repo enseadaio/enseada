@@ -129,5 +129,9 @@ func (r *OAuthRequest) Merge(request fosite.Requester) {
 }
 
 func (r *OAuthRequest) Sanitize(allowedParameters []string) fosite.Requester {
+	// Delete known critical values
+	r.GetRequestForm().Del("password")
+	r.GetRequestForm().Del("client_secret")
+	r.GetRequestForm().Del("token")
 	return r
 }

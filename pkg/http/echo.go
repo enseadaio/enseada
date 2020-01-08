@@ -8,6 +8,7 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -21,6 +22,14 @@ import (
 	"github.com/labstack/echo/middleware"
 	elog "github.com/labstack/gommon/log"
 )
+
+type statusCoder interface {
+	StatusCode() int
+}
+
+type causer interface {
+	Cause() error
+}
 
 func createEchoServer(l log.Logger, errh errare.Handler) *echo.Echo {
 	e := echo.New()
@@ -46,8 +55,29 @@ func createEchoServer(l log.Logger, errh errare.Handler) *echo.Echo {
 			if e := c.JSON(he.Code, utils.HTTPError(he.Code, msg)); e != nil {
 				errh.HandleError(err)
 			}
+			return
 		}
-		e := c.JSON(http.StatusInternalServerError, utils.HTTPError(http.StatusInternalServerError, err.Error()))
+
+		sc := http.StatusInternalServerError
+		var coder statusCoder
+		for {
+			if errors.As(err, &coder) {
+				sc = coder.StatusCode()
+				break
+			}
+			if uw := errors.Unwrap(err); uw != nil {
+				err = uw
+				continue
+			}
+
+			if c, ok := err.(causer); ok {
+				err = c.Cause()
+				continue
+			}
+			break
+		}
+
+		e := c.JSON(sc, utils.HTTPError(sc, err.Error()))
 		if e != nil {
 			errh.HandleError(err)
 		}

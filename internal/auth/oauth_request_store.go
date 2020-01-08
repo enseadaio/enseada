@@ -155,7 +155,7 @@ func (t *OAuthRequestStore) DeleteRefreshTokenSession(ctx context.Context, signa
 }
 
 func (t *OAuthRequestStore) RevokeAccessToken(ctx context.Context, requestID string) error {
-	token, err := t.findOne(ctx, couch.Query{
+	tokens, err := t.find(ctx, couch.Query{
 		"selector": couch.Query{
 			"req.id": requestID,
 			"kind":   couch.KindOAuthAccessToken,
@@ -165,12 +165,16 @@ func (t *OAuthRequestStore) RevokeAccessToken(ctx context.Context, requestID str
 		return err
 	}
 
-	token.Revoked = true
-	return t.store(ctx, token)
+	for _, tok := range tokens {
+		if err := t.delete(ctx, tok.ID, tok.Rev); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (t *OAuthRequestStore) RevokeRefreshToken(ctx context.Context, requestID string) error {
-	token, err := t.findOne(ctx, couch.Query{
+	tokens, err := t.find(ctx, couch.Query{
 		"selector": couch.Query{
 			"req.id": requestID,
 			"kind":   couch.KindOAuthRefreshToken,
@@ -180,8 +184,12 @@ func (t *OAuthRequestStore) RevokeRefreshToken(ctx context.Context, requestID st
 		return err
 	}
 
-	token.Revoked = true
-	return t.store(ctx, token)
+	for _, tok := range tokens {
+		if err := t.delete(ctx, tok.ID, tok.Rev); err != nil {
+			return err
+		}
+	}
+	return t.RevokeAccessToken(ctx, requestID)
 }
 
 func (t *OAuthRequestStore) store(ctx context.Context, token *OAuthRequestWrapper) error {
