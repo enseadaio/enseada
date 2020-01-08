@@ -171,6 +171,10 @@ persist data in a Docker volume.
 Upon first run no bucket is present. Create a new one and configure the name in the appropriate environment variable 
 in the Enseada configuration.
 
+## Security Policy
+
+If you want to report a security vulnerability, please follow the steps which we have defined for you in our [security policy](https://github.com/enseadaio/enseada/security/policy).
+
 ## License
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
