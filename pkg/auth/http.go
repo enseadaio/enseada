@@ -25,7 +25,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/random"
 	"github.com/ory/fosite"
-	"github.com/pkg/errors"
 )
 
 func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *casbin.Enforcer, sm echo.MiddlewareFunc, errh errare.Handler, m *auth.Metrics) error {
@@ -137,15 +136,15 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 		c.Logger().Debug(req)
 		ar, err := oauth.NewAccessRequest(ctx, req, os)
 		if err != nil {
-			rfce := errors.Cause(err).(*fosite.RFC6749Error)
+			rfce := fosite.ErrorToRFC6749Error(err)
 			if strings.Contains(rfce.Debug, "password") {
 				c.Logger().Error("authentication failed")
 				oauth.WriteAccessError(resw, ar, fosite.ErrAccessDenied)
 				return nil
 
 			}
-			c.Logger().Error(err)
-			oauth.WriteAccessError(resw, ar, err)
+			c.Logger().Error(rfce)
+			oauth.WriteAccessError(resw, ar, rfce)
 			return nil
 		}
 
@@ -168,8 +167,9 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 
 		res, err := oauth.NewAccessResponse(ctx, ar)
 		if err != nil {
-			c.Logger().Error(err)
-			oauth.WriteAccessError(resw, ar, err)
+			rfce := fosite.ErrorToRFC6749Error(err)
+			c.Logger().Error(rfce)
+			oauth.WriteAccessError(resw, ar, rfce)
 			return nil
 		}
 

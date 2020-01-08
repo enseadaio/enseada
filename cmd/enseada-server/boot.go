@@ -8,7 +8,9 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"strings"
 
 	"cloud.google.com/go/errorreporting"
@@ -46,8 +48,11 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, errors.New("no public host configured")
 	}
 
+	sec := fmt.Sprintf("%x", sha256.Sum256(skb))
+
 	oc := &goauth.Config{
-		ClientID: "enseada",
+		ClientID:     "enseada",
+		ClientSecret: sec,
 		Endpoint: goauth.Endpoint{
 			AuthURL:   ph + "/oauth/authorize",
 			TokenURL:  ph + "/oauth/token",
@@ -89,7 +94,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, om.Registry, skb, ph, conf.GetString("root.password"))
+	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, om.Registry, skb, ph, conf.GetString("root.password"), sec)
 	if err != nil {
 		return nil, err
 	}

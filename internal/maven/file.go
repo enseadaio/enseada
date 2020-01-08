@@ -8,7 +8,7 @@ package maven
 
 import (
 	"context"
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"sort"
 	"strings"
@@ -21,7 +21,7 @@ import (
 
 const StoragePrefix = couch.MavenDB
 
-type SHA1Checksum [20]byte
+type SHA256Checksum [sha256.Size]byte
 
 type RepoFile struct {
 	Repo         *Repo
@@ -31,7 +31,7 @@ type RepoFile struct {
 	path         string
 	storage      storage.Backend
 	lastModified time.Time
-	checksum     SHA1Checksum
+	checksum     SHA256Checksum
 }
 
 func (f *RepoFile) Content() ([]byte, error) {
@@ -57,17 +57,17 @@ func (f *RepoFile) LastModified() (time.Time, error) {
 	return f.lastModified, nil
 }
 
-func (f *RepoFile) Checksum() (SHA1Checksum, error) {
-	if f.checksum != [20]byte{} {
+func (f *RepoFile) Checksum() (SHA256Checksum, error) {
+	if f.checksum != [sha256.Size]byte{} {
 		return f.checksum, nil
 	}
 
 	c, err := f.Content()
 	if err != nil {
-		return SHA1Checksum{}, err
+		return SHA256Checksum{}, err
 	}
 
-	cs := sha1.Sum(c)
+	cs := sha256.Sum256(c)
 	f.checksum = cs
 	return cs, nil
 }

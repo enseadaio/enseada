@@ -71,9 +71,10 @@ func (t *OAuthRequestStore) CreateAccessTokenSession(ctx context.Context, signat
 	req := &OAuthRequest{}
 	req.Merge(request)
 	return t.store(ctx, &OAuthRequestWrapper{
-		Kind: couch.KindOAuthAccessToken,
-		Sig:  signature,
-		Req:  req,
+		Kind:      couch.KindOAuthAccessToken,
+		Sig:       signature,
+		Req:       req,
+		GrantType: req.GetRequestForm().Get("grant_type"),
 	})
 }
 

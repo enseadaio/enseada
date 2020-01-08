@@ -31,18 +31,19 @@ import (
 )
 
 type Module struct {
-	logger   log.Logger
-	e        *echo.Echo
-	data     *kivik.Client
-	ph       string
-	rootpwd  string
-	Store    *auth.Store
-	Enforcer *casbin.Enforcer
-	Watcher  *CasbinWatcher
-	Provider fosite.OAuth2Provider
+	logger              log.Logger
+	e                   *echo.Echo
+	data                *kivik.Client
+	ph                  string
+	rootpwd             string
+	Store               *auth.Store
+	Enforcer            *casbin.Enforcer
+	Watcher             *CasbinWatcher
+	Provider            fosite.OAuth2Provider
+	DefaultClientSecret string
 }
 
-func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, errh errare.Handler, r *metric.Registry, skb []byte, ph string, rootpwd string) (*Module, error) {
+func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, errh errare.Handler, r *metric.Registry, skb []byte, ph string, rootpwd string, defaultClientSecret string) (*Module, error) {
 	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
@@ -97,6 +98,8 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 		compose.OAuth2TokenIntrospectionFactory,
 
 		compose.OAuth2PKCEFactory,
+
+		auth.PersonalAccessTokenFactory,
 	)
 
 	m, err := auth.InitMetrics(ctx, r, s)
@@ -109,15 +112,16 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 	}
 
 	return &Module{
-		logger:   logger,
-		e:        e,
-		data:     data,
-		ph:       ph,
-		rootpwd:  rootpwd,
-		Store:    s,
-		Enforcer: enf,
-		Watcher:  w,
-		Provider: op,
+		logger:              logger,
+		e:                   e,
+		data:                data,
+		ph:                  ph,
+		rootpwd:             rootpwd,
+		Store:               s,
+		Enforcer:            enf,
+		Watcher:             w,
+		Provider:            op,
+		DefaultClientSecret: defaultClientSecret,
 	}, nil
 }
 
@@ -142,7 +146,7 @@ func (m *Module) EventHandlers() app.EventHandlersMap {
 }
 
 func (m *Module) beforeAppStart(ctx context.Context, event app.LifecycleEvent) {
-	if err := m.Store.InitDefaultClients(ctx, m.ph); err != nil {
+	if err := m.Store.InitDefaultClients(ctx, m.ph, m.DefaultClientSecret); err != nil {
 		panic(err)
 	}
 	m.logger.Debug("default OAuth clients initialized")

@@ -85,6 +85,7 @@ func callback(oc *goauth.Config) echo.HandlerFunc {
 			return err
 		}
 
+		req.SetBasicAuth(oc.ClientID, oc.ClientSecret)
 		req.Header.Set("content-type", "application/x-www-form-urlencoded")
 		req.Header.Add("Accept-Encoding", "identity")
 		res, err := cl.Do(req)
