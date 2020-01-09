@@ -9,7 +9,9 @@ package auth
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/labstack/gommon/random"
 	"go.uber.org/multierr"
@@ -35,6 +37,7 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 	g := e.Group("/oauth")
 	g.Use(sm)
 	g.GET("/authorize", authorizationPage())
+	g.GET("/consent", consentPage())
 	g.POST("/authorize", authorize(op, s))
 	g.POST("/token", token(op, s))
 	g.POST("/revoke", revoke(op))
@@ -55,12 +58,25 @@ func mountRoutes(e *echo.Echo, s *auth.Store, op fosite.OAuth2Provider, enf *cas
 }
 
 type LoginQueryParams struct {
-	ClientID     string `query:"client_id"`
-	RedirectURI  string `query:"redirect_uri"`
-	State        string `query:"state"`
-	Scope        string `query:"scope"`
-	Audience     string `query:"audience"`
-	ResponseType string `query:"response_type"`
+	ClientID     string `form:"client_id" query:"client_id"`
+	RedirectURI  string `form:"redirect_uri" query:"redirect_uri"`
+	State        string `form:"state" query:"state"`
+	Scope        string `form:"scope" query:"scope"`
+	Audience     string `form:"audience" query:"audience"`
+	ResponseType string `form:"response_type" query:"response_type"`
+}
+
+func (p *LoginQueryParams) QueryString() string {
+	v := make(url.Values)
+
+	v.Add("client_id", p.ClientID)
+	v.Add("redirect_uri", p.RedirectURI)
+	v.Add("state", p.State)
+	v.Add("scope", p.Scope)
+	v.Add("audience", p.Audience)
+	v.Add("response_type", p.ResponseType)
+
+	return v.Encode()
 }
 
 func authorizationPage() echo.HandlerFunc {
@@ -134,6 +150,61 @@ func authorizationPage() echo.HandlerFunc {
 	}
 }
 
+func consentPage() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		s := session.Default(c)
+
+		p := new(LoginQueryParams)
+		if err := c.Bind(p); err != nil {
+			return err
+		}
+
+		var err error
+		if p.ClientID == "" {
+			err = multierr.Append(err, errors.New("client_id is required"))
+		}
+		if p.RedirectURI == "" {
+			err = multierr.Append(err, errors.New("redirect_uri is required"))
+		}
+		if p.State == "" {
+			p.State = random.String(64)
+		}
+		if p.Scope == "" {
+			err = multierr.Append(err, errors.New("scope is required"))
+		}
+		if p.Audience == "" {
+			p.Audience = "enseada"
+		}
+		if p.ResponseType == "" {
+			err = multierr.Append(err, errors.New("response_type is required"))
+		}
+		errs := multierr.Errors(err)
+		if len(errs) > 0 {
+			return c.Redirect(http.StatusTemporaryRedirect, "/oauth/authorize")
+		}
+
+		scopes := strings.Split(p.Scope, " ")
+		params := echo.Map{
+			"Title":        "Login",
+			"ClientID":     p.ClientID,
+			"RedirectURI":  p.RedirectURI,
+			"State":        p.State,
+			"Scope":        p.Scope,
+			"Audience":     p.Audience,
+			"ResponseType": p.ResponseType,
+			"Scopes":       scopes,
+		}
+
+		sc := http.StatusOK
+		e := s.Flashes("errors")
+		if len(e) > 0 {
+			params["Errors"] = e
+			sc = http.StatusBadRequest
+		}
+		return c.Render(sc, "consent", params)
+	}
+}
+
 func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := c.Request()
@@ -150,54 +221,93 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 			return nil
 		}
 
-		for _, scope := range ar.GetRequestedScopes() {
-			ar.GrantScope(scope)
-		}
+		uid := s.Get("current-user-id")
+		if uid == nil {
+			username := strings.TrimSpace(req.FormValue("username"))
+			password := strings.TrimSpace(req.FormValue("password"))
+			accepsHTML := strings.Contains(req.Header.Get("accept"), "html")
 
-		username := strings.TrimSpace(req.FormValue("username"))
-		password := strings.TrimSpace(req.FormValue("password"))
-		accepsHTML := strings.Contains(req.Header.Get("accept"), "html")
-
-		formErrs := echo.Map{}
-		if username == "" {
-			formErrs["UsernameError"] = "username cannot be blank"
-		}
-
-		if password == "" {
-			formErrs["PasswordError"] = "password cannot be blank"
-		}
-
-		if len(formErrs) > 0 {
-			s.Clear()
-			if accepsHTML {
-				s.AddFlash(formErrs["UsernameError"], "UsernameError")
-				s.AddFlash(formErrs["PasswordError"], "PasswordError")
-				if err := s.Save(); err != nil {
-					return err
-				}
-				return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
-			} else {
-				return echo.NewHTTPError(http.StatusBadRequest, formErrs["UsernameError"], formErrs["PasswordError"])
+			formErrs := echo.Map{}
+			if username == "" {
+				formErrs["UsernameError"] = "username cannot be blank"
 			}
-		}
 
-		err = store.Authenticate(ctx, username, password)
-		if err != nil {
-			s.Clear()
-			if accepsHTML {
-				s.AddFlash("Invalid username of password", "errors")
-				if err := s.Save(); err != nil {
-					return err
-				}
-				return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
+			if password == "" {
+				formErrs["PasswordError"] = "password cannot be blank"
 			}
-			oauth.WriteAuthorizeError(resw, ar, fosite.ErrAccessDenied)
-			return nil
+
+			if len(formErrs) > 0 {
+				s.Clear()
+				if accepsHTML {
+					s.AddFlash(formErrs["UsernameError"], "UsernameError")
+					s.AddFlash(formErrs["PasswordError"], "PasswordError")
+					if err := s.Save(); err != nil {
+						return err
+					}
+					return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
+				} else {
+					return echo.NewHTTPError(http.StatusBadRequest, formErrs["UsernameError"], formErrs["PasswordError"])
+				}
+			}
+
+			err = store.Authenticate(ctx, username, password)
+			if err != nil {
+				s.Clear()
+				if accepsHTML {
+					s.AddFlash("Invalid username of password", "errors")
+					if err := s.Save(); err != nil {
+						return err
+					}
+					return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
+				}
+				oauth.WriteAuthorizeError(resw, ar, fosite.ErrAccessDenied)
+				return nil
+			}
+			s.Set("current-user-id", username)
+			if err := s.Save(); err != nil {
+				return err
+			}
+			uid = username
 		}
 
-		u, err := store.GetUser(ctx, username)
+		u, err := store.GetUser(ctx, uid.(string))
 		if err != nil {
 			return err
+		}
+
+		if len(u.Consent) == 0 {
+			u.Consent = make(map[string]auth.UserConsent)
+		}
+
+		cons := u.Consent[ar.GetClient().GetID()]
+		if req.FormValue("consent") == "" && (cons.ConsentGivenAt.IsZero() || !fosite.Arguments(cons.Scopes).Has(ar.GetRequestedScopes()...)) {
+			p := new(LoginQueryParams)
+			if err := c.Bind(p); err != nil {
+				return err
+			}
+			u.Consent[ar.GetClient().GetID()] = auth.UserConsent{
+				ConsentGivenAt: time.Time{},
+			}
+			if err := store.SaveUser(ctx, u); err != nil {
+				return err
+			}
+			return c.Redirect(http.StatusSeeOther, "/oauth/consent?"+p.QueryString())
+		}
+
+		for _, scope := range ar.GetRequestedScopes() {
+			if fosite.WildcardScopeStrategy(ar.GetClient().GetScopes(), scope) {
+				ar.GrantScope(scope)
+			}
+		}
+
+		if cons.ConsentGivenAt.IsZero() {
+			u.Consent[ar.GetClient().GetID()] = auth.UserConsent{
+				Scopes:         ar.GetGrantedScopes(),
+				ConsentGivenAt: time.Now(),
+			}
+			if err := store.SaveUser(ctx, u); err != nil {
+				return err
+			}
 		}
 
 		os := auth.NewSession(u)

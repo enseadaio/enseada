@@ -83,9 +83,10 @@ $(BIN)/go-fuzz-build: PACKAGE=github.com/dvyukov/go-fuzz/go-fuzz-build
 
 TEST_TARGETS := test-default test-bench test-short test-verbose test-race
 .PHONY: $(TEST_TARGETS) test-xml check test tests
-test-bench:   ARGS=-run=__absolutelynothing__ -bench=. ## Run benchmarks
-test-short:   ARGS=-short        ## Run only short tests
-test-verbose: ARGS=-v            ## Run tests in verbose mode with coverage reporting
+test-bench:   		ARGS=-run=__absolutelynothing__ -bench=. ## Run benchmarks
+test-short:   		ARGS=-short -tags=unit        ## Run only short tests
+test-verbose: 		ARGS=-v            ## Run tests in verbose mode with coverage reporting
+test-integration: 	ARGS=-tags=integration ## Run only integration tests
 $(TEST_TARGETS): NAME=$(MAKECMDGOALS:test-%=%)
 $(TEST_TARGETS): test
 check test tests: fmt vet ; $(info $(M) running $(NAME:%=% )tests…) @ ## Run tests
