@@ -1,0 +1,35 @@
+<!--
+ Copyright 2019-2020 Enseada authors
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at https://mozilla.org/MPL/2.0/.
+-->
+
+{{define "head"}}{{end}}
+{{define "content"}}
+	<div class="container mx-auto w-full max-w-sm mt-20">
+		<form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" action="/oauth/authorize" method="post">
+			<div class="mb-4">
+				<h1 class="text-2xl">Consent</h1>
+				<p>Client {{.ClientID}} is requesting access to the following scopes</p>
+				<ul class="list-disc list-inside pl-6 py-4">
+                    {{ range .Scopes}}
+						<li>{{.}}</li>
+                    {{end}}
+				</ul>
+				<input type="hidden" name="client_id" value="{{.ClientID}}">
+				<input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
+				<input type="hidden" name="state" value="{{.State}}">
+				<input type="hidden" name="scope" value="{{.Scope}}">
+				<input type="hidden" name="audience" value="{{.Audience}}">
+				<input type="hidden" name="response_type" value="{{.ResponseType}}">
+				<input type="hidden" name="consent" value="true">
+				<div class="flex items-center justify-between">
+					<input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+					       type="submit" value="Accept">
+				</div>
+			</div>
+		</form>
+	</div>
+{{end}}

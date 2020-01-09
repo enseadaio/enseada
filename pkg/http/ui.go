@@ -163,7 +163,7 @@ func renderPage(c echo.Context, sc int, name string, oc *goauth.Config, params e
 func http2Push(c echo.Context) error {
 	pusher, ok := c.Response().Writer.(http.Pusher)
 	if ok {
-		if err := pusher.Push("/static/main.css", nil); err != nil {
+		if err := pusher.Push("/static/app.css", nil); err != nil {
 			return err
 		}
 		if err := pusher.Push("/static/runtime.js", nil); err != nil {
