@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/enseadaio/enseada/pkg/app"
 	"github.com/enseadaio/enseada/pkg/errare"
 
 	"github.com/enseadaio/enseada/internal/middleware"
@@ -57,4 +58,18 @@ func (m Module) Start(ctx context.Context) error {
 func (m Module) Stop(ctx context.Context) error {
 	m.logger.Info("stopped http module")
 	return m.Echo.Shutdown(ctx)
+}
+
+func (m *Module) EventHandlers() app.EventHandlersMap {
+	return app.EventHandlersMap{
+		app.AfterApplicationStartEvent: m.afterStart,
+	}
+}
+
+func (m *Module) afterStart(_ context.Context, _ app.LifecycleEvent) {
+	proto := "http"
+	if m.tls != nil {
+		proto = "https"
+	}
+	m.logger.Infof("listening on %s port %d", proto, m.port)
 }
