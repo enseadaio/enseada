@@ -75,13 +75,6 @@ func printRepos(repos ...*mavenv1beta1.Repo) {
 	for _, repo := range repos {
 		t.AppendRow(table.Row{repo.GetId(), repo.GetGroupId(), repo.GetArtifactId()})
 	}
-	t.SetStyle(table.Style{
-		Name:    "StyleColoredSuperDark",
-		Box:     table.StyleBoxDefault,
-		Color:   table.ColorOptionsDark,
-		Format:  table.FormatOptionsDefault,
-		Options: table.OptionsNoBordersAndSeparators,
-		Title:   table.TitleOptionsDark,
-	})
+	t.SetStyle(config.TableColorStyle)
 	t.Render()
 }

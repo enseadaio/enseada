@@ -7,11 +7,13 @@
 package root
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/enseadaio/enseada/cmd/enseada/create"
+
 	"github.com/enseadaio/enseada/cmd/enseada/config"
+	del "github.com/enseadaio/enseada/cmd/enseada/delete"
 	"github.com/enseadaio/enseada/cmd/enseada/get"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -26,15 +28,11 @@ var rootCmd = &cobra.Command{
 
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 More information available at https://enseada.io`,
-	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-		return nil
-	},
 }
 
 func init() {
 	jww.SetStdoutThreshold(jww.LevelTrace)
 	jww.SetLogThreshold(jww.LevelDebug)
-	jww.SetLogOutput(os.Stdout)
 
 	viper.SetEnvPrefix("enseada")
 	viper.AutomaticEnv()
@@ -61,9 +59,10 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(loginCmd)
 	rootCmd.AddCommand(get.RootCmd)
+	rootCmd.AddCommand(create.RootCmd)
+	rootCmd.AddCommand(del.RootCmd)
 }
 
 func Execute() error {
-
 	return rootCmd.Execute()
 }

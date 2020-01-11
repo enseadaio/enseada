@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package create
+package delete
 
 import (
 	"context"
@@ -14,39 +14,26 @@ import (
 	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/twitchtv/twirp"
 
-	"github.com/labstack/gommon/color"
-	jww "github.com/spf13/jwalterweatherman"
-	"github.com/spf13/viper"
-
 	"github.com/enseadaio/enseada/cmd/enseada/config"
+	"github.com/labstack/gommon/color"
 	"github.com/spf13/cobra"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
 var mvnRepo = &cobra.Command{
 	Use:     "mavenrepository [name]",
-	Short:   "Create a new Maven repository",
+	Short:   "Delete a Maven repository",
 	Aliases: []string{"mvnrepo", "mavenrepositories", "mvnrepos"},
-	Args:    cobra.NoArgs,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		api := config.Client(ctx).MavenV1Beta1()
+		id := args[0]
 
-		gid := viper.GetString("groupID")
-		aid := viper.GetString("artifactID")
-
-		if gid == "" {
-			jww.ERROR.Fatal("GroupID is required")
-		}
-
-		if aid == "" {
-			jww.ERROR.Fatal("ArtifactID is required")
-		}
-
-		res, err := api.CreateRepo(ctx, &mavenv1beta1.CreateRepoRequest{
-			GroupId:    gid,
-			ArtifactId: aid,
+		res, err := api.DeleteRepo(ctx, &mavenv1beta1.DeleteRepoRequest{
+			Id: id,
 		})
 		if err != nil {
 			err := err.(twirp.Error)
@@ -54,14 +41,6 @@ var mvnRepo = &cobra.Command{
 		}
 
 		repo := res.GetRepo()
-		fmt.Printf("Created repository %s", color.Blue(repo.GetId()))
+		fmt.Printf("Deleted repository %s", color.Blue(repo.GetId()))
 	},
-}
-
-func init() {
-	mvnRepo.Flags().StringP("group-id", "g", "", "the new repo GroupID")
-	mvnRepo.Flags().StringP("artifact-id", "a", "", "the new repo ArtifactID")
-
-	viper.BindPFlag("groupID", mvnRepo.Flags().Lookup("group-id"))
-	viper.BindPFlag("artifactID", mvnRepo.Flags().Lookup("artifact-id"))
 }
