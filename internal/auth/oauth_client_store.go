@@ -34,7 +34,7 @@ func (c *OAuthClientStore) GetClient(ctx context.Context, id string) (fosite.Cli
 	var client OAuthClient
 	if err := row.ScanDoc(&client); err != nil {
 		if kivik.StatusCode(err) == kivik.StatusNotFound {
-			return nil, nil
+			return nil, fosite.ErrNotFound
 		}
 		c.Logger.Error(err)
 		return nil, err

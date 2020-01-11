@@ -35,9 +35,9 @@ func NewOAuthClientsAPI(logger log.Logger, enforcer *casbin.Enforcer, store *aut
 }
 
 func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.ListClientsRequest) (*authv1beta1.ListClientsResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -45,16 +45,16 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	}
 
-	var cs []fosite.Client
-	if id == "root" {
-		clients, err := o.Store.ListClients(ctx, couch.Query{})
+	var clients []fosite.Client
+	if uid == "root" {
+		cs, err := o.Store.ListClients(ctx, couch.Query{})
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
 		}
 
-		cs = clients
+		clients = cs
 	} else {
-		ps := o.Enforcer.GetPermissionsForUser(id)
+		ps := o.Enforcer.GetPermissionsForUser(uid)
 		ids := make([]string, 0)
 		for _, p := range ps {
 			g, err := guid.Parse(p[1])
@@ -67,7 +67,7 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 			}
 		}
 
-		clients, err := o.Store.ListClients(ctx, couch.Query{
+		cs, err := o.Store.ListClients(ctx, couch.Query{
 			"_id": couch.Query{
 				"$in": ids,
 			},
@@ -76,24 +76,27 @@ func (o *OAuthClientsAPI) ListClients(ctx context.Context, req *authv1beta1.List
 			return nil, twirp.InternalErrorWith(err)
 		}
 
-		cs = clients
+		clients = cs
 	}
 
-	var clients []*authv1beta1.OAuthClient
+	if len(clients) == 0 {
+		return nil, twirp.NotFoundError("no OAuth clients found")
+	}
 
-	for _, c := range cs {
-		clients = append(clients, mapClientToProto(c))
+	cs := make([]*authv1beta1.OAuthClient, len(clients))
+	for i, c := range clients {
+		cs[i] = mapClientToProto(c)
 	}
 
 	return &authv1beta1.ListClientsResponse{
-		Clients: clients,
+		Clients: cs,
 	}, nil
 }
 
 func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetClientRequest) (*authv1beta1.GetClientResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -102,26 +105,29 @@ func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetCli
 	}
 
 	if req.GetId() == "" {
-		return nil, twirp.RequiredArgumentError("id")
+		return nil, twirp.RequiredArgumentError("uid")
 	}
 
 	cg := guid.New(couch.OAuthDB, req.Id, couch.KindOAuthClient)
-	can, err := o.Enforcer.Enforce(id, cg.String(), "read")
+	can, err := o.Enforcer.Enforce(uid, cg.String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	c, err := o.Store.GetClient(ctx, req.Id)
 	if err != nil {
+		if err == fosite.ErrNotFound {
+			return nil, twirp.NotFoundError("client not found")
+		}
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if c == nil {
-		return nil, twirp.NotFoundError(req.Id)
+		return nil, twirp.NotFoundError("client not found")
 	}
 
 	return &authv1beta1.GetClientResponse{
@@ -130,9 +136,9 @@ func (o *OAuthClientsAPI) GetClient(ctx context.Context, req *authv1beta1.GetCli
 }
 
 func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.CreateClientRequest) (*authv1beta1.CreateClientResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -157,17 +163,19 @@ func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.Cre
 	err = o.Store.SaveClient(ctx, c)
 	if err != nil {
 		if kivik.StatusCode(err) == kivik.StatusConflict {
-			return nil, twirp.NewError(twirp.AlreadyExists, "")
+			return nil, twirp.NewError(twirp.AlreadyExists, "client already exists")
 		}
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
-	ps := []string{"read", "update", "delete"}
-	for _, p := range ps {
-		_, err := o.Enforcer.AddPermissionForUser(id, cg.String(), p)
-		if err != nil {
-			return nil, twirp.InternalErrorWith(err)
+	if uid != "root" {
+		cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
+		ps := []string{"read", "update", "delete"}
+		for _, p := range ps {
+			_, err := o.Enforcer.AddPermissionForUser(uid, cg.String(), p)
+			if err != nil {
+				return nil, twirp.InternalErrorWith(err)
+			}
 		}
 	}
 
@@ -177,9 +185,9 @@ func (o *OAuthClientsAPI) CreateClient(ctx context.Context, req *authv1beta1.Cre
 }
 
 func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.UpdateClientRequest) (*authv1beta1.UpdateClientResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -192,26 +200,29 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 		return nil, twirp.RequiredArgumentError("client")
 	}
 
-	fc, err := o.Store.GetClient(ctx, pc.GetId())
-	if err != nil {
-		return nil, twirp.InternalErrorWith(err)
-	}
-
-	if fc == nil {
-		return nil, twirp.NotFoundError("")
-	}
-
-	c := fc.(*auth.OAuthClient)
-
-	cg := guid.New(couch.OAuthDB, c.GetID(), couch.KindOAuthClient)
-	can, err := o.Enforcer.Enforce(id, cg.String(), "update")
+	cg := guid.New(couch.OAuthDB, pc.GetId(), couch.KindOAuthClient)
+	can, err := o.Enforcer.Enforce(uid, cg.String(), "update")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
+
+	fc, err := o.Store.GetClient(ctx, pc.GetId())
+	if err != nil {
+		if err == fosite.ErrNotFound {
+			return nil, twirp.NotFoundError("client not found")
+		}
+		return nil, twirp.InternalErrorWith(err)
+	}
+
+	if fc == nil {
+		return nil, twirp.NotFoundError("client not found")
+	}
+
+	c := fc.(*auth.OAuthClient)
 
 	if pc.GetRedirectUris() != nil {
 		c.RedirectURIs = pc.GetRedirectUris()
@@ -236,9 +247,9 @@ func (o *OAuthClientsAPI) UpdateClient(ctx context.Context, req *authv1beta1.Upd
 }
 
 func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.DeleteClientRequest) (*authv1beta1.DeleteClientResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -247,17 +258,17 @@ func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.Del
 	}
 
 	if req.GetId() == "" {
-		return nil, twirp.RequiredArgumentError("id")
+		return nil, twirp.RequiredArgumentError("uid")
 	}
 
 	cg := guid.New(couch.OAuthDB, req.GetId(), couch.KindOAuthClient)
-	can, err := o.Enforcer.Enforce(id, cg, "delete")
+	can, err := o.Enforcer.Enforce(uid, cg, "delete")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	c, err := o.Store.DeleteClient(ctx, req.GetId())
@@ -266,16 +277,25 @@ func (o *OAuthClientsAPI) DeleteClient(ctx context.Context, req *authv1beta1.Del
 	}
 
 	if c == nil {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NotFoundError("client not found")
 	}
 
-	ps := []string{"read", "update", "delete"}
-	for _, p := range ps {
-		_, err := o.Enforcer.DeletePermissionForUser(id, cg.String(), p)
-		if err != nil {
-			return nil, twirp.InternalErrorWith(err)
+	if uid != "root" {
+		if err := auth.CasbinTransact(o.Enforcer, func(e *casbin.Enforcer) error {
+			ps := []string{"read", "update", "delete"}
+			for _, p := range ps {
+				_, err := o.Enforcer.DeletePermissionForUser(uid, cg.String(), p)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
+			return nil, err
 		}
+
 	}
+
 	return &authv1beta1.DeleteClientResponse{
 		Client: mapClientToProto(c),
 	}, nil

@@ -12,9 +12,9 @@ var All = []string{
 	Profile,
 
 	// ACL
-	ACLRuleRead,
-	ACLRuleWrite,
-	ACLRuleDelete,
+	ACLPermissionRead,
+	ACLPermissionWrite,
+	ACLPermissionDelete,
 
 	// OAuth
 	OAuthClientRead,

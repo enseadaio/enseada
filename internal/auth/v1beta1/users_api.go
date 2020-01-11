@@ -9,6 +9,9 @@ package authv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/internal/scope"
+	"github.com/ory/fosite"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
@@ -32,53 +35,56 @@ func NewUsersAPI(logger log.Logger, enforcer *casbin.Enforcer, s *auth.Store, m 
 }
 
 func (u *UsersAPI) ListUsers(ctx context.Context, req *authv1beta1.ListUsersRequest) (*authv1beta1.ListUsersResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
-	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
+	can, err := u.Enforcer.Enforce(uid, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NewError(twirp.PermissionDenied, "")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
-	us, err := u.Store.ListUsers(ctx)
+	users, err := u.Store.ListUsers(ctx)
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	usc := len(us)
-	ups := make([]*authv1beta1.User, usc)
-	for i, u := range us {
+	usc := len(users)
+	if usc == 0 {
+		return nil, twirp.NotFoundError("no users found")
+	}
+	us := make([]*authv1beta1.User, usc)
+	for i, u := range users {
 		up := &authv1beta1.User{
 			Username: u.Username,
 		}
-		ups[i] = up
+		us[i] = up
 	}
 
 	u.m.UsersCount.Set(int64(usc))
 	return &authv1beta1.ListUsersResponse{
-		Users: ups,
+		Users: us,
 	}, nil
 }
 
 func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest) (*authv1beta1.GetUserResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
-	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
+	can, err := u.Enforcer.Enforce(uid, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NewError(twirp.PermissionDenied, "")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	if req.GetUsername() == "" {
@@ -91,7 +97,7 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 	}
 
 	if user == nil {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NotFoundError("user not found")
 	}
 
 	up := &authv1beta1.User{
@@ -102,19 +108,46 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 	}, nil
 }
 
-func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRequest) (*authv1beta1.CreateUserResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+func (u *UsersAPI) GetCurrentUser(ctx context.Context, req *authv1beta1.GetCurrentUserRequest) (*authv1beta1.GetCurrentUserResponse, error) {
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
-	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
+	scopes, _ := ctxutils.Scopes(ctx)
+	if !fosite.WildcardScopeStrategy(scopes, scope.Profile) {
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+	}
+
+	uu, err := u.Store.GetUser(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	if uu == nil {
+		return nil, twirp.NotFoundError("no user found with id " + uid)
+	}
+
+	return &authv1beta1.GetCurrentUserResponse{
+		User: &authv1beta1.User{
+			Username: uu.Username,
+		},
+	}, nil
+}
+
+func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRequest) (*authv1beta1.CreateUserResponse, error) {
+	uid, ok := ctxutils.CurrentUserID(ctx)
+	if !ok {
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
+	}
+
+	can, err := u.Enforcer.Enforce(uid, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NewError(twirp.PermissionDenied, "")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	up := req.GetUser()
@@ -135,7 +168,7 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 	if err != nil {
 		// Don't like it, leaking db implementation
 		if kivik.StatusCode(err) == kivik.StatusConflict {
-			e := twirp.NewError(twirp.AlreadyExists, "")
+			e := twirp.NewError(twirp.AlreadyExists, "user already exists")
 			e = e.WithMeta("username", up.GetUsername())
 			return nil, e
 		}
@@ -149,12 +182,12 @@ func (u *UsersAPI) CreateUser(ctx context.Context, req *authv1beta1.CreateUserRe
 }
 
 func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.UpdateUserPasswordRequest) (*authv1beta1.UpdateUserPasswordResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
-	uu, err := u.Store.GetUser(ctx, id)
+	uu, err := u.Store.GetUser(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -173,25 +206,25 @@ func (u *UsersAPI) UpdateUserPassword(ctx context.Context, req *authv1beta1.Upda
 }
 
 func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRequest) (*authv1beta1.DeleteUserResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
-	can, err := u.Enforcer.Enforce(id, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
+	can, err := u.Enforcer.Enforce(uid, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "write")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NewError(twirp.PermissionDenied, "")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	if req.GetUsername() == "" {
 		return nil, twirp.RequiredArgumentError("username")
 	}
 
-	if req.GetUsername() == id {
+	if req.GetUsername() == uid {
 		return nil, twirp.InvalidArgumentError("username", "cannot be the currently authenticated user")
 	}
 
@@ -201,7 +234,7 @@ func (u *UsersAPI) DeleteUser(ctx context.Context, req *authv1beta1.DeleteUserRe
 	}
 
 	if uu == nil {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NotFoundError("user not found")
 	}
 
 	err = u.Store.DeleteUser(ctx, uu)

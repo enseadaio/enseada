@@ -7,7 +7,7 @@
 package scope
 
 const (
-	ACLRuleRead   = "acl.rule.read"
-	ACLRuleWrite  = "acl.rule.write"
-	ACLRuleDelete = "acl.rule.delete"
+	ACLPermissionRead   = "acl.permission.read"
+	ACLPermissionWrite  = "acl.permission.write"
+	ACLPermissionDelete = "acl.permission.delete"
 )

@@ -8,6 +8,7 @@ package guid
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -50,11 +51,18 @@ func Parse(guid string) (GUID, error) {
 
 	s1 := strings.Split(guid, "://")
 	db := s1[0]
-	id := s1[1]
-	if id == "" {
-		return GUID{}, errors.New("is missing Username")
+	kid := s1[1]
+	if kid == "" {
+		return GUID{}, errors.New("is missing id")
 	}
 
+	kids := strings.Split(kid, "/")
+	if len(kids) != 2 {
+		return GUID{}, fmt.Errorf("invalid id %s", kid)
+	}
+
+	kind := couch.Kind(kids[0])
+	id := kids[1]
 	query := url.Values{}
 	if strings.Contains(id, "?") {
 		s2 := strings.Split(id, "?")
@@ -65,13 +73,6 @@ func Parse(guid string) (GUID, error) {
 		}
 		query = q
 	}
-
-	k := query.Get("kind")
-	if k == "" {
-		return GUID{}, errors.New("is missing kind")
-	}
-
-	kind := couch.Kind(k)
 
 	if rev := query.Get("rev"); rev != "" {
 		return NewWithRev(db, id, kind, rev), nil
@@ -100,11 +101,11 @@ func (g GUID) String() string {
 		var s strings.Builder
 		s.WriteString(g.db)
 		s.WriteString("://")
-		s.WriteString(g.id)
-		s.WriteString("?kind=")
 		s.WriteString(string(g.kind))
+		s.WriteString("/")
+		s.WriteString(g.id)
 		if g.rev != "" {
-			s.WriteString("&rev=")
+			s.WriteString("?rev=")
 			s.WriteString(g.rev)
 		}
 		g.s = s.String()

@@ -9,6 +9,8 @@ package mavenv1beta1api
 import (
 	"context"
 
+	"github.com/enseadaio/enseada/internal/auth"
+
 	"github.com/ory/fosite"
 
 	"github.com/enseadaio/enseada/internal/ctxutils"
@@ -28,9 +30,9 @@ type Service struct {
 }
 
 func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -39,7 +41,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 	}
 
 	var repos []*maven.Repo
-	if id == "root" {
+	if uid == "root" {
 		rs, err := s.Maven.ListRepos(ctx, couch.Query{})
 		if err != nil {
 			return nil, twirp.InternalErrorWith(err)
@@ -47,16 +49,16 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 
 		repos = rs
 	} else {
-		ps := s.Enforcer.GetPermissionsForUser(id)
+		ps := s.Enforcer.GetPermissionsForUser(uid)
 		ids := make([]string, 0)
 		for _, p := range ps {
-			g, err := guid.Parse(p[1])
+			rg, err := guid.Parse(p[1])
 			if err != nil {
 				return nil, twirp.InternalErrorWith(err)
 			}
 
-			if g.DB() == couch.MavenDB && g.Kind() == couch.KindRepository && p[2] == "read" {
-				ids = append(ids, g.ID())
+			if rg.DB() == couch.MavenDB && rg.Kind() == couch.KindRepository && p[2] == "read" {
+				ids = append(ids, rg.ID())
 			}
 		}
 
@@ -71,6 +73,10 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 
 		repos = rs
 	}
+	if len(repos) == 0 {
+		return nil, twirp.NotFoundError("no repositories found")
+	}
+
 	rs := make([]*mavenv1beta1.Repo, len(repos))
 	for i, repo := range repos {
 		r := &mavenv1beta1.Repo{
@@ -89,7 +95,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
 	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -101,14 +107,14 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 		return nil, twirp.RequiredArgumentError("id")
 	}
 
-	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
-	can, err := s.Enforcer.Enforce(id, cg.String(), "read")
+	rg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
+	can, err := s.Enforcer.Enforce(id, rg.String(), "read")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	repo, err := s.Maven.GetRepo(ctx, req.GetId())
@@ -117,7 +123,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 	}
 
 	if repo == nil {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NotFoundError("repository not found")
 	}
 
 	return &mavenv1beta1.GetRepoResponse{
@@ -130,9 +136,9 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 }
 
 func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -157,12 +163,14 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	cg := guid.New(couch.MavenDB, repo.ID, couch.KindRepository)
-	ps := []string{"read", "update", "write", "delete"}
-	for _, p := range ps {
-		_, err := s.Enforcer.AddPermissionForUser(id, cg.String(), p)
-		if err != nil {
-			return nil, twirp.InternalErrorWith(err)
+	if uid != "root" {
+		rg := guid.New(couch.MavenDB, repo.ID, couch.KindRepository)
+		ps := []string{"read", "update", "write", "delete"}
+		for _, p := range ps {
+			_, err := s.Enforcer.AddPermissionForUser(uid, rg.String(), p)
+			if err != nil {
+				return nil, twirp.InternalErrorWith(err)
+			}
 		}
 	}
 
@@ -176,9 +184,9 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 }
 
 func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
-	id, ok := ctxutils.CurrentUserID(ctx)
+	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
-		return nil, twirp.NewError(twirp.Unauthenticated, "")
+		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	}
 
 	scopes, _ := ctxutils.Scopes(ctx)
@@ -187,17 +195,17 @@ func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReq
 	}
 
 	if req.GetId() == "" {
-		return nil, twirp.RequiredArgumentError("id")
+		return nil, twirp.RequiredArgumentError("uid")
 	}
 
-	cg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
-	can, err := s.Enforcer.Enforce(id, cg.String(), "delete")
+	rg := guid.New(couch.MavenDB, req.GetId(), couch.KindRepository)
+	can, err := s.Enforcer.Enforce(uid, rg.String(), "delete")
 	if err != nil {
 		return nil, twirp.InternalErrorWith(err)
 	}
 
 	if !can {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
 	}
 
 	repo, err := s.Maven.DeleteRepo(ctx, req.GetId())
@@ -206,7 +214,23 @@ func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoReq
 	}
 
 	if repo == nil {
-		return nil, twirp.NotFoundError("")
+		return nil, twirp.NotFoundError("repository not found")
+	}
+
+	if uid != "root" {
+		if err := auth.CasbinTransact(s.Enforcer, func(e *casbin.Enforcer) error {
+			ps := []string{"read", "update", "write", "delete"}
+			for _, p := range ps {
+				_, err := s.Enforcer.DeletePermissionForUser(uid, rg.String(), p)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
+			return nil, err
+		}
+
 	}
 
 	return &mavenv1beta1.DeleteRepoResponse{

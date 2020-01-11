@@ -146,6 +146,9 @@ func authorizationPage() echo.HandlerFunc {
 			sc = http.StatusUnprocessableEntity
 		}
 
+		if err := s.Save(); err != nil {
+			return err
+		}
 		return c.Render(sc, "login", params)
 	}
 }
@@ -201,6 +204,9 @@ func consentPage() echo.HandlerFunc {
 			params["Errors"] = e
 			sc = http.StatusBadRequest
 		}
+		if err := s.Save(); err != nil {
+			return err
+		}
 		return c.Render(sc, "consent", params)
 	}
 }
@@ -217,6 +223,10 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 			rfce := fosite.ErrorToRFC6749Error(err)
 			rfce = rfce.WithDescription(rfce.Hint)
 			c.Logger().Error(rfce)
+			s.Clear()
+			if err := s.Save(); err != nil {
+				return err
+			}
 			oauth.WriteAuthorizeError(resw, ar, rfce)
 			return nil
 		}
@@ -246,6 +256,9 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 					}
 					return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
 				} else {
+					if err := s.Save(); err != nil {
+						return err
+					}
 					return echo.NewHTTPError(http.StatusBadRequest, formErrs["UsernameError"], formErrs["PasswordError"])
 				}
 			}
@@ -259,6 +272,9 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 						return err
 					}
 					return c.Redirect(http.StatusSeeOther, req.Header.Get("Referer"))
+				}
+				if err := s.Save(); err != nil {
+					return err
 				}
 				oauth.WriteAuthorizeError(resw, ar, fosite.ErrAccessDenied)
 				return nil
@@ -280,7 +296,7 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 		}
 
 		cons := u.Consent[ar.GetClient().GetID()]
-		if req.FormValue("consent") == "" && (cons.ConsentGivenAt.IsZero() || !fosite.Arguments(cons.Scopes).Has(ar.GetRequestedScopes()...)) {
+		if req.FormValue("consent") == "" && (c.QueryParam("prompt") == "consent" || cons.ConsentGivenAt.IsZero() || !fosite.Arguments(cons.Scopes).Has(ar.GetRequestedScopes()...)) {
 			p := new(LoginQueryParams)
 			if err := c.Bind(p); err != nil {
 				return err
@@ -289,6 +305,9 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 				ConsentGivenAt: time.Time{},
 			}
 			if err := store.SaveUser(ctx, u); err != nil {
+				return err
+			}
+			if err := s.Save(); err != nil {
 				return err
 			}
 			return c.Redirect(http.StatusSeeOther, "/oauth/consent?"+p.QueryString())
@@ -316,8 +335,17 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 			rfce := fosite.ErrorToRFC6749Error(err)
 			rfce = rfce.WithDescription(rfce.Hint)
 			c.Logger().Error(rfce)
+			s.Clear()
+			if err := s.Save(); err != nil {
+				return err
+			}
 			oauth.WriteAuthorizeError(resw, ar, rfce)
 			return nil
+		}
+
+		s.Clear()
+		if err := s.Save(); err != nil {
+			return err
 		}
 
 		oauth.WriteAuthorizeResponse(resw, ar, res)

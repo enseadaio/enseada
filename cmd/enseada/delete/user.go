@@ -11,7 +11,8 @@ import (
 	"fmt"
 	"time"
 
-	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
+	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
+
 	"github.com/twitchtv/twirp"
 
 	"github.com/enseadaio/enseada/cmd/enseada/config"
@@ -20,28 +21,29 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-var mvnRepo = &cobra.Command{
-	Use:     "mavenrepository [name]",
-	Short:   "Delete a Maven repository",
-	Aliases: []string{"mvnrepo", "mavenrepositories", "mvnrepos"},
+var user = &cobra.Command{
+	Use:     "user [username]",
+	Short:   "Delete a user",
+	Aliases: []string{"users"},
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		api := config.Client(ctx).MavenV1Beta1()
-		id := args[0]
+		api := config.Client(ctx).UsersV1Beta1()
 
-		res, err := api.DeleteRepo(ctx, &mavenv1beta1.DeleteRepoRequest{
-			Id: id,
+		uid := args[0]
+
+		res, err := api.DeleteUser(ctx, &authv1beta1.DeleteUserRequest{
+			Username: uid,
 		})
 		if err != nil {
 			err := err.(twirp.Error)
 			jww.ERROR.Fatal(err.Msg())
 		}
 
-		repo := res.GetRepo()
-		fmt.Printf("Deleted repository %s", color.Blue(repo.GetId()))
+		repo := res.GetUser()
+		fmt.Printf("Deleted user %s", color.Blue(repo.GetUsername()))
 		fmt.Println()
 	},
 }

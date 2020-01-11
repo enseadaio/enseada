@@ -76,13 +76,13 @@ func (w *CasbinWatcher) Start(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				w.logger.Info("shutting down ACL watcher")
-				w.logger.Error(ctx.Err())
+				w.logger.Info(ctx.Err())
 				return
 			default:
 				for ch.Next() {
-					if ch.ID() != "" {
-						w.logger.Debugf("received change from feed. id: %s", ch.ID())
-						w.callback(ch.ID())
+					if id := ch.ID(); id != "" {
+						w.logger.Debugf("received change from feed. id: %s", id)
+						w.callback(id)
 					}
 				}
 

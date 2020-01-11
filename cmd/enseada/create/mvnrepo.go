@@ -55,6 +55,7 @@ var mvnRepo = &cobra.Command{
 
 		repo := res.GetRepo()
 		fmt.Printf("Created repository %s", color.Blue(repo.GetId()))
+		fmt.Println()
 	},
 }
 

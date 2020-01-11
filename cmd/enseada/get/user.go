@@ -11,72 +11,74 @@ import (
 	"os"
 	"time"
 
+	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
+
 	"github.com/enseadaio/enseada/cmd/enseada/config"
 	"github.com/jedib0t/go-pretty/table"
 
-	mavenv1beta1 "github.com/enseadaio/enseada/rpc/maven/v1beta1"
 	"github.com/spf13/cobra"
 	jww "github.com/spf13/jwalterweatherman"
 	"github.com/twitchtv/twirp"
 )
 
-var mvnRepo = &cobra.Command{
-	Use:     "mavenrepository [name]",
-	Short:   "List Maven repositories, or get a specific repository",
-	Aliases: []string{"mvnrepo", "mavenrepositories", "mvnrepos"},
+var user = &cobra.Command{
+	Use:     "users [name]",
+	Short:   "List users, or get a specific user",
+	Aliases: []string{"user"},
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		api := config.Client(ctx).MavenV1Beta1()
+		api := config.Client(ctx).UsersV1Beta1()
 
 		if len(args) == 1 {
-			if err := getRepo(ctx, api, args[0]); err != nil {
+			if err := getUser(ctx, api, args[0]); err != nil {
 				jww.ERROR.Fatal(err.Msg())
 			}
 		} else {
-			if err := listRepos(ctx, api); err != nil {
+			if err := listUsers(ctx, api); err != nil {
 				jww.ERROR.Fatal(err.Msg())
 			}
 		}
 	},
 }
 
-func getRepo(ctx context.Context, api mavenv1beta1.MavenAPI, id string) twirp.Error {
-	res, err := api.GetRepo(ctx, &mavenv1beta1.GetRepoRequest{
-		Id: id,
+func getUser(ctx context.Context, api authv1beta1.UsersAPI, username string) twirp.Error {
+	res, err := api.GetUser(ctx, &authv1beta1.GetUserRequest{
+		Username: username,
 	})
+
 	if err != nil {
 		return err.(twirp.Error)
 	}
 
-	printRepos(res.Repo)
+	printUsers(res.User)
 	return nil
 }
 
-func listRepos(ctx context.Context, client mavenv1beta1.MavenAPI) twirp.Error {
-	res, err := client.ListRepos(ctx, &mavenv1beta1.ListReposRequest{})
+func listUsers(ctx context.Context, client authv1beta1.UsersAPI) twirp.Error {
+	res, err := client.ListUsers(ctx, &authv1beta1.ListUsersRequest{})
 	if err != nil {
 		err := err.(twirp.Error)
 		if err.Code() == twirp.NotFound {
-			printRepos()
+			printUsers()
 			return nil
 
 		}
 		return err
 	}
 
-	printRepos(res.Repos...)
+	printUsers(res.Users...)
 	return nil
 }
 
-func printRepos(repos ...*mavenv1beta1.Repo) {
+func printUsers(users ...*authv1beta1.User) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Name", "Group ID", "Artifact ID"})
-	for _, repo := range repos {
-		t.AppendRow(table.Row{repo.GetId(), repo.GetGroupId(), repo.GetArtifactId()})
+	t.AppendHeader(table.Row{"Username"})
+	for _, user := range users {
+		t.AppendRow(table.Row{user.GetUsername()})
 	}
 	t.SetStyle(config.TableColorStyle)
 	t.Render()

@@ -32,10 +32,10 @@ func NewUserStore(data *kivik.Client, logger log.Logger) *UserStore {
 func (s *UserStore) Authenticate(ctx context.Context, username string, password string) error {
 	u, err := s.GetUser(ctx, username)
 	if err != nil {
-		if kivik.StatusCode(err) == kivik.StatusNotFound {
-			return fosite.ErrNotFound
-		}
 		return err
+	}
+	if u == nil {
+		return fosite.ErrNotFound
 	}
 	return bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
 }

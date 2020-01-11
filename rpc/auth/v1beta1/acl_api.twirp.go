@@ -13,7 +13,7 @@ This code was generated with github.com/twitchtv/twirp/protoc-gen-twirp v5.10.0.
 
 It is generated from these files:
 	auth/v1beta1/acl_api.proto
-	auth/v1beta1/acl_rule.proto
+	auth/v1beta1/acl_permission.proto
 	auth/v1beta1/o_auth_client.proto
 	auth/v1beta1/o_auth_clients_api.proto
 	auth/v1beta1/user.proto
@@ -58,14 +58,14 @@ import (
 
 // RPC API to manage ACL and policies.
 type AclAPI interface {
-	// List all available ACL rules.
-	ListRules(context.Context, *ListRulesRequest) (*ListRulesResponse, error)
+	// List all available ACL permissions.
+	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 
-	// Add a new ACL rules.
-	AddRule(context.Context, *AddRuleRequest) (*AddRuleResponse, error)
+	// Add a new ACL permissions.
+	AddPermission(context.Context, *AddPermissionRequest) (*AddPermissionResponse, error)
 
-	// Delete an ACL rules.
-	DeleteRule(context.Context, *DeleteRuleRequest) (*DeleteRuleResponse, error)
+	// Delete an ACL permissions.
+	DeletePermission(context.Context, *DeletePermissionRequest) (*DeletePermissionResponse, error)
 }
 
 // ======================
@@ -92,9 +92,9 @@ func NewAclAPIProtobufClient(addr string, client HTTPClient, opts ...twirp.Clien
 
 	prefix := urlBase(addr) + AclAPIPathPrefix
 	urls := [3]string{
-		prefix + "ListRules",
-		prefix + "AddRule",
-		prefix + "DeleteRule",
+		prefix + "ListPermissions",
+		prefix + "AddPermission",
+		prefix + "DeletePermission",
 	}
 
 	return &aclAPIProtobufClient{
@@ -104,11 +104,11 @@ func NewAclAPIProtobufClient(addr string, client HTTPClient, opts ...twirp.Clien
 	}
 }
 
-func (c *aclAPIProtobufClient) ListRules(ctx context.Context, in *ListRulesRequest) (*ListRulesResponse, error) {
+func (c *aclAPIProtobufClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "auth.v1beta1")
 	ctx = ctxsetters.WithServiceName(ctx, "AclAPI")
-	ctx = ctxsetters.WithMethodName(ctx, "ListRules")
-	out := new(ListRulesResponse)
+	ctx = ctxsetters.WithMethodName(ctx, "ListPermissions")
+	out := new(ListPermissionsResponse)
 	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -124,11 +124,11 @@ func (c *aclAPIProtobufClient) ListRules(ctx context.Context, in *ListRulesReque
 	return out, nil
 }
 
-func (c *aclAPIProtobufClient) AddRule(ctx context.Context, in *AddRuleRequest) (*AddRuleResponse, error) {
+func (c *aclAPIProtobufClient) AddPermission(ctx context.Context, in *AddPermissionRequest) (*AddPermissionResponse, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "auth.v1beta1")
 	ctx = ctxsetters.WithServiceName(ctx, "AclAPI")
-	ctx = ctxsetters.WithMethodName(ctx, "AddRule")
-	out := new(AddRuleResponse)
+	ctx = ctxsetters.WithMethodName(ctx, "AddPermission")
+	out := new(AddPermissionResponse)
 	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -144,11 +144,11 @@ func (c *aclAPIProtobufClient) AddRule(ctx context.Context, in *AddRuleRequest) 
 	return out, nil
 }
 
-func (c *aclAPIProtobufClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest) (*DeleteRuleResponse, error) {
+func (c *aclAPIProtobufClient) DeletePermission(ctx context.Context, in *DeletePermissionRequest) (*DeletePermissionResponse, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "auth.v1beta1")
 	ctx = ctxsetters.WithServiceName(ctx, "AclAPI")
-	ctx = ctxsetters.WithMethodName(ctx, "DeleteRule")
-	out := new(DeleteRuleResponse)
+	ctx = ctxsetters.WithMethodName(ctx, "DeletePermission")
+	out := new(DeletePermissionResponse)
 	err := doProtobufRequest(ctx, c.client, c.opts.Hooks, c.urls[2], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -188,9 +188,9 @@ func NewAclAPIJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOpt
 
 	prefix := urlBase(addr) + AclAPIPathPrefix
 	urls := [3]string{
-		prefix + "ListRules",
-		prefix + "AddRule",
-		prefix + "DeleteRule",
+		prefix + "ListPermissions",
+		prefix + "AddPermission",
+		prefix + "DeletePermission",
 	}
 
 	return &aclAPIJSONClient{
@@ -200,11 +200,11 @@ func NewAclAPIJSONClient(addr string, client HTTPClient, opts ...twirp.ClientOpt
 	}
 }
 
-func (c *aclAPIJSONClient) ListRules(ctx context.Context, in *ListRulesRequest) (*ListRulesResponse, error) {
+func (c *aclAPIJSONClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest) (*ListPermissionsResponse, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "auth.v1beta1")
 	ctx = ctxsetters.WithServiceName(ctx, "AclAPI")
-	ctx = ctxsetters.WithMethodName(ctx, "ListRules")
-	out := new(ListRulesResponse)
+	ctx = ctxsetters.WithMethodName(ctx, "ListPermissions")
+	out := new(ListPermissionsResponse)
 	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[0], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -220,11 +220,11 @@ func (c *aclAPIJSONClient) ListRules(ctx context.Context, in *ListRulesRequest) 
 	return out, nil
 }
 
-func (c *aclAPIJSONClient) AddRule(ctx context.Context, in *AddRuleRequest) (*AddRuleResponse, error) {
+func (c *aclAPIJSONClient) AddPermission(ctx context.Context, in *AddPermissionRequest) (*AddPermissionResponse, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "auth.v1beta1")
 	ctx = ctxsetters.WithServiceName(ctx, "AclAPI")
-	ctx = ctxsetters.WithMethodName(ctx, "AddRule")
-	out := new(AddRuleResponse)
+	ctx = ctxsetters.WithMethodName(ctx, "AddPermission")
+	out := new(AddPermissionResponse)
 	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[1], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -240,11 +240,11 @@ func (c *aclAPIJSONClient) AddRule(ctx context.Context, in *AddRuleRequest) (*Ad
 	return out, nil
 }
 
-func (c *aclAPIJSONClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest) (*DeleteRuleResponse, error) {
+func (c *aclAPIJSONClient) DeletePermission(ctx context.Context, in *DeletePermissionRequest) (*DeletePermissionResponse, error) {
 	ctx = ctxsetters.WithPackageName(ctx, "auth.v1beta1")
 	ctx = ctxsetters.WithServiceName(ctx, "AclAPI")
-	ctx = ctxsetters.WithMethodName(ctx, "DeleteRule")
-	out := new(DeleteRuleResponse)
+	ctx = ctxsetters.WithMethodName(ctx, "DeletePermission")
+	out := new(DeletePermissionResponse)
 	err := doJSONRequest(ctx, c.client, c.opts.Hooks, c.urls[2], in, out)
 	if err != nil {
 		twerr, ok := err.(twirp.Error)
@@ -308,14 +308,14 @@ func (s *aclAPIServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	switch req.URL.Path {
-	case "/twirp/auth.v1beta1.AclAPI/ListRules":
-		s.serveListRules(ctx, resp, req)
+	case "/twirp/auth.v1beta1.AclAPI/ListPermissions":
+		s.serveListPermissions(ctx, resp, req)
 		return
-	case "/twirp/auth.v1beta1.AclAPI/AddRule":
-		s.serveAddRule(ctx, resp, req)
+	case "/twirp/auth.v1beta1.AclAPI/AddPermission":
+		s.serveAddPermission(ctx, resp, req)
 		return
-	case "/twirp/auth.v1beta1.AclAPI/DeleteRule":
-		s.serveDeleteRule(ctx, resp, req)
+	case "/twirp/auth.v1beta1.AclAPI/DeletePermission":
+		s.serveDeletePermission(ctx, resp, req)
 		return
 	default:
 		msg := fmt.Sprintf("no handler for path %q", req.URL.Path)
@@ -325,7 +325,7 @@ func (s *aclAPIServer) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *aclAPIServer) serveListRules(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveListPermissions(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -333,9 +333,9 @@ func (s *aclAPIServer) serveListRules(ctx context.Context, resp http.ResponseWri
 	}
 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
-		s.serveListRulesJSON(ctx, resp, req)
+		s.serveListPermissionsJSON(ctx, resp, req)
 	case "application/protobuf":
-		s.serveListRulesProtobuf(ctx, resp, req)
+		s.serveListPermissionsProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
 		twerr := badRouteError(msg, req.Method, req.URL.Path)
@@ -343,16 +343,16 @@ func (s *aclAPIServer) serveListRules(ctx context.Context, resp http.ResponseWri
 	}
 }
 
-func (s *aclAPIServer) serveListRulesJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveListPermissionsJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "ListRules")
+	ctx = ctxsetters.WithMethodName(ctx, "ListPermissions")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
 		s.writeError(ctx, resp, err)
 		return
 	}
 
-	reqContent := new(ListRulesRequest)
+	reqContent := new(ListPermissionsRequest)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
@@ -360,10 +360,10 @@ func (s *aclAPIServer) serveListRulesJSON(ctx context.Context, resp http.Respons
 	}
 
 	// Call service method
-	var respContent *ListRulesResponse
+	var respContent *ListPermissionsResponse
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.AclAPI.ListRules(ctx, reqContent)
+		respContent, err = s.AclAPI.ListPermissions(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -371,7 +371,7 @@ func (s *aclAPIServer) serveListRulesJSON(ctx context.Context, resp http.Respons
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *ListRulesResponse and nil error while calling ListRules. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *ListPermissionsResponse and nil error while calling ListPermissions. nil responses are not supported"))
 		return
 	}
 
@@ -398,9 +398,9 @@ func (s *aclAPIServer) serveListRulesJSON(ctx context.Context, resp http.Respons
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *aclAPIServer) serveListRulesProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveListPermissionsProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "ListRules")
+	ctx = ctxsetters.WithMethodName(ctx, "ListPermissions")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
 		s.writeError(ctx, resp, err)
@@ -412,17 +412,17 @@ func (s *aclAPIServer) serveListRulesProtobuf(ctx context.Context, resp http.Res
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
-	reqContent := new(ListRulesRequest)
+	reqContent := new(ListPermissionsRequest)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
 		return
 	}
 
 	// Call service method
-	var respContent *ListRulesResponse
+	var respContent *ListPermissionsResponse
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.AclAPI.ListRules(ctx, reqContent)
+		respContent, err = s.AclAPI.ListPermissions(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -430,7 +430,7 @@ func (s *aclAPIServer) serveListRulesProtobuf(ctx context.Context, resp http.Res
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *ListRulesResponse and nil error while calling ListRules. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *ListPermissionsResponse and nil error while calling ListPermissions. nil responses are not supported"))
 		return
 	}
 
@@ -454,7 +454,7 @@ func (s *aclAPIServer) serveListRulesProtobuf(ctx context.Context, resp http.Res
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *aclAPIServer) serveAddRule(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveAddPermission(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -462,9 +462,9 @@ func (s *aclAPIServer) serveAddRule(ctx context.Context, resp http.ResponseWrite
 	}
 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
-		s.serveAddRuleJSON(ctx, resp, req)
+		s.serveAddPermissionJSON(ctx, resp, req)
 	case "application/protobuf":
-		s.serveAddRuleProtobuf(ctx, resp, req)
+		s.serveAddPermissionProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
 		twerr := badRouteError(msg, req.Method, req.URL.Path)
@@ -472,16 +472,16 @@ func (s *aclAPIServer) serveAddRule(ctx context.Context, resp http.ResponseWrite
 	}
 }
 
-func (s *aclAPIServer) serveAddRuleJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveAddPermissionJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "AddRule")
+	ctx = ctxsetters.WithMethodName(ctx, "AddPermission")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
 		s.writeError(ctx, resp, err)
 		return
 	}
 
-	reqContent := new(AddRuleRequest)
+	reqContent := new(AddPermissionRequest)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
@@ -489,10 +489,10 @@ func (s *aclAPIServer) serveAddRuleJSON(ctx context.Context, resp http.ResponseW
 	}
 
 	// Call service method
-	var respContent *AddRuleResponse
+	var respContent *AddPermissionResponse
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.AclAPI.AddRule(ctx, reqContent)
+		respContent, err = s.AclAPI.AddPermission(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -500,7 +500,7 @@ func (s *aclAPIServer) serveAddRuleJSON(ctx context.Context, resp http.ResponseW
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *AddRuleResponse and nil error while calling AddRule. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *AddPermissionResponse and nil error while calling AddPermission. nil responses are not supported"))
 		return
 	}
 
@@ -527,9 +527,9 @@ func (s *aclAPIServer) serveAddRuleJSON(ctx context.Context, resp http.ResponseW
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *aclAPIServer) serveAddRuleProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveAddPermissionProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "AddRule")
+	ctx = ctxsetters.WithMethodName(ctx, "AddPermission")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
 		s.writeError(ctx, resp, err)
@@ -541,17 +541,17 @@ func (s *aclAPIServer) serveAddRuleProtobuf(ctx context.Context, resp http.Respo
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
-	reqContent := new(AddRuleRequest)
+	reqContent := new(AddPermissionRequest)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
 		return
 	}
 
 	// Call service method
-	var respContent *AddRuleResponse
+	var respContent *AddPermissionResponse
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.AclAPI.AddRule(ctx, reqContent)
+		respContent, err = s.AclAPI.AddPermission(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -559,7 +559,7 @@ func (s *aclAPIServer) serveAddRuleProtobuf(ctx context.Context, resp http.Respo
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *AddRuleResponse and nil error while calling AddRule. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *AddPermissionResponse and nil error while calling AddPermission. nil responses are not supported"))
 		return
 	}
 
@@ -583,7 +583,7 @@ func (s *aclAPIServer) serveAddRuleProtobuf(ctx context.Context, resp http.Respo
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *aclAPIServer) serveDeleteRule(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveDeletePermission(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	header := req.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -591,9 +591,9 @@ func (s *aclAPIServer) serveDeleteRule(ctx context.Context, resp http.ResponseWr
 	}
 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
-		s.serveDeleteRuleJSON(ctx, resp, req)
+		s.serveDeletePermissionJSON(ctx, resp, req)
 	case "application/protobuf":
-		s.serveDeleteRuleProtobuf(ctx, resp, req)
+		s.serveDeletePermissionProtobuf(ctx, resp, req)
 	default:
 		msg := fmt.Sprintf("unexpected Content-Type: %q", req.Header.Get("Content-Type"))
 		twerr := badRouteError(msg, req.Method, req.URL.Path)
@@ -601,16 +601,16 @@ func (s *aclAPIServer) serveDeleteRule(ctx context.Context, resp http.ResponseWr
 	}
 }
 
-func (s *aclAPIServer) serveDeleteRuleJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveDeletePermissionJSON(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "DeleteRule")
+	ctx = ctxsetters.WithMethodName(ctx, "DeletePermission")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
 		s.writeError(ctx, resp, err)
 		return
 	}
 
-	reqContent := new(DeleteRuleRequest)
+	reqContent := new(DeletePermissionRequest)
 	unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
 	if err = unmarshaler.Unmarshal(req.Body, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the json request could not be decoded"))
@@ -618,10 +618,10 @@ func (s *aclAPIServer) serveDeleteRuleJSON(ctx context.Context, resp http.Respon
 	}
 
 	// Call service method
-	var respContent *DeleteRuleResponse
+	var respContent *DeletePermissionResponse
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.AclAPI.DeleteRule(ctx, reqContent)
+		respContent, err = s.AclAPI.DeletePermission(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -629,7 +629,7 @@ func (s *aclAPIServer) serveDeleteRuleJSON(ctx context.Context, resp http.Respon
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *DeleteRuleResponse and nil error while calling DeleteRule. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *DeletePermissionResponse and nil error while calling DeletePermission. nil responses are not supported"))
 		return
 	}
 
@@ -656,9 +656,9 @@ func (s *aclAPIServer) serveDeleteRuleJSON(ctx context.Context, resp http.Respon
 	callResponseSent(ctx, s.hooks)
 }
 
-func (s *aclAPIServer) serveDeleteRuleProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
+func (s *aclAPIServer) serveDeletePermissionProtobuf(ctx context.Context, resp http.ResponseWriter, req *http.Request) {
 	var err error
-	ctx = ctxsetters.WithMethodName(ctx, "DeleteRule")
+	ctx = ctxsetters.WithMethodName(ctx, "DeletePermission")
 	ctx, err = callRequestRouted(ctx, s.hooks)
 	if err != nil {
 		s.writeError(ctx, resp, err)
@@ -670,17 +670,17 @@ func (s *aclAPIServer) serveDeleteRuleProtobuf(ctx context.Context, resp http.Re
 		s.writeError(ctx, resp, wrapInternal(err, "failed to read request body"))
 		return
 	}
-	reqContent := new(DeleteRuleRequest)
+	reqContent := new(DeletePermissionRequest)
 	if err = proto.Unmarshal(buf, reqContent); err != nil {
 		s.writeError(ctx, resp, malformedRequestError("the protobuf request could not be decoded"))
 		return
 	}
 
 	// Call service method
-	var respContent *DeleteRuleResponse
+	var respContent *DeletePermissionResponse
 	func() {
 		defer ensurePanicResponses(ctx, resp, s.hooks)
-		respContent, err = s.AclAPI.DeleteRule(ctx, reqContent)
+		respContent, err = s.AclAPI.DeletePermission(ctx, reqContent)
 	}()
 
 	if err != nil {
@@ -688,7 +688,7 @@ func (s *aclAPIServer) serveDeleteRuleProtobuf(ctx context.Context, resp http.Re
 		return
 	}
 	if respContent == nil {
-		s.writeError(ctx, resp, twirp.InternalError("received a nil *DeleteRuleResponse and nil error while calling DeleteRule. nil responses are not supported"))
+		s.writeError(ctx, resp, twirp.InternalError("received a nil *DeletePermissionResponse and nil error while calling DeletePermission. nil responses are not supported"))
 		return
 	}
 
@@ -1237,25 +1237,25 @@ func callClientError(ctx context.Context, h *twirp.ClientHooks, err twirp.Error)
 }
 
 var twirpFileDescriptor0 = []byte{
-	// 311 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4a, 0x2c, 0x2d, 0xc9,
-	0xd0, 0x2f, 0x33, 0x4c, 0x4a, 0x2d, 0x49, 0x34, 0xd4, 0x4f, 0x4c, 0xce, 0x89, 0x4f, 0x2c, 0xc8,
-	0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x01, 0xc9, 0xe9, 0x41, 0xe5, 0xa4, 0xa4, 0x31,
-	0x54, 0x16, 0x95, 0xe6, 0xa4, 0x42, 0x94, 0x2a, 0x09, 0x71, 0x09, 0xf8, 0x64, 0x16, 0x97, 0x04,
-	0x95, 0xe6, 0xa4, 0x16, 0x07, 0xa5, 0x16, 0x96, 0xa6, 0x16, 0x97, 0x28, 0x39, 0x70, 0x09, 0x22,
-	0x89, 0x15, 0x17, 0xe4, 0xe7, 0x15, 0xa7, 0x0a, 0x69, 0x73, 0xb1, 0x82, 0xb4, 0x15, 0x4b, 0x30,
-	0x2a, 0x30, 0x6b, 0x70, 0x1b, 0x89, 0xea, 0x21, 0xdb, 0xa1, 0xe7, 0x98, 0x9c, 0x03, 0x52, 0x1e,
-	0x04, 0x51, 0xa3, 0x64, 0xcd, 0xc5, 0xe7, 0x98, 0x92, 0x02, 0x16, 0x81, 0x98, 0x29, 0xa4, 0xc9,
-	0xc5, 0x02, 0x92, 0x92, 0x60, 0x54, 0x60, 0xc4, 0xad, 0x1b, 0xac, 0x44, 0xc9, 0x86, 0x8b, 0x1f,
-	0xae, 0x19, 0x6a, 0x39, 0x09, 0xba, 0xed, 0xb8, 0x04, 0x5d, 0x52, 0x73, 0x52, 0x4b, 0x52, 0xc9,
-	0xb4, 0xdd, 0x9e, 0x4b, 0x08, 0x59, 0x3f, 0xc9, 0x0e, 0x30, 0x7a, 0xcf, 0xc8, 0xc5, 0xe6, 0x98,
-	0x9c, 0xe3, 0x18, 0xe0, 0x29, 0xe4, 0xc3, 0xc5, 0x09, 0x0f, 0x48, 0x21, 0x39, 0x54, 0x4d, 0xe8,
-	0xa1, 0x2e, 0x25, 0x8f, 0x53, 0x1e, 0xea, 0x06, 0x37, 0x2e, 0x76, 0x68, 0xb8, 0x08, 0xc9, 0xa0,
-	0x39, 0x00, 0x25, 0xac, 0xa5, 0x64, 0x71, 0xc8, 0x42, 0xcd, 0xf1, 0xe7, 0xe2, 0x42, 0xf8, 0x50,
-	0x08, 0xcd, 0x5a, 0x8c, 0xb0, 0x93, 0x52, 0xc0, 0xad, 0x00, 0x62, 0xa0, 0x53, 0x24, 0x97, 0x78,
-	0x66, 0xbe, 0x5e, 0x6a, 0x5e, 0x71, 0x6a, 0x62, 0x4a, 0x22, 0x8a, 0x6a, 0x27, 0x6e, 0x50, 0x48,
-	0x14, 0x64, 0x06, 0x80, 0xd2, 0x5a, 0x00, 0x63, 0x14, 0x37, 0x48, 0x12, 0x2a, 0xb7, 0x88, 0x89,
-	0xd9, 0x31, 0x22, 0x62, 0x15, 0x13, 0x8f, 0x23, 0x48, 0x43, 0x98, 0xa1, 0x13, 0x48, 0xf0, 0x14,
-	0x84, 0x1b, 0x03, 0xe5, 0x26, 0xb1, 0x81, 0x53, 0xa9, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x18,
-	0x35, 0x54, 0xf4, 0xee, 0x02, 0x00, 0x00,
+	// 319 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0xcb, 0x4a, 0xc3, 0x40,
+	0x14, 0x25, 0x29, 0x74, 0x71, 0x53, 0x51, 0x06, 0x35, 0x21, 0x6e, 0x6a, 0x7c, 0xe0, 0x2a, 0x25,
+	0x75, 0x29, 0x2e, 0x26, 0xb8, 0x11, 0x5c, 0x84, 0x2a, 0x35, 0x8a, 0x28, 0xd3, 0x64, 0xc0, 0x81,
+	0x98, 0xc4, 0xce, 0xd4, 0x0f, 0x12, 0xdc, 0xf8, 0x29, 0x7e, 0x95, 0x8c, 0x19, 0xcc, 0xab, 0x9a,
+	0x45, 0xbb, 0x9c, 0x39, 0x8f, 0x7b, 0xb8, 0x87, 0x0b, 0x36, 0x59, 0x88, 0xe7, 0xd1, 0x9b, 0x37,
+	0xa3, 0x82, 0x78, 0x23, 0x12, 0x25, 0x4f, 0x24, 0x67, 0x6e, 0x3e, 0xcf, 0x44, 0x86, 0x06, 0x12,
+	0x73, 0x15, 0x66, 0xef, 0xb7, 0x98, 0x39, 0x9d, 0xbf, 0x30, 0xce, 0x59, 0x96, 0x16, 0x02, 0xc7,
+	0x82, 0xdd, 0x2b, 0xc6, 0x45, 0xf0, 0xfb, 0xcf, 0x27, 0xf4, 0x75, 0x41, 0xb9, 0x70, 0x42, 0x30,
+	0x5b, 0x08, 0xcf, 0xb3, 0x94, 0x53, 0x74, 0x0e, 0x46, 0x69, 0xc4, 0x2d, 0x6d, 0xd8, 0x3b, 0x31,
+	0xc6, 0x7b, 0x6e, 0x75, 0xb6, 0x8b, 0xa3, 0xa4, 0x94, 0x4e, 0xaa, 0x7c, 0xe7, 0x1a, 0xb6, 0x71,
+	0x1c, 0x57, 0xd0, 0x62, 0x22, 0x3a, 0x03, 0x28, 0x69, 0x96, 0x36, 0xd4, 0xba, 0x5c, 0x2b, 0x74,
+	0xe7, 0x06, 0x76, 0x1a, 0xa6, 0x2a, 0xec, 0x4a, 0xae, 0x53, 0x30, 0x2f, 0x68, 0x42, 0x05, 0x5d,
+	0x73, 0xda, 0x5b, 0xb0, 0xda, 0xbe, 0x6b, 0x08, 0x3c, 0xfe, 0xd0, 0xa1, 0x8f, 0xa3, 0x04, 0x07,
+	0x97, 0xe8, 0x11, 0x36, 0x1b, 0x05, 0xa2, 0xc3, 0xba, 0xcd, 0xf2, 0xe6, 0xed, 0xa3, 0x0e, 0x96,
+	0xca, 0x19, 0xc2, 0x46, 0x6d, 0xe3, 0xc8, 0x69, 0x84, 0x5c, 0xd2, 0xb1, 0x7d, 0xf0, 0x2f, 0x47,
+	0x39, 0x13, 0xd8, 0x6a, 0x6e, 0x07, 0x35, 0x42, 0xfd, 0xd1, 0x8a, 0x7d, 0xdc, 0x45, 0x2b, 0x46,
+	0xf8, 0x77, 0x60, 0xb2, 0xcc, 0xa5, 0x29, 0xa7, 0x24, 0x26, 0x35, 0x8d, 0x6f, 0xc8, 0xfd, 0xe5,
+	0x2c, 0x90, 0xf7, 0x11, 0x68, 0xf7, 0x86, 0x04, 0x15, 0xf6, 0xae, 0xf7, 0x70, 0x18, 0x7e, 0xea,
+	0x03, 0x2c, 0x05, 0x53, 0xcf, 0x97, 0x9f, 0x5f, 0xc5, 0xf3, 0x41, 0x3d, 0x67, 0xfd, 0x9f, 0xcb,
+	0x3a, 0xfd, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xd9, 0x7a, 0xaf, 0xb4, 0xa8, 0x03, 0x00, 0x00,
 }

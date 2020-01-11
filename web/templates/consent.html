@@ -13,11 +13,17 @@
 			<div class="mb-4">
 				<h1 class="text-2xl">Consent</h1>
 				<p>Client {{.ClientID}} is requesting access to the following scopes</p>
-				<ul class="list-disc list-inside pl-6 py-4">
-                    {{ range .Scopes}}
-						<li>{{.}}</li>
-                    {{end}}
-				</ul>
+                {{if eq (index .Scopes 0) "*"}}
+					<p class="pl-6 py-4">Full scope</p>
+                {{else}}
+					<ul class="list-disc list-inside pl-6 py-4">
+                        {{ range .Scopes}}
+							<li>{{.}}</li>
+                        {{else}}
+							<p>No scopes</p>
+                        {{end}}
+					</ul>
+                {{end}}
 				<input type="hidden" name="client_id" value="{{.ClientID}}">
 				<input type="hidden" name="redirect_uri" value="{{.RedirectURI}}">
 				<input type="hidden" name="state" value="{{.State}}">

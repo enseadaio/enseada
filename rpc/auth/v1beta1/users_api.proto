@@ -24,6 +24,8 @@ service UsersAPI {
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
   // Get a single OAuth user.
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Get the currently authenticated user.
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
   // Create a new OAuth user with a password.
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   // Change a user password. Only callable by the user itself.
@@ -48,6 +50,14 @@ message GetUserRequest {
 
 // Response body with a single OAuth user.
 message GetUserResponse {
+  auth.v1beta1.User user = 1;
+}
+
+// Request body to get the currently authenticated user.
+message GetCurrentUserRequest {}
+
+// Response body with the currently authenticated user.
+message GetCurrentUserResponse {
   auth.v1beta1.User user = 1;
 }
 

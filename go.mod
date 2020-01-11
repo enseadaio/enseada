@@ -43,7 +43,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.0.0
 	github.com/spf13/viper v1.6.1
-	github.com/stevenroose/gonfig v0.1.4
+	github.com/stevenroose/gonfig v0.1.4 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
 	github.com/twitchtv/twirp v5.10.0+incompatible
