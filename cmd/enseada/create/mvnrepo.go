@@ -4,13 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package get
+package create
 
 import (
 	"context"
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/labstack/gommon/color"
+	"github.com/spf13/viper"
 
 	"github.com/enseadaio/enseada/cmd/enseada/config"
 	"github.com/jedib0t/go-pretty/table"
@@ -22,27 +25,28 @@ import (
 
 var mvnRepo = &cobra.Command{
 	Use:     "mavenrepository [name]",
-	Short:   "Get a Maven repository",
+	Short:   "Create a new Maven repository",
 	Aliases: []string{"mvnrepo", "mavenrepositories", "mvnrepos"},
-	Args:    cobra.MaximumNArgs(1),
+	Args:    cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		api := config.Client(ctx).MavenV1Beta1()
+		_ = config.Client(ctx).MavenV1Beta1()
 
-		if len(args) == 1 {
-			if err := getRepo(ctx, api, args[0]); err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		} else {
-			if err := listRepos(ctx, api); err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		}
+		gid := viper.GetString("groupID")
+		aid := viper.GetString("artifactID")
+
+		fmt.Printf("Creating repository %s:%s", color.Blue(gid), color.Blue(aid))
 	},
+}
+
+func init() {
+	mvnRepo.Flags().StringP("group-id", "g", "", "the new repo GroupID")
+	mvnRepo.Flags().StringP("artifact-id", "a", "", "the new repo ArtifactID")
+
+	viper.BindPFlag("groupID", mvnRepo.Flags().Lookup("group-id"))
+	viper.BindPFlag("artifactID", mvnRepo.Flags().Lookup("artifact-id"))
 }
 
 func getRepo(ctx context.Context, api mavenv1beta1.MavenAPI, id string) twirp.Error {

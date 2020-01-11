@@ -118,8 +118,8 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 	client, err := NewOAuthClient("enseada", sec,
 		OAuthGrantTypes("authorization_code", "implicit", "refresh_token", "password", "client_credentials", "personal_access_token"),
 		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
-		OAuthScopes("*"),
 		OAuthRedirectURIs(ph+"/ui/callback"),
+		OAuthScopes("*"),
 		OAuthAudiences("enseada"),
 	)
 	if err != nil {
@@ -132,10 +132,11 @@ func (c *OAuthClientStore) InitDefaultClients(ctx context.Context, ph string, se
 	}
 
 	cli, err := NewOAuthClient("enseada-cli", "",
-		OAuthGrantTypes("refresh_token", "password", "client_credentials", "personal_access_token"),
-		OAuthResponseTypes("code", "id_token", "token id_token", "code id_token", "code token", "code token id_token"),
+		OAuthGrantTypes("authorization_code", "refresh_token", "personal_access_token"),
+		OAuthResponseTypes("code"),
 		OAuthScopes("*"),
 		OAuthAudiences("enseada"),
+		OAuthRedirectURIs("http://localhost:19999/"),
 		OAuthPublic(true),
 	)
 	if err != nil {

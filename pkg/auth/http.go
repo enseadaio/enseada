@@ -354,6 +354,9 @@ func token(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc {
 		for _, scope := range ar.GetRequestedScopes() {
 			if fosite.WildcardScopeStrategy(ar.GetClient().GetScopes(), scope) {
 				ar.GrantScope(scope)
+			} else {
+				oauth.WriteAccessError(resw, ar, fosite.ErrInvalidScope.WithHintf(`The OAuth 2.0 Client is not allowed to request scope "%s".`, scope))
+				return nil
 			}
 		}
 

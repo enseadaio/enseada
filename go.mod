@@ -25,6 +25,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/wire v0.4.0 // indirect
 	github.com/gorilla/sessions v1.2.0 // indirect
+	github.com/hashicorp/hcl v1.0.0
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/ipfans/echo-session v3.2.0+incompatible
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
@@ -34,11 +35,15 @@ require (
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/magefile/mage v1.9.0 // indirect
 	github.com/mattn/go-runewidth v0.0.7 // indirect
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/ory/fosite v0.30.2
 	github.com/otiai10/copy v1.0.2 // indirect
+	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/jwalterweatherman v1.0.0
 	github.com/spf13/viper v1.6.1
+	github.com/stevenroose/gonfig v0.1.4
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/echo-swagger v0.0.0-20191205130555-62f81ea88919 // indirect
 	github.com/twitchtv/twirp v5.10.0+incompatible

@@ -9,10 +9,12 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/enseadaio/enseada/cmd/enseada/root"
 )
 
 func main() {
-	err := rootCmd.Execute()
+	err := root.Execute()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
