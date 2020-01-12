@@ -8,15 +8,15 @@ package create
 
 import (
 	"github.com/spf13/cobra"
+	jww "github.com/spf13/jwalterweatherman"
 )
 
-var RootCmd = &cobra.Command{
-	Use:   "create [resource]",
-	Short: "Create a resource",
-}
-
-func init() {
-	RootCmd.AddCommand(mvnRepo)
-	RootCmd.AddCommand(user)
-	RootCmd.AddCommand(client)
+var client = &cobra.Command{
+	Use:     "client",
+	Short:   "Create a new OAuth client",
+	Aliases: []string{"clients"},
+	//Args:    cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		jww.WARN.Fatal("not yet implemented")
+	},
 }

@@ -18,4 +18,5 @@ var RootCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(mvnRepo)
 	RootCmd.AddCommand(user)
+	RootCmd.AddCommand(client)
 }

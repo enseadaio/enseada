@@ -22,9 +22,9 @@ import (
 )
 
 var user = &cobra.Command{
-	Use:     "users [name]",
+	Use:     "user [name]",
 	Short:   "List users, or get a specific user",
-	Aliases: []string{"user"},
+	Aliases: []string{"users"},
 	Args:    cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

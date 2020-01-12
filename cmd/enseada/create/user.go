@@ -85,8 +85,8 @@ var user = &cobra.Command{
 			jww.ERROR.Fatal(err.Msg())
 		}
 
-		repo := res.GetUser()
-		fmt.Printf("Created user %s", color.Blue(repo.GetUsername()))
+		user := res.GetUser()
+		fmt.Printf("Created user %s", color.Blue(user.GetUsername()))
 		fmt.Println()
 	},
 }

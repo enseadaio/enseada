@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/enseadaio/enseada/cmd/enseada/edit"
+
 	"github.com/enseadaio/enseada/cmd/enseada/create"
 
 	"github.com/enseadaio/enseada/cmd/enseada/config"
@@ -60,6 +62,7 @@ func init() {
 	rootCmd.AddCommand(loginCmd)
 	rootCmd.AddCommand(get.RootCmd)
 	rootCmd.AddCommand(create.RootCmd)
+	rootCmd.AddCommand(edit.RootCmd)
 	rootCmd.AddCommand(del.RootCmd)
 }
 

@@ -21,29 +21,29 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 )
 
-var user = &cobra.Command{
-	Use:     "user [username]",
-	Short:   "Delete a user",
-	Aliases: []string{"users"},
+var client = &cobra.Command{
+	Use:     "client [id]",
+	Short:   "Delete an OAuth client",
+	Aliases: []string{"clients"},
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		api := config.Client(ctx).UsersV1Beta1()
+		api := config.Client(ctx).OAuthClientsV1Beta1()
 
-		uid := args[0]
+		id := args[0]
 
-		res, err := api.DeleteUser(ctx, &authv1beta1.DeleteUserRequest{
-			Username: uid,
+		res, err := api.DeleteClient(ctx, &authv1beta1.DeleteClientRequest{
+			Id: id,
 		})
 		if err != nil {
 			err := err.(twirp.Error)
 			jww.ERROR.Fatal(err.Msg())
 		}
 
-		user := res.GetUser()
-		fmt.Printf("Deleted user %s", color.Blue(user.GetUsername()))
+		client := res.GetClient()
+		fmt.Printf("Deleted OAuth client %s", color.Blue(client.GetId()))
 		fmt.Println()
 	},
 }
