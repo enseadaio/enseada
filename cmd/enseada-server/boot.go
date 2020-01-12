@@ -84,7 +84,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 			CertFile: conf.GetString("ssl.cert.path"),
 		}
 	}
-	hm, err := http.NewModule(ctx, logger.Child("http"), errh, oc, skb, conf.GetInt("port"), tls)
+	hm, err := http.NewModule(ctx, logger.Child("http"), dm.Data, errh, oc, skb, conf.GetInt("port"), tls)
 	if err != nil {
 		return nil, err
 	}

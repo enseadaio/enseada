@@ -58,8 +58,9 @@ func init() {
 	viper.BindPFlag("profile", rootCmd.PersistentFlags().Lookup("profile"))
 
 	// Commands
-	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(pingCmd)
+	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(get.RootCmd)
 	rootCmd.AddCommand(create.RootCmd)
 	rootCmd.AddCommand(edit.RootCmd)

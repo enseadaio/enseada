@@ -9,6 +9,8 @@ package http
 import (
 	"net/http"
 
+	"github.com/go-kivik/kivik"
+
 	"github.com/enseadaio/enseada/internal/cachecontrol"
 
 	"github.com/labstack/echo"
@@ -18,24 +20,34 @@ type HealthCheckResponse struct {
 	Status   string `json:"status"`
 	Protocol string `json:"protocol"`
 	Host     string `json:"host"`
-	Remote   string `json:"remote"`
 	Method   string `json:"method"`
 	Path     string `json:"path"`
+	Msg      string `json:"message"`
 }
 
-func mountHealthCheck(e *echo.Echo) {
+func mountHealthCheck(e *echo.Echo, data *kivik.Client) {
 	e.GET("/health", func(c echo.Context) error {
 		req := c.Request()
 		res := HealthCheckResponse{
 			Status:   "UP",
 			Protocol: req.Proto,
 			Host:     req.Host,
-			Remote:   req.RemoteAddr,
 			Method:   req.Method,
 			Path:     req.URL.Path,
+			Msg:      "all systems operational",
 		}
+		sc := http.StatusOK
+
+		up, err := data.Ping(req.Context())
+		if err != nil || !up {
+			c.Logger().Error("database unavailable", err)
+			res.Status = "DOWN"
+			res.Msg = "database unavailable"
+			sc = http.StatusServiceUnavailable
+		}
+
 		cc := cachecontrol.NoStore(true)
 		cc.Write(c.Response().Writer)
-		return c.JSON(http.StatusOK, res)
+		return c.JSON(sc, res)
 	})
 }

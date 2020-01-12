@@ -10,6 +10,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-kivik/kivik"
+
 	"github.com/enseadaio/enseada/pkg/app"
 	"github.com/enseadaio/enseada/pkg/errare"
 
@@ -31,10 +33,10 @@ type Module struct {
 	port   int
 }
 
-func NewModule(_ context.Context, logger log.Logger, errh errare.Handler, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
+func NewModule(_ context.Context, logger log.Logger, data *kivik.Client, errh errare.Handler, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
 	e := createEchoServer(logger, errh)
 
-	mountHealthCheck(e)
+	mountHealthCheck(e, data)
 	mountUI(e, oc, middleware.Session(skb))
 	return &Module{
 		logger: logger,
