@@ -17,30 +17,34 @@ var testKind = couch.Kind("test")
 
 func TestNew(t *testing.T) {
 	guid := New("test", "test", testKind)
-	assert.Equal(t, "test", guid.db)
-	assert.Equal(t, "test", guid.id)
+	assert.Equal(t, "test", guid.DB())
+	assert.Equal(t, "test", guid.ID())
+	assert.Equal(t, testKind, guid.Kind())
 }
 
 func TestNewWithRev(t *testing.T) {
 	guid := NewWithRev("test", "test", testKind, "1")
-	assert.Equal(t, "test", guid.db)
-	assert.Equal(t, "test", guid.id)
-	assert.Equal(t, "1", guid.rev)
+	assert.Equal(t, "test", guid.DB())
+	assert.Equal(t, "test", guid.ID())
+	assert.Equal(t, testKind, guid.Kind())
+	assert.Equal(t, "1", guid.Rev())
 }
 
 func TestParseWithRev(t *testing.T) {
-	guid, err := Parse("test://test?rev=1&kind=test")
+	guid, err := Parse("test://test/test?rev=1")
 	assert.NoError(t, err)
-	assert.Equal(t, "test", guid.db)
-	assert.Equal(t, "test", guid.id)
-	assert.Equal(t, "1", guid.rev)
+	assert.Equal(t, "test", guid.DB())
+	assert.Equal(t, "test", guid.ID())
+	assert.Equal(t, testKind, guid.Kind())
+	assert.Equal(t, "1", guid.Rev())
 }
 
 func TestParse(t *testing.T) {
-	guid, err := Parse("test://test?kind=test")
+	guid, err := Parse("test://test/test")
 	assert.NoError(t, err)
-	assert.Equal(t, "test", guid.db)
-	assert.Equal(t, "test", guid.id)
+	assert.Equal(t, "test", guid.DB())
+	assert.Equal(t, "test", guid.ID())
+	assert.Equal(t, testKind, guid.Kind())
 }
 
 func TestParseInvalid(t *testing.T) {
@@ -50,7 +54,15 @@ func TestParseInvalid(t *testing.T) {
 
 	_, err = Parse("test://")
 	assert.Error(t, err)
-	assert.Equal(t, "is missing Username", err.Error())
+	assert.Equal(t, "is missing id", err.Error())
+
+	_, err = Parse("test://test")
+	assert.Error(t, err)
+	assert.Equal(t, "invalid id test", err.Error())
+
+	_, err = Parse("test://test/test/test")
+	assert.Error(t, err)
+	assert.Equal(t, "invalid id test/test/test", err.Error())
 }
 
 func TestParseEmpty(t *testing.T) {
@@ -61,10 +73,10 @@ func TestParseEmpty(t *testing.T) {
 
 func TestGUID_String(t *testing.T) {
 	guid := New("test", "test", testKind)
-	assert.Equal(t, "test://test?kind=test", guid.String())
+	assert.Equal(t, "test://test/test", guid.String())
 }
 
 func TestGUID_StringWithRev(t *testing.T) {
 	guid := NewWithRev("test", "test", testKind, "1")
-	assert.Equal(t, "test://test?kind=test&rev=1", guid.String())
+	assert.Equal(t, "test://test/test?rev=1", guid.String())
 }
