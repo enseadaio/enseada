@@ -43,7 +43,29 @@ type Module struct {
 	DefaultClientSecret string
 }
 
-func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *echo.Echo, errh errare.Handler, r *metric.Registry, skb []byte, ph string, rootpwd string, defaultClientSecret string) (*Module, error) {
+type Deps struct {
+	Logger              log.Logger
+	Data                *kivik.Client
+	Echo                *echo.Echo
+	ErrorHandler        errare.Handler
+	MetricRegistry      *metric.Registry
+	SecretKeyBase       []byte
+	PublicHost          string
+	RootUserPwd         string
+	DefaultClientSecret string
+}
+
+func NewModule(ctx context.Context, deps Deps) (*Module, error) {
+	logger := deps.Logger
+	data := deps.Data
+	e := deps.Echo
+	errh := deps.ErrorHandler
+	r := deps.MetricRegistry
+	skb := deps.SecretKeyBase
+	ph := deps.PublicHost
+	rootpwd := deps.RootUserPwd
+	dcs := deps.DefaultClientSecret
+
 	if err := couch.Transact(ctx, logger, data, migrateAclDb, couch.AclDB); err != nil {
 		return nil, err
 	}
@@ -122,7 +144,7 @@ func NewModule(ctx context.Context, logger log.Logger, data *kivik.Client, e *ec
 		Enforcer:            enf,
 		Watcher:             w,
 		Provider:            op,
-		DefaultClientSecret: defaultClientSecret,
+		DefaultClientSecret: dcs,
 	}, nil
 }
 

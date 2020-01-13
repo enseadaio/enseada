@@ -94,7 +94,17 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	am, err := auth.NewModule(ctx, logger.Child("auth"), dm.Data, hm.Echo, errh, om.Registry, skb, ph, conf.GetString("root.password"), sec)
+	am, err := auth.NewModule(ctx, auth.Deps{
+		Logger:              logger.Child("auth"),
+		Data:                dm.Data,
+		Echo:                hm.Echo,
+		ErrorHandler:        errh,
+		MetricRegistry:      om.Registry,
+		SecretKeyBase:       skb,
+		PublicHost:          ph,
+		RootUserPwd:         conf.GetString("root.password"),
+		DefaultClientSecret: sec,
+	})
 	if err != nil {
 		return nil, err
 	}
