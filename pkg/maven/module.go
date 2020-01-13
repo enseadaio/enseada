@@ -26,9 +26,27 @@ type Module struct {
 	data   *kivik.Client
 }
 
-func NewModule(ctx context.Context, logger log.Logger, e *echo.Echo, data *kivik.Client, storage storage.Backend, enf *casbin.Enforcer, s *auth.Store, op fosite.OAuth2Provider) (*Module, error) {
-	mvn := maven.New(logger, data, storage)
-	mountRoutes(e, mvn, s, op, enf)
+type Deps struct {
+	Logger        log.Logger
+	Data          *kivik.Client
+	Echo          *echo.Echo
+	Storage       storage.Backend
+	Enforcer      *casbin.Enforcer
+	AuthStore     *auth.Store
+	OAuthProvider fosite.OAuth2Provider
+}
+
+func NewModule(ctx context.Context, deps Deps) (*Module, error) {
+	logger := deps.Logger
+	e := deps.Echo
+	data := deps.Data
+	st := deps.Storage
+	enf := deps.Enforcer
+	as := deps.AuthStore
+	op := deps.OAuthProvider
+
+	mvn := maven.New(logger, data, st)
+	mountRoutes(e, mvn, as, op, enf)
 
 	if err := couch.Transact(ctx, logger, data, migrateDB, couch.MavenDB); err != nil {
 		return nil, err

@@ -33,7 +33,25 @@ type Module struct {
 	port   int
 }
 
-func NewModule(_ context.Context, logger log.Logger, data *kivik.Client, errh errare.Handler, oc *goauth.Config, skb []byte, port int, tls *TLSConfig) (*Module, error) {
+type Deps struct {
+	Logger        log.Logger
+	Data          *kivik.Client
+	ErrorHandler  errare.Handler
+	OAuthClient   *goauth.Config
+	SecretKeyBase []byte
+	Port          int
+	TLS           *TLSConfig
+}
+
+func NewModule(_ context.Context, deps Deps) (*Module, error) {
+	logger := deps.Logger
+	data := deps.Data
+	errh := deps.ErrorHandler
+	oc := deps.OAuthClient
+	skb := deps.SecretKeyBase
+	port := deps.Port
+	tls := deps.TLS
+
 	e := createEchoServer(logger, errh)
 
 	mountHealthCheck(e, data)

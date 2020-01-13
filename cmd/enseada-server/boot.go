@@ -84,7 +84,16 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 			CertFile: conf.GetString("ssl.cert.path"),
 		}
 	}
-	hm, err := http.NewModule(ctx, logger.Child("http"), dm.Data, errh, oc, skb, conf.GetInt("port"), tls)
+
+	hm, err := http.NewModule(ctx, http.Deps{
+		Logger:        logger.Child("http"),
+		Data:          dm.Data,
+		ErrorHandler:  errh,
+		OAuthClient:   oc,
+		SecretKeyBase: skb,
+		Port:          conf.GetInt("port"),
+		TLS:           tls,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +118,15 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		return nil, err
 	}
 
-	mm, err := maven.NewModule(ctx, logger.Child("maven"), hm.Echo, dm.Data, sm.Backend, am.Enforcer, am.Store, am.Provider)
+	mm, err := maven.NewModule(ctx, maven.Deps{
+		Logger:        logger.Child("maven"),
+		Data:          dm.Data,
+		Echo:          hm.Echo,
+		Storage:       sm.Backend,
+		Enforcer:      am.Enforcer,
+		AuthStore:     am.Store,
+		OAuthProvider: am.Provider,
+	})
 	if err != nil {
 		return nil, err
 	}
