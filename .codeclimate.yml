@@ -9,6 +9,9 @@ checks:
   return-statements:
     config:
       threshold: 10
+  argument-count:
+    config:
+      threshold: 6
 plugins:
   duplication:
     enabled: true
