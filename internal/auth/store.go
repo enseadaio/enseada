@@ -9,7 +9,18 @@ package auth
 import (
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
+	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/oauth2"
+	"github.com/ory/fosite/handler/pkce"
 )
+
+type Storage interface {
+	fosite.Storage
+	oauth2.AuthorizeCodeStorage
+	oauth2.TokenRevocationStorage
+	pkce.PKCERequestStorage
+	UserStorage
+}
 
 type Store struct {
 	data   *kivik.Client

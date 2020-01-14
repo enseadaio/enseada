@@ -9,6 +9,7 @@ require (
 	github.com/airbrake/gobrake/v4 v4.0.3
 	github.com/antonlindstrom/pgstore v0.0.0-20170604072116-a407030ba6d0 // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
+	github.com/casbin/casbin v1.9.1 // indirect
 	github.com/casbin/casbin/v2 v2.1.2
 	github.com/chartmuseum/storage v0.5.0
 	github.com/dvyukov/go-fuzz v0.0.0-20191206100749-a378175e205c // indirect
@@ -39,7 +40,9 @@ require (
 	github.com/ory/fosite v0.30.2
 	github.com/otiai10/copy v1.0.2 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.0
+	github.com/qiangmzsx/string-adapter v1.0.0 // indirect
+	github.com/qiangmzsx/string-adapter/v2 v2.0.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.0.0
 	github.com/spf13/viper v1.6.1

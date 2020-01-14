@@ -17,8 +17,13 @@ services:
       S3_ENDPOINT: http://minio:9000
       AWS_ACCESS_KEY_ID: enseada
       AWS_SECRET_ACCESS_KEY: enseadaminio
+      SSL: 'true'
+      SSL_CERT_PATH: /root/certs/localhost.pem
+      SSL_KEY_PATH: /root/certs/localhost-key.pem
     ports:
       - "9623:9623"
+    volumes:
+      - /home/matteo/.local/share/mkcert:/root/certs
     depends_on:
       - couchdb
       - minio

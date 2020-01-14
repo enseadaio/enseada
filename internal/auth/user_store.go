@@ -17,6 +17,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserStorage interface {
+	Authenticate(ctx context.Context, name string, secret string) error
+	ListUsers(ctx context.Context) ([]*User, error)
+	GetUser(ctx context.Context, username string) (*User, error)
+	CreateUser(ctx context.Context, u *User) error
+	UpdateUser(ctx context.Context, u *User) error
+	DeleteUser(ctx context.Context, u *User) error
+}
+
 type UserStore struct {
 	data   *kivik.Client
 	logger log.Logger
@@ -40,7 +49,7 @@ func (s *UserStore) Authenticate(ctx context.Context, username string, password 
 	return bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
 }
 
-func (s *UserStore) SaveUser(ctx context.Context, u *User) error {
+func (s *UserStore) CreateUser(ctx context.Context, u *User) error {
 	db := s.data.DB(ctx, couch.UsersDB)
 	if u.HashedPassword == nil {
 		err := hashPassword(u)

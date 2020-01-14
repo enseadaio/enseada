@@ -175,7 +175,7 @@ func (m *Module) beforeAppStart(ctx context.Context, event app.LifecycleEvent) {
 	m.logger.Debug("default OAuth clients initialized")
 
 	root := auth.RootUser(m.rootpwd)
-	if err := m.Store.SaveUser(ctx, root); err != nil && kivik.StatusCode(err) != kivik.StatusConflict {
+	if err := m.Store.CreateUser(ctx, root); err != nil && kivik.StatusCode(err) != kivik.StatusConflict {
 		panic(err)
 	}
 	m.logger.Debug("root user initialized")

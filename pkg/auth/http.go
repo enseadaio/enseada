@@ -304,7 +304,7 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 			u.Consent[ar.GetClient().GetID()] = auth.UserConsent{
 				ConsentGivenAt: time.Time{},
 			}
-			if err := store.SaveUser(ctx, u); err != nil {
+			if err := store.CreateUser(ctx, u); err != nil {
 				return err
 			}
 			if err := s.Save(); err != nil {
@@ -324,7 +324,7 @@ func authorize(oauth fosite.OAuth2Provider, store *auth.Store) echo.HandlerFunc 
 				Scopes:         ar.GetGrantedScopes(),
 				ConsentGivenAt: time.Now(),
 			}
-			if err := store.SaveUser(ctx, u); err != nil {
+			if err := store.CreateUser(ctx, u); err != nil {
 				return err
 			}
 		}

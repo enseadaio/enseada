@@ -13,8 +13,16 @@ import (
 	"go.opencensus.io/metric/metricdata"
 )
 
+type MetricsRegistry interface {
+	UsersCount() *metric.Int64GaugeEntry
+}
+
 type Metrics struct {
-	UsersCount *metric.Int64GaugeEntry
+	usersCount *metric.Int64GaugeEntry
+}
+
+func (m *Metrics) UsersCount() *metric.Int64GaugeEntry {
+	return m.usersCount
 }
 
 func InitMetrics(ctx context.Context, r *metric.Registry, s *Store) (*Metrics, error) {
@@ -39,6 +47,6 @@ func InitMetrics(ctx context.Context, r *metric.Registry, s *Store) (*Metrics, e
 	uc.Set(int64(len(us)))
 
 	return &Metrics{
-		UsersCount: uc,
+		usersCount: uc,
 	}, nil
 }
