@@ -30,12 +30,14 @@ jobs:
 #          make build-server
       - name: Run tests
         run: |
+          export GIT_BRANCH=$(echo $GITHUB_REF | sed -e 's,.*/\(.*\),\1,')
           ./cc-test-reporter before-build
           make test-coverage
           ./cc-test-reporter format-coverage --input-type gocov --prefix github.com/enseadaio/enseada ./coverage/profile.out
           ./cc-test-reporter upload-coverage
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+          GIT_COMMIT_SHA: ${{ github.sha }}
   protocols-check:
     runs-on: ubuntu-latest
     container:

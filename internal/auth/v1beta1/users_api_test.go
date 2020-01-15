@@ -93,6 +93,26 @@ func (s *UsersAPISuite) TestListUsersInsufficientPermissions() {
 	s.us.AssertExpectations(s.T())
 }
 
+func (s *UsersAPISuite) TestGetUser() {
+	ctx := ctxutils.WithCurrentUserID(context.TODO(), "test")
+
+	s.us.On("GetUser", ctx, "test").Return(&auth.User{
+		Username: "test",
+	}, nil).Once()
+	res, err := s.api.GetUser(ctx, &authv1beta1.GetUserRequest{
+		Username: "test",
+	})
+	s.Require().NoError(err)
+
+	s.us.AssertExpectations(s.T())
+
+	user := res.GetUser()
+	s.Require().NotNil(user)
+
+	s.Require().Equal(user.Username, "test")
+	s.us.AssertExpectations(s.T())
+}
+
 func TestUsersAPI(t *testing.T) {
 	suite.Run(t, new(UsersAPISuite))
 }
