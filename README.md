@@ -8,7 +8,7 @@
 [![maintainability](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/maintainability)](https://codeclimate.com/github/enseadaio/enseada/maintainability)
 [![test coverage](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/test_coverage)](https://codeclimate.com/github/enseadaio/enseada/test_coverage)
 [![Go Report Card](https://goreportcard.com/badge/github.com/enseadaio/enseada)](https://goreportcard.com/report/github.com/enseadaio/enseada)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada?ref=badge_shield)
+[![Discord Badge](https://discordapp.com/api/guilds/667303788532465665/widget.png?style=shield)](https://discord.gg/A34Qt8A)
 
 ![logo](./.github/logo-white.png)
 
@@ -175,9 +175,12 @@ in the Enseada configuration.
 
 If you want to report a security vulnerability, please follow the steps which we have defined for you in our [security policy](https://github.com/enseadaio/enseada/security/policy).
 
+## Chat
+
+Need some help or want to have a chat? Join our [Discord server](https://discord.gg/A34Qt8A)!  
+![Discord Banner](https://discordapp.com/api/guilds/667303788532465665/widget.png?style=banner2)
+
 ## License
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fenseadaio%2Fenseada?ref=badge_large)
