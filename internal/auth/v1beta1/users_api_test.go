@@ -14,9 +14,11 @@ import (
 	camodel "github.com/casbin/casbin/v2/model"
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/ctxutils"
+	"github.com/enseadaio/enseada/internal/scope"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/enseadaio/enseada/pkg/log/adapters"
 	authv1beta1 "github.com/enseadaio/enseada/rpc/auth/v1beta1"
+	"github.com/ory/fosite"
 	scas "github.com/qiangmzsx/string-adapter/v2"
 	"github.com/stretchr/testify/suite"
 )
@@ -26,6 +28,10 @@ type UsersAPISuite struct {
 	api authv1beta1.UsersAPI
 	us  *MockUserStorage
 	mr  *MockMetricsRegistry
+}
+
+func TestUsersAPI(t *testing.T) {
+	suite.Run(t, new(UsersAPISuite))
 }
 
 func (s *UsersAPISuite) SetupSuite() {
@@ -113,6 +119,93 @@ func (s *UsersAPISuite) TestGetUser() {
 	s.us.AssertExpectations(s.T())
 }
 
-func TestUsersAPI(t *testing.T) {
-	suite.Run(t, new(UsersAPISuite))
+func (s *UsersAPISuite) TestGetUserNotFound() {
+	ctx := ctxutils.WithCurrentUserID(context.TODO(), "test")
+
+	s.us.On("GetUser", ctx, "no").Return(nil, nil).Once()
+	res, err := s.api.GetUser(ctx, &authv1beta1.GetUserRequest{
+		Username: "no",
+	})
+	s.Require().Nil(res)
+	s.Require().Error(err)
+	s.Require().Equal(ErrUserNotFound, err)
+	s.us.AssertExpectations(s.T())
+}
+
+func (s *UsersAPISuite) TestGetUserUnauthenticated() {
+	ctx := context.TODO()
+
+	res, err := s.api.GetUser(ctx, &authv1beta1.GetUserRequest{
+		Username: "test",
+	})
+	s.Require().Nil(res)
+	s.Require().Error(err)
+	s.Require().Equal(ErrUnauthenticated, err)
+	s.us.AssertExpectations(s.T())
+}
+
+func (s *UsersAPISuite) TestGetUserInsufficientPermissions() {
+	ctx := ctxutils.WithCurrentUserID(context.TODO(), "another")
+
+	res, err := s.api.GetUser(ctx, &authv1beta1.GetUserRequest{
+		Username: "test",
+	})
+	s.Require().Nil(res)
+	s.Require().Error(err)
+	s.Require().Equal(ErrInsufficientPermissions, err)
+	s.us.AssertExpectations(s.T())
+}
+
+func (s *UsersAPISuite) TestGetCurrentUser() {
+	ctx := context.TODO()
+	ctx = ctxutils.WithCurrentUserID(ctx, "test")
+	ctx = ctxutils.WithScopes(ctx, fosite.Arguments{scope.Profile})
+
+	s.us.On("GetUser", ctx, "test").Return(&auth.User{
+		Username: "test",
+	}, nil).Once()
+	res, err := s.api.GetCurrentUser(ctx, &authv1beta1.GetCurrentUserRequest{})
+	s.Require().NoError(err)
+
+	s.us.AssertExpectations(s.T())
+
+	user := res.GetUser()
+	s.Require().NotNil(user)
+
+	s.Require().Equal(user.Username, "test")
+	s.us.AssertExpectations(s.T())
+}
+
+func (s *UsersAPISuite) TestGetCurrentUserNotFound() {
+	ctx := context.TODO()
+	ctx = ctxutils.WithCurrentUserID(ctx, "test")
+	ctx = ctxutils.WithScopes(ctx, fosite.Arguments{scope.Profile})
+
+	s.us.On("GetUser", ctx, "test").Return(nil, nil).Once()
+	res, err := s.api.GetCurrentUser(ctx, &authv1beta1.GetCurrentUserRequest{})
+	s.Require().Nil(res)
+	s.Require().Error(err)
+	s.Require().Equal(ErrUserNotFound, err)
+	s.us.AssertExpectations(s.T())
+}
+
+func (s *UsersAPISuite) TestGetCurrentUserUnauthenticated() {
+	ctx := context.TODO()
+
+	res, err := s.api.GetCurrentUser(ctx, &authv1beta1.GetCurrentUserRequest{})
+	s.Require().Nil(res)
+	s.Require().Error(err)
+	s.Require().Equal(ErrUnauthenticated, err)
+	s.us.AssertExpectations(s.T())
+}
+
+func (s *UsersAPISuite) TestGetCurrentUserInsufficientPermissions() {
+	ctx := context.TODO()
+	ctx = ctxutils.WithCurrentUserID(ctx, "test")
+
+	res, err := s.api.GetCurrentUser(ctx, &authv1beta1.GetCurrentUserRequest{})
+	s.Require().Nil(res)
+	s.Require().Error(err)
+	s.Require().Equal(ErrInsufficientScopes, err)
+	s.us.AssertExpectations(s.T())
 }

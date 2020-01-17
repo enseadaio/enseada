@@ -45,7 +45,12 @@ func (m *MockUserStorage) ListUsers(ctx context.Context) ([]*auth.User, error) {
 
 func (m *MockUserStorage) GetUser(ctx context.Context, username string) (*auth.User, error) {
 	args := m.MethodCalled("GetUser", ctx, username)
-	return args.Get(0).(*auth.User), args.Error(1)
+	user := args.Get(0)
+	err := args.Error(1)
+	if user == nil {
+		return nil, err
+	}
+	return user.(*auth.User), err
 }
 
 func (m *MockUserStorage) CreateUser(ctx context.Context, u *auth.User) error {

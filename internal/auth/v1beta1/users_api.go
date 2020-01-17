@@ -26,7 +26,9 @@ import (
 var (
 	ErrUnauthenticated         = twirp.NewError(twirp.Unauthenticated, "unauthenticated")
 	ErrInsufficientPermissions = twirp.NewError(twirp.PermissionDenied, "insufficient permissions")
+	ErrInsufficientScopes      = twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
 	ErrNoUsersFound            = twirp.NotFoundError("no users found")
+	ErrUserNotFound            = twirp.NotFoundError("user not found")
 )
 
 type UsersAPI struct {
@@ -87,7 +89,7 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 
 	can, err := u.Enforcer.Enforce(uid, guid.New(couch.UsersDB, "*", couch.KindUser).String(), "read")
 	if err != nil {
-		return nil, twirp.InternalErrorWith(err)
+		return nil, err
 	}
 
 	if !can {
@@ -104,7 +106,7 @@ func (u *UsersAPI) GetUser(ctx context.Context, req *authv1beta1.GetUserRequest)
 	}
 
 	if user == nil {
-		return nil, twirp.NotFoundError("user not found")
+		return nil, ErrUserNotFound
 	}
 
 	up := &authv1beta1.User{
@@ -123,7 +125,7 @@ func (u *UsersAPI) GetCurrentUser(ctx context.Context, req *authv1beta1.GetCurre
 
 	scopes, _ := ctxutils.Scopes(ctx)
 	if !fosite.WildcardScopeStrategy(scopes, scope.Profile) {
-		return nil, twirp.NewError(twirp.PermissionDenied, "insufficient scopes")
+		return nil, ErrInsufficientScopes
 	}
 
 	uu, err := u.Store.GetUser(ctx, uid)
@@ -132,7 +134,7 @@ func (u *UsersAPI) GetCurrentUser(ctx context.Context, req *authv1beta1.GetCurre
 	}
 
 	if uu == nil {
-		return nil, twirp.NotFoundError("no user found with id " + uid)
+		return nil, ErrUserNotFound
 	}
 
 	return &authv1beta1.GetCurrentUserResponse{
