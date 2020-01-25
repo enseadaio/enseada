@@ -8,11 +8,7 @@ package observability
 
 import (
 	"context"
-	"net/http"
 
-	"github.com/enseadaio/enseada/internal/cachecontrol"
-
-	"github.com/ory/fosite"
 	"go.opencensus.io/metric"
 	"go.opencensus.io/metric/metricproducer"
 
@@ -21,7 +17,6 @@ import (
 	"go.opencensus.io/stats/view"
 
 	"contrib.go.opencensus.io/exporter/prometheus"
-	"github.com/labstack/echo"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/plugin/runmetrics"
 )
@@ -29,37 +24,15 @@ import (
 type Module struct {
 	logger   log.Logger
 	Registry *metric.Registry
+	Exporter *prometheus.Exporter
 }
 
-func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, error) {
-	rep, err := prometheus.NewExporter(prometheus.Options{
+func NewModule(logger log.Logger, errh errare.Handler) (*Module, error) {
+	exp, err := prometheus.NewExporter(prometheus.Options{
 		Namespace: "enseada",
 		OnError:   errh.HandleError,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	paths := fosite.Arguments{"/health", "/metrics"}
-	e.Pre(echo.WrapMiddleware(func(base http.Handler) http.Handler {
-		return &ochttp.Handler{
-			Handler: base,
-			IsHealthEndpoint: func(r *http.Request) bool {
-				return paths.Has(r.URL.Path)
-			},
-		}
-	}))
-	e.GET("/metrics", echo.WrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cc := cachecontrol.NoStore(true)
-		cc.Write(w)
-		rep.ServeHTTP(w, r)
-	})))
-
-	if err := runmetrics.Enable(runmetrics.RunMetricOptions{
-		EnableCPU:    true,
-		EnableMemory: true,
-		Prefix:       "runtime_",
-	}); err != nil {
 		return nil, err
 	}
 
@@ -74,7 +47,7 @@ func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, e
 		return nil, err
 	}
 
-	view.RegisterExporter(rep)
+	view.RegisterExporter(exp)
 
 	r := metric.NewRegistry()
 	metricproducer.GlobalManager().AddProducer(r)
@@ -86,6 +59,14 @@ func NewModule(logger log.Logger, e *echo.Echo, errh errare.Handler) (*Module, e
 }
 
 func (m *Module) Start(ctx context.Context) error {
+	if err := runmetrics.Enable(runmetrics.RunMetricOptions{
+		EnableCPU:    true,
+		EnableMemory: true,
+		Prefix:       "runtime_",
+	}); err != nil {
+		return err
+	}
+
 	m.logger.Info("started observability module")
 	return nil
 }

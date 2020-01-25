@@ -24,12 +24,19 @@ import (
 	"github.com/twitchtv/twirp"
 )
 
-type Service struct {
+type MavenAPI struct {
 	Maven    *maven.Maven
 	Enforcer *casbin.Enforcer
 }
 
-func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
+func NewMavenAPI(mvn *maven.Maven, enf *casbin.Enforcer) *MavenAPI {
+	return &MavenAPI{
+		Maven:    mvn,
+		Enforcer: enf,
+	}
+}
+
+func (s MavenAPI) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposRequest) (*mavenv1beta1.ListReposResponse, error) {
 	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
@@ -92,7 +99,7 @@ func (s Service) ListRepos(ctx context.Context, req *mavenv1beta1.ListReposReque
 	}, nil
 }
 
-func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
+func (s MavenAPI) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) (*mavenv1beta1.GetRepoResponse, error) {
 	id, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
@@ -135,7 +142,7 @@ func (s Service) GetRepo(ctx context.Context, req *mavenv1beta1.GetRepoRequest) 
 	}, nil
 }
 
-func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
+func (s MavenAPI) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoRequest) (*mavenv1beta1.CreateRepoResponse, error) {
 	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")
@@ -183,7 +190,7 @@ func (s Service) CreateRepo(ctx context.Context, req *mavenv1beta1.CreateRepoReq
 	}, nil
 }
 
-func (s Service) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
+func (s MavenAPI) DeleteRepo(ctx context.Context, req *mavenv1beta1.DeleteRepoRequest) (*mavenv1beta1.DeleteRepoResponse, error) {
 	uid, ok := ctxutils.CurrentUserID(ctx)
 	if !ok {
 		return nil, twirp.NewError(twirp.Unauthenticated, "unauthenticated")

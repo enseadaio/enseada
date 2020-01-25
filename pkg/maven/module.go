@@ -9,15 +9,11 @@ package maven
 import (
 	"context"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/chartmuseum/storage"
-	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
 	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
-	"github.com/labstack/echo"
-	"github.com/ory/fosite"
 )
 
 type Module struct {
@@ -27,26 +23,17 @@ type Module struct {
 }
 
 type Deps struct {
-	Logger        log.Logger
-	Data          *kivik.Client
-	Echo          *echo.Echo
-	Storage       storage.Backend
-	Enforcer      *casbin.Enforcer
-	AuthStore     *auth.Store
-	OAuthProvider fosite.OAuth2Provider
+	Logger  log.Logger
+	Data    *kivik.Client
+	Storage storage.Backend
 }
 
 func NewModule(ctx context.Context, deps Deps) (*Module, error) {
 	logger := deps.Logger
-	e := deps.Echo
 	data := deps.Data
 	st := deps.Storage
-	enf := deps.Enforcer
-	as := deps.AuthStore
-	op := deps.OAuthProvider
 
 	mvn := maven.New(logger, data, st)
-	mountRoutes(e, mvn, as, op, enf)
 
 	if err := couch.Transact(ctx, logger, data, migrateDB, couch.MavenDB); err != nil {
 		return nil, err
@@ -66,5 +53,25 @@ func (m *Module) Start(ctx context.Context) error {
 
 func (m *Module) Stop(ctx context.Context) error {
 	m.logger.Info("stopped maven module")
+	return nil
+}
+
+func migrateDB(ctx context.Context, logger log.Logger, data *kivik.Client) error {
+	if err := couch.InitDb(ctx, logger, data, couch.MavenDB); err != nil {
+		return err
+	}
+
+	if err := couch.InitIndex(ctx, logger, data, couch.MavenDB, "kind_index", map[string]interface{}{
+		"fields": []string{"kind"},
+	}); err != nil {
+		return err
+	}
+
+	if err := couch.InitIndex(ctx, logger, data, couch.MavenDB, "file_index", map[string]interface{}{
+		"fields": []string{"files"},
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }

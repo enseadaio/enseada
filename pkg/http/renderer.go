@@ -16,11 +16,11 @@ import (
 	"github.com/labstack/echo"
 )
 
-type TemplateRenderer struct {
+type templateRenderer struct {
 	*goview.ViewEngine
 }
 
-func NewGoViewRenderer() *TemplateRenderer {
+func newGoViewRenderer() *templateRenderer {
 	box := rice.MustFindBox("../../web/templates")
 	gv := gorice.NewWithConfig(box, goview.Config{
 		Root:         "views",
@@ -31,10 +31,10 @@ func NewGoViewRenderer() *TemplateRenderer {
 		DisableCache: false,
 		Delims:       goview.Delims{Left: "{{", Right: "}}"},
 	})
-	return &TemplateRenderer{ViewEngine: gv}
+	return &templateRenderer{ViewEngine: gv}
 
 }
 
-func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+func (t *templateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.ViewEngine.RenderWriter(w, name, data)
 }

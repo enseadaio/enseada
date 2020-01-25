@@ -85,20 +85,7 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 		}
 	}
 
-	hm, err := http.NewModule(ctx, http.Deps{
-		Logger:        logger.Child("http"),
-		Data:          dm.Data,
-		ErrorHandler:  errh,
-		OAuthClient:   oc,
-		SecretKeyBase: skb,
-		Port:          conf.GetInt("port"),
-		TLS:           tls,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	om, err := observability.NewModule(logger.Child("observability"), hm.Echo, errh)
+	om, err := observability.NewModule(logger.Child("observability"), errh)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +93,6 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 	am, err := auth.NewModule(ctx, auth.Deps{
 		Logger:              logger.Child("auth"),
 		Data:                dm.Data,
-		Echo:                hm.Echo,
-		ErrorHandler:        errh,
 		MetricRegistry:      om.Registry,
 		SecretKeyBase:       skb,
 		PublicHost:          ph,
@@ -119,13 +104,27 @@ func modules(ctx context.Context, logger log.Logger, conf *viper.Viper, errh err
 	}
 
 	mm, err := maven.NewModule(ctx, maven.Deps{
-		Logger:        logger.Child("maven"),
-		Data:          dm.Data,
-		Echo:          hm.Echo,
-		Storage:       sm.Backend,
-		Enforcer:      am.Enforcer,
-		AuthStore:     am.Store,
-		OAuthProvider: am.Provider,
+		Logger:  logger.Child("maven"),
+		Data:    dm.Data,
+		Storage: sm.Backend,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	hm, err := http.NewModule(ctx, http.Deps{
+		Logger:          logger.Child("http"),
+		Data:            dm.Data,
+		ErrorHandler:    errh,
+		OAuthClient:     oc,
+		SecretKeyBase:   skb,
+		Port:            conf.GetInt("port"),
+		TLS:             tls,
+		Store:           am.Store,
+		OAuthProvider:   am.Provider,
+		Enforcer:        am.Enforcer,
+		MetricsRegistry: am.Metrics,
+		Maven:           mm.Maven,
 	})
 	if err != nil {
 		return nil, err

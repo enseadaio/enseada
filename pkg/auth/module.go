@@ -19,9 +19,7 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	"github.com/enseadaio/enseada/internal/auth"
 	"github.com/enseadaio/enseada/internal/couch"
-	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/pkg/app"
-	"github.com/enseadaio/enseada/pkg/errare"
 	"github.com/enseadaio/enseada/pkg/log"
 	"github.com/go-kivik/kivik"
 	"github.com/labstack/echo"
@@ -40,14 +38,13 @@ type Module struct {
 	Enforcer            *casbin.Enforcer
 	Watcher             *CasbinWatcher
 	Provider            fosite.OAuth2Provider
+	Metrics             auth.MetricsRegistry
 	DefaultClientSecret string
 }
 
 type Deps struct {
 	Logger              log.Logger
 	Data                *kivik.Client
-	Echo                *echo.Echo
-	ErrorHandler        errare.Handler
 	MetricRegistry      *metric.Registry
 	SecretKeyBase       []byte
 	PublicHost          string
@@ -58,8 +55,6 @@ type Deps struct {
 func NewModule(ctx context.Context, deps Deps) (*Module, error) {
 	logger := deps.Logger
 	data := deps.Data
-	e := deps.Echo
-	errh := deps.ErrorHandler
 	r := deps.MetricRegistry
 	skb := deps.SecretKeyBase
 	ph := deps.PublicHost
@@ -130,13 +125,8 @@ func NewModule(ctx context.Context, deps Deps) (*Module, error) {
 		return nil, err
 	}
 
-	if err := mountRoutes(e, s, op, enf, middleware.Session(skb), errh, m); err != nil {
-		return nil, err
-	}
-
 	return &Module{
 		logger:              logger,
-		e:                   e,
 		data:                data,
 		ph:                  ph,
 		rootpwd:             rootpwd,
@@ -144,6 +134,7 @@ func NewModule(ctx context.Context, deps Deps) (*Module, error) {
 		Enforcer:            enf,
 		Watcher:             w,
 		Provider:            op,
+		Metrics:             m,
 		DefaultClientSecret: dcs,
 	}, nil
 }

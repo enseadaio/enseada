@@ -10,14 +10,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/casbin/casbin/v2"
+	"github.com/enseadaio/enseada/internal/auth"
+	"github.com/enseadaio/enseada/internal/maven"
 	"github.com/go-kivik/kivik"
+	"github.com/ory/fosite"
 
 	"github.com/enseadaio/enseada/pkg/app"
 	"github.com/enseadaio/enseada/pkg/errare"
 
-	"github.com/enseadaio/enseada/internal/middleware"
 	"github.com/enseadaio/enseada/pkg/log"
-	"github.com/labstack/echo"
 	goauth "golang.org/x/oauth2"
 )
 
@@ -28,37 +30,38 @@ type TLSConfig struct {
 
 type Module struct {
 	logger log.Logger
-	Echo   *echo.Echo
+	Server *Server
 	tls    *TLSConfig
 	port   int
 }
 
 type Deps struct {
-	Logger        log.Logger
-	Data          *kivik.Client
-	ErrorHandler  errare.Handler
-	OAuthClient   *goauth.Config
-	SecretKeyBase []byte
-	Port          int
-	TLS           *TLSConfig
+	Logger          log.Logger
+	Data            *kivik.Client
+	ErrorHandler    errare.Handler
+	OAuthClient     *goauth.Config
+	SecretKeyBase   []byte
+	Port            int
+	TLS             *TLSConfig
+	Store           *auth.Store
+	OAuthProvider   fosite.OAuth2Provider
+	Enforcer        *casbin.Enforcer
+	MetricsRegistry auth.MetricsRegistry
+	Maven           *maven.Maven
 }
 
 func NewModule(_ context.Context, deps Deps) (*Module, error) {
 	logger := deps.Logger
-	data := deps.Data
-	errh := deps.ErrorHandler
-	oc := deps.OAuthClient
-	skb := deps.SecretKeyBase
 	port := deps.Port
 	tls := deps.TLS
 
-	e := createEchoServer(logger, errh)
+	s := createServer(deps)
+	middlewares(s)
+	routes(s)
 
-	mountHealthCheck(e, data)
-	mountUI(e, oc, middleware.Session(skb))
 	return &Module{
 		logger: logger,
-		Echo:   e,
+		Server: s,
 		tls:    tls,
 		port:   port,
 	}, nil
@@ -66,23 +69,24 @@ func NewModule(_ context.Context, deps Deps) (*Module, error) {
 
 func (m Module) Start(ctx context.Context) error {
 	addr := fmt.Sprintf(":%d", m.port)
-	if m.tls == nil {
-		m.logger.Info("started http module")
-		return m.Echo.Start(addr)
+	if m.tls != nil {
+		m.logger.Info("started http module with TLS")
+		return m.Server.StartTLS(addr, m.tls.CertFile, m.tls.KeyFile)
 	}
 
-	m.logger.Info("started http module with TLS")
-	return m.Echo.StartTLS(addr, m.tls.CertFile, m.tls.KeyFile)
+	m.logger.Info("started http module")
+	return m.Server.Start(addr)
 }
 
 func (m Module) Stop(ctx context.Context) error {
-	m.logger.Info("stopped http module")
-	return m.Echo.Shutdown(ctx)
+	m.logger.Info("stopping server")
+	return m.Server.Shutdown(ctx)
 }
 
 func (m *Module) EventHandlers() app.EventHandlersMap {
 	return app.EventHandlersMap{
 		app.AfterApplicationStartEvent: m.afterStart,
+		app.AfterApplicationStopEvent:  m.afterStop,
 	}
 }
 
@@ -92,4 +96,8 @@ func (m *Module) afterStart(_ context.Context, _ app.LifecycleEvent) {
 		proto = "https"
 	}
 	m.logger.Infof("listening on %s port %d", proto, m.port)
+}
+
+func (m *Module) afterStop(_ context.Context, _ app.LifecycleEvent) {
+	m.logger.Info("stopped http module")
 }
