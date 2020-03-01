@@ -189,3 +189,7 @@ uploads/
 coverage/
 test/
 fuzz/*.zip
+
+#Added by cargo
+
+/target
