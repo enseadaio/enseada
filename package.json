@@ -1,0 +1,14 @@
+{
+  "name": "enseada",
+  "version": "0.1.0",
+  "repository": "git@github.com:enseadaio/enseada.git",
+  "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
+  "license": "MPL-2.0",
+  "scripts": {
+    "watch": "parcel watch static"
+  },
+  "devDependencies": {
+    "del-cli": "^3.0.0",
+    "parcel-bundler": "^1.12.4"
+  }
+}
