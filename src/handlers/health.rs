@@ -10,7 +10,7 @@ pub struct HealthResponse {
     pub status: String,
 }
 
-pub async fn get_health(couch: Data<couchdb::client::Client>) -> Result<Json<HealthResponse>, ApiError> {
+pub async fn get(couch: Data<couchdb::client::Client>) -> Result<Json<HealthResponse>, ApiError> {
     match couch.status().await {
         Ok(Status { status }) => responses::ok(HealthResponse {
             status,

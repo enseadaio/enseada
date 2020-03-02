@@ -1,7 +1,16 @@
 use actix_web::web;
-use crate::handlers::health::get_health;
+
+use actix_files as fs;
+
+use crate::handlers::health;
+use crate::handlers::ui;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg
-        .route("/health", web::get().to(get_health));
+        .service(fs::Files::new("/dist", ".").show_files_listing())
+        .service(
+            web::scope("/ui")
+                .route("", web::get().to(ui::index))
+        )
+        .route("/health", web::get().to(health::get));
 }

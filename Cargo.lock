@@ -35,6 +35,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-files"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "301482841d3d74483a446ead63cb7d362e187d2c8b603f13d91995621ea53c46"
+dependencies = [
+ "actix-http",
+ "actix-service",
+ "actix-web",
+ "bitflags",
+ "bytes",
+ "derive_more",
+ "futures",
+ "log",
+ "mime",
+ "mime_guess",
+ "percent-encoding",
+ "v_htmlescape",
+]
+
+[[package]]
 name = "actix-http"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -922,6 +942,7 @@ dependencies = [
 name = "enseada"
 version = "0.1.0"
 dependencies = [
+ "actix-files",
  "actix-rt",
  "actix-web",
  "config",
@@ -3195,23 +3216,21 @@ dependencies = [
 
 [[package]]
 name = "yarte"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cd7fe9cf4befd3e5a9e057a08bea721cbe6fb64c36ec33805447001618874df"
+checksum = "36385cabf9425dfae8badc9c6bbf20ac84a314fe345a4ba01945de6e20b97533"
 dependencies = [
  "actix-web",
  "futures",
- "yarte_config",
  "yarte_derive",
  "yarte_helpers",
- "yarte_template",
 ]
 
 [[package]]
 name = "yarte_codegen"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8f3910b6b86077ebb337fdd283c0ad7685221a24853df6143c0e50b8a14c64c"
+checksum = "85964b1129a379edc1cb36b30dc381af62bf7614fde9aebc64b2c05b2c18ba91"
 dependencies = [
  "markup5ever",
  "mime_guess",
@@ -3225,21 +3244,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "yarte_config"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b97dce7777354f504a1152a80fc4c927b5c5fc920c73a9138794cdbfb33a0158"
-dependencies = [
- "serde 1.0.104",
- "serde_derive",
- "toml 0.5.6",
-]
-
-[[package]]
 name = "yarte_derive"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f73ffa86b310523dac07c0c51ed034514b9a65608a85a3ac1d3abbe2037f18b"
+checksum = "e0139181bbe81e38cc5b2fee37c81334136c84b7cfc6806151c530b25afc7dc8"
 dependencies = [
  "prettyprint",
  "proc-macro2 1.0.9",
@@ -3247,7 +3255,6 @@ dependencies = [
  "tempfile",
  "toolchain_find",
  "yarte_codegen",
- "yarte_config",
  "yarte_helpers",
  "yarte_hir",
  "yarte_parser",
@@ -3255,9 +3262,9 @@ dependencies = [
 
 [[package]]
 name = "yarte_dom"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8010df69865cbde38490943cff7a41ce88f588cda5a885f53c9b4511f2a00930"
+checksum = "ad9c1317a1c8e77e496837211ad4efdbb54a5397c8b7cb26be36cbea9c460573"
 dependencies = [
  "markup5ever",
  "quote 1.0.2",
@@ -3269,19 +3276,20 @@ dependencies = [
 
 [[package]]
 name = "yarte_helpers"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "532bb9e9192ebbf1ab62e43b6af0f9fb3163213b98825252803bfb42b51d57da"
+checksum = "5b11d616498e903d888c31eece6edfd84647ec86d0b70c5b0dcae36edc58771a"
 dependencies = [
+ "serde 1.0.104",
+ "toml 0.5.6",
  "v_htmlescape",
- "yarte_config",
 ]
 
 [[package]]
 name = "yarte_hir"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccad856333f5ad41474982957e14147bf8ba8131780f9715236d10a41463c8a3"
+checksum = "001232a8d858efc429a1c3fb489cbfedf7445a51282d35f3b13d498010cab400"
 dependencies = [
  "derive_more",
  "proc-macro2 1.0.9",
@@ -3289,16 +3297,15 @@ dependencies = [
  "syn 1.0.16",
  "v_eval",
  "v_htmlescape",
- "yarte_config",
  "yarte_helpers",
  "yarte_parser",
 ]
 
 [[package]]
 name = "yarte_html"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab99ec1d32405f6f8b35a57604c8b8aaac92e645660b77cf903b3ecc7bbaf42d"
+checksum = "a618de2ab402d25d17dbabfa690f50c57d352e8edc1e8c3a368639bcb4f8b04d"
 dependencies = [
  "log",
  "mac",
@@ -3311,23 +3318,14 @@ dependencies = [
 
 [[package]]
 name = "yarte_parser"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fddae1335b85f1ccad089f8fbf42fdf8a59f03ad886df98a9845ba69d62d94c8"
+checksum = "31dd0a1f5d746bf46cdc1ef44c3a141df6d3c463ec8a8a779d598ab5e6020ee8"
 dependencies = [
  "annotate-snippets",
  "derive_more",
  "quote 1.0.2",
  "syn 1.0.16",
  "unicode-xid 0.2.0",
- "yarte_config",
-]
-
-[[package]]
-name = "yarte_template"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "611c59721d0bec7bf866cd31ac81fbf3dce57ef54e070d695529a88d33559ae9"
-dependencies = [
  "yarte_helpers",
 ]

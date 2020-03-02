@@ -12,6 +12,7 @@ mod logger;
 mod responses;
 mod routes;
 mod server;
+mod templates;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

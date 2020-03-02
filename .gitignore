@@ -194,3 +194,4 @@ fuzz/*.zip
 
 target/
 node_modules/
+dist/
