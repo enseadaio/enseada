@@ -13,6 +13,12 @@ serde_json = "1.0"
 log = "0.4"
 config = "0.9"
 dotenv = "0.15"
+rustls = "0.17"
+reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
+url = "2.1"
+derivative = "1.0.3"
+lazy_static = "1.4"
+derive_more = "0.99"
 
 [dependencies.log4rs]
 version = "0.10"
