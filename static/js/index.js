@@ -1,1 +1,5 @@
-console.log("Hello Enseada");
+function hello(name) {
+  console.log(`Hello ${name || 'Enseada'}`);
+}
+
+hello();

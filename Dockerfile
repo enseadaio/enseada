@@ -1,46 +1,47 @@
-FROM node:12-alpine as assets
+FROM node:12 as assets
 
 WORKDIR /web
 
-COPY web/package.json .
-COPY web/yarn.lock .
+COPY package.json .
+COPY yarn.lock .
 
 RUN yarn install
 
-COPY web .
+COPY static static
 
-RUN yarn build:prod
+RUN yarn build
 
-FROM golang:1.13-alpine as builder
+FROM rust:1-buster as builder
 
-ENV GO111MODULE=on
-ENV CGO_ENABLED=0
-ENV GOOS=linux
-ENV GOARCH=amd64
+RUN apt-get update -y && apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
 
 WORKDIR /app
 
-RUN go get github.com/GeertJohan/go.rice/rice
+RUN USER=root cargo new enseada
 
-COPY go.mod .
-COPY go.sum .
+COPY Cargo.lock ./enseada
+COPY Cargo.toml ./enseada
 
-RUN go mod download
+WORKDIR /app/enseada
+
+RUN cargo build --release
 
 COPY . .
 
-COPY --from=assets /web/static ./web/static
-
-RUN go build -o bin/enseada-server ./cmd/enseada-server
-RUN rice append --exec bin/enseada-server -i ./pkg/http -i ./pkg/auth
+RUN cargo build --release
 
 # final stage
-FROM scratch
+FROM bitnami/minideb:buster
 
-ENV STORAGE_DIR=/var/lib/enseada/data
+RUN install_packages ca-certificates libc6 libssl1.1
 
-COPY --from=builder /app/bin/enseada-server /app/enseada-server
+RUN apt-get update && apt-get upgrade -y && \
+    rm -r /var/lib/apt/lists /var/cache/apt/archives
+WORKDIR /app/enseada
+
+COPY --from=builder /app/enseada/target/release/enseada-server /app/enseada
+COPY --from=assets /web/dist /app/enseada
 
 EXPOSE 9623
 
-ENTRYPOINT ["/app/enseada-server"]
+ENTRYPOINT ["/app/enseada/enseada-server"]

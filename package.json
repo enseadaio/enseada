@@ -5,10 +5,12 @@
   "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
   "license": "MPL-2.0",
   "scripts": {
-    "watch": "parcel watch static/js/index.js"
+    "watch": "parcel watch static/js/index.js",
+    "build": "parcel build static/js/index.js"
   },
   "devDependencies": {
     "del-cli": "^3.0.0",
-    "parcel-bundler": "^1.12.4"
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.8.3"
   }
 }

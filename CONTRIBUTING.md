@@ -222,23 +222,9 @@ This commit:
 
 ```
 
-### Go Code Styleguide
+### Rust Code Styleguide
 
-Go has strong opinions regarding code formatting and style. While not enforced, Enseada
-tries to follow the [Effective Go](https://golang.org/doc/effective_go.html) and [CodeReviewComments](https://golang.org/wiki/CodeReviewComments)
-conventions. If you want to check adherence to the styleguide, you can run [golint](https://github.com/golang/lint) (available via `make lint`).
-
-### Documentation Styleguide
-
-Use [GoDoc](https://blog.golang.org/godoc-documenting-go-code). Simple as that, the Go project
-has already given us a healthy amount of best practices to follow.
-
-#### Example
-
-```go
-// Hello returns a greeting.
-func Hello(ctx context.Context) string
-```
+Enseada uses the linting rules provided by [Clippy](https://github.com/rust-lang/rust-clippy), the official Rust linter.
 
 [beginner]:https://github.com/enseadaio/enseada/labels/good%20first%20issue
 [help-wanted]:https://github.com/enseadaio/enseada/labels/help%20wanted

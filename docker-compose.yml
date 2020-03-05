@@ -5,12 +5,12 @@ services:
     build:
       context: .
     environment:
-      LOG_LEVEL: info
+      ENSEADA_LOG_LEVEL: info
       PUBLIC_HOST: http://localhost:9623
       SECRET_KEY_BASE: D96BhFx8RmWwfkNzDvCqTMpchn4mhrhN9LMYeYeH7wpnY4JwdVWVbGJWUiq
-      COUCHDB_URL: http://couchdb:5984/
-      COUCHDB_USER: enseada
-      COUCHDB_PASSWORD: enseada
+      ENSEADA_COUCHDB_URL: http://couchdb:5984/
+      ENSEADA_COUCHDB_USERNAME: enseada
+      ENSEADA_COUCHDB_PASSWORD: enseada
       STORAGE_PROVIDER: s3
       S3_BUCKET: enseada
       S3_REGION: eu-west-1
