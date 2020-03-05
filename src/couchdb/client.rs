@@ -1,12 +1,15 @@
 use derivative::Derivative;
-use reqwest::Client as HttpClient;
+use reqwest::{Client as HttpClient, StatusCode};
 use url::{ParseError, Url};
+use serde::de::DeserializeOwned;
+use serde::ser::Serialize;
 
 use crate::couchdb::status::Status;
+use crate::couchdb::db::Database;
 
 #[derive(Derivative)]
-#[derivative(Debug)]
-pub struct Client {
+#[derivative(Debug, Clone)]
+pub(super) struct Client {
     client: HttpClient,
     base_url: Url,
     username: String,
@@ -28,14 +31,43 @@ impl Client {
         }
     }
 
-    pub async fn status(&self) -> reqwest::Result<Status> {
-        self.client.get(self.build_url("/_up").unwrap())
+    pub async fn get<T: DeserializeOwned>(&self, path: &str) -> reqwest::Result<T> {
+        self.client.get(self.build_url(path).unwrap())
             .basic_auth(&self.username, self.password.as_ref())
             .send().await?
-            .json::<Status>().await
+            .error_for_status()?
+            .json::<T>().await
     }
 
-    fn build_url(&self, path: &str) -> Result<Url, ParseError> {
+    pub async fn put<B: Serialize, R: DeserializeOwned>(&self, path: &str, body: Option<B>) -> reqwest::Result<R> {
+        let req = self.client.put(self.build_url(path).unwrap())
+            .basic_auth(&self.username, self.password.as_ref());
+        let req = if let Some(body) = body {
+            req.json::<B>(&body)
+        } else {
+            req
+        };
+
+        req.send().await?
+            .error_for_status()?
+            .json().await
+    }
+
+    pub async fn exists(&self, path: &str) -> Result<bool, reqwest::Error> {
+        let result = self.client.head(self.build_url(path).unwrap())
+            .basic_auth(&self.username, self.password.as_ref())
+            .send().await;
+
+        match result {
+            Ok(res) => Ok(true),
+            Err(err) => match err.status() {
+                Some(StatusCode::NOT_FOUND) => Ok(false),
+                Some(_) | None => Err(err)
+            },
+        }
+    }
+
+    pub(crate) fn build_url(&self, path: &str) -> Result<Url, ParseError> {
         self.base_url.join(path)
     }
 }

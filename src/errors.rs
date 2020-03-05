@@ -11,6 +11,7 @@ use derive_more::Display;
 pub enum ApiError {
     BadRequest(String),
     BlockingError(String),
+    Conflict(String),
     InternalServerError(String),
     NotFound(String),
     #[display(fmt = "")]
@@ -31,6 +32,9 @@ impl ResponseError for ApiError {
         match self {
             ApiError::BadRequest(error) => {
                 HttpResponse::BadRequest().json::<ErrorResponse>(error.into())
+            }
+            ApiError::Conflict(error) => {
+                HttpResponse::Conflict().json::<ErrorResponse>(error.into())
             }
             ApiError::NotFound(message) => {
                 HttpResponse::NotFound().json::<ErrorResponse>(message.into())
