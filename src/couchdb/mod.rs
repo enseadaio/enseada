@@ -8,8 +8,8 @@ use crate::couchdb::status::Status;
 pub mod client;
 pub mod db;
 pub mod errors;
-pub mod status;
 pub mod responses;
+pub mod status;
 
 pub struct Couch {
     client: Box<Client>,

@@ -5,8 +5,6 @@
 ![build status](https://github.com/enseadaio/enseada/workflows/master/badge.svg)
 [![docker pulls](https://img.shields.io/docker/pulls/enseada/enseada)](https://hub.docker.com/r/enseada/enseada)
 [![license](https://img.shields.io/github/license/enseadaio/enseada)](./LICENSE)
-[![maintainability](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/maintainability)](https://codeclimate.com/github/enseadaio/enseada/maintainability)
-[![test coverage](https://api.codeclimate.com/v1/badges/c0bbc99aae02550fd5ad/test_coverage)](https://codeclimate.com/github/enseadaio/enseada/test_coverage)
 [![Discord Badge](https://discordapp.com/api/guilds/667303788532465665/widget.png?style=shield)](https://discord.gg/A34Qt8A)
 
 ![logo](./.github/logo-white.png)

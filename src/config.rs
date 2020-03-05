@@ -38,7 +38,9 @@ impl Configuration {
         &self.log
     }
 
-    pub fn couchdb(&self) -> &CouchDB { &self.couchdb }
+    pub fn couchdb(&self) -> &CouchDB {
+        &self.couchdb
+    }
 }
 
 impl Logging {
@@ -58,11 +60,17 @@ impl CouchDB {
     }
 
     pub fn username(&self) -> String {
-        self.username.as_ref().expect("missing couchdb.username").clone()
+        self.username
+            .as_ref()
+            .expect("missing couchdb.username")
+            .clone()
     }
 
     pub fn password(&self) -> String {
-        self.password.as_ref().expect("missing couchdb.password").clone()
+        self.password
+            .as_ref()
+            .expect("missing couchdb.password")
+            .clone()
     }
 }
 

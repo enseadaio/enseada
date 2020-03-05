@@ -1,11 +1,11 @@
 use derivative::Derivative;
 use reqwest::{Client as HttpClient, StatusCode};
-use url::{ParseError, Url};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
+use url::{ParseError, Url};
 
-use crate::couchdb::status::Status;
 use crate::couchdb::db::Database;
+use crate::couchdb::status::Status;
 
 #[derive(Derivative)]
 #[derivative(Debug, Clone)]
@@ -22,7 +22,8 @@ impl Client {
         log::debug!("Creating new CouchDB client instance");
         let client = HttpClient::builder()
             .use_rustls_tls()
-            .build().expect("HttpClient::build()");
+            .build()
+            .expect("HttpClient::build()");
         Client {
             client,
             base_url,
@@ -32,15 +33,24 @@ impl Client {
     }
 
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> reqwest::Result<T> {
-        self.client.get(self.build_url(path).unwrap())
+        self.client
+            .get(self.build_url(path).unwrap())
             .basic_auth(&self.username, self.password.as_ref())
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<T>().await
+            .json::<T>()
+            .await
     }
 
-    pub async fn put<B: Serialize, R: DeserializeOwned>(&self, path: &str, body: Option<B>) -> reqwest::Result<R> {
-        let req = self.client.put(self.build_url(path).unwrap())
+    pub async fn put<B: Serialize, R: DeserializeOwned>(
+        &self,
+        path: &str,
+        body: Option<B>,
+    ) -> reqwest::Result<R> {
+        let req = self
+            .client
+            .put(self.build_url(path).unwrap())
             .basic_auth(&self.username, self.password.as_ref());
         let req = if let Some(body) = body {
             req.json::<B>(&body)
@@ -48,21 +58,22 @@ impl Client {
             req
         };
 
-        req.send().await?
-            .error_for_status()?
-            .json().await
+        req.send().await?.error_for_status()?.json().await
     }
 
     pub async fn exists(&self, path: &str) -> Result<bool, reqwest::Error> {
-        let result = self.client.head(self.build_url(path).unwrap())
+        let result = self
+            .client
+            .head(self.build_url(path).unwrap())
             .basic_auth(&self.username, self.password.as_ref())
-            .send().await;
+            .send()
+            .await;
 
         match result {
             Ok(res) => Ok(true),
             Err(err) => match err.status() {
                 Some(StatusCode::NOT_FOUND) => Ok(false),
-                Some(_) | None => Err(err)
+                Some(_) | None => Err(err),
             },
         }
     }

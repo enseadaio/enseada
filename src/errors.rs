@@ -69,7 +69,6 @@ impl From<Vec<String>> for ErrorResponse {
     }
 }
 
-
 /// Convert Thread BlockingErrors to ApiErrors
 impl From<BlockingError<ApiError>> for ApiError {
     fn from(error: BlockingError<ApiError>) -> ApiError {

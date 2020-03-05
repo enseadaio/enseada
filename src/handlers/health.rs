@@ -13,12 +13,12 @@ pub struct HealthResponse {
 
 pub async fn get(couch: Data<couchdb::Couch>) -> Result<Json<HealthResponse>, ApiError> {
     match couch.status().await {
-        Ok(Status { status }) => responses::ok(HealthResponse {
-            status,
-        }),
+        Ok(Status { status }) => responses::ok(HealthResponse { status }),
         Err(err) => {
             log::error!("{}", err);
-            Err(ServiceUnavailable("database connection refused".to_string()))
+            Err(ServiceUnavailable(
+                "database connection refused".to_string(),
+            ))
         }
     }
 }

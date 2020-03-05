@@ -7,35 +7,23 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.13-alpine
+      image: rust:1-buster
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
         with:
-          path: vendor
-          key: ${{ runner.os }}-go-${{ hashFiles(format('{0}{1}', github.workspace, '/go.sum')) }}
+          path: target/debug
+          key: ${{ runner.os }}-cargo-${{ hashFiles(format('{0}{1}', github.workspace, '/Cargo.lock')) }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            ${{ runner.os }}-cargo-
       - name: Install Dependencies
         run: |
-          apk update && apk add build-base
-          go mod vendor
+          RUN apt-get update -y && apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
+          rustup update
+          rustup component add clippy
       - name: Lint code
         run: |
-          go vet ./...
-          go build -o /dev/null ./...
+          cargo clippy --all-targets --all-features -- -D warnings
       - name: Run tests
         run: |
-          go test ./...
-  protocols-check:
-    runs-on: ubuntu-latest
-    container:
-      image: uber/prototool:1.8.1
-    steps:
-      - uses: actions/checkout@v1
-      - name: Check protocols
-        run: |
-          prototool files ./rpc
-          prototool compile ./rpc
-          prototool lint ./rpc
-#            prototool break check ./rpc --git-branch master
+          cargo test

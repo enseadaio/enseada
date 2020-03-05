@@ -1,7 +1,7 @@
 use crate::couchdb::client::Client;
-use serde::de::DeserializeOwned;
 use crate::couchdb::responses;
 use reqwest::Error;
+use serde::de::DeserializeOwned;
 
 pub struct Database {
     name: String,
@@ -26,7 +26,9 @@ impl Database {
 
     pub async fn create_self(&self) -> reqwest::Result<bool> {
         log::debug!("creating database {}", self.name);
-        self.client.put(self.name.as_str(), None::<bool>).await
+        self.client
+            .put(self.name.as_str(), None::<bool>)
+            .await
             .map(|responses::Ok { ok }| ok)
     }
 }
