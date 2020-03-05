@@ -13,7 +13,6 @@
 >Enseada is still under initial development. Some of the features and characteristics
 >described in this document may still be missing. 
 
-
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 
 It leverages scalability by using natively distributed technologies.
