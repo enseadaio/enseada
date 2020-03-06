@@ -15,7 +15,7 @@ RUN yarn build
 # build server executable
 FROM rust:1-buster as builder
 
-RUN apt-get update -y && apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
+RUN apt-get update -y && apt-get install build-essential llvm-dev libclang-dev -y
 
 WORKDIR /app/enseada
 
@@ -32,14 +32,14 @@ RUN cargo build --release
 # final stage
 FROM bitnami/minideb:buster
 
-RUN install_packages ca-certificates libc6 libssl1.1
+RUN install_packages ca-certificates libc6
 
 RUN apt-get update && apt-get upgrade -y && \
     rm -r /var/lib/apt/lists /var/cache/apt/archives
 WORKDIR /app/enseada
 
 COPY --from=builder /app/enseada/target/release/enseada-server /app/enseada
-COPY --from=assets /web/dist /app/enseada
+COPY --from=assets /web/dist /app/enseada/dist
 
 EXPOSE 9623
 

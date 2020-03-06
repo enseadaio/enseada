@@ -54,6 +54,9 @@ impl Configuration {
         c.set_default("log.level", "info")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
         c.set_default("tls.enabled", false)?;
+        // So we don't have 'missing field' errors
+        c.set_default("tls.cert.path", None::<String>)?;
+        c.set_default("tls.key.path", None::<String>)?;
 
         c.try_into()
     }
