@@ -1,6 +1,5 @@
 use config::{Config, ConfigError, Environment};
 use url::Url;
-use std::iter::Map;
 
 #[derive(Debug, Deserialize)]
 pub struct Logging {
@@ -51,6 +50,7 @@ impl Configuration {
         c.merge(Environment::with_prefix("enseada").separator("_"))?;
 
         c.set_default("port", 9623)?;
+        c.set_default("public.host", "localhost")?;
         c.set_default("log.level", "info")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
         c.set_default("tls.enabled", false)?;
