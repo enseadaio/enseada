@@ -17,6 +17,6 @@ jobs:
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')
           # Strip "v" prefix from tag name
           docker pull enseada/enseada:latest || true
-          docker build . --file Dockerfile --tag enseada/enseada:$VERSION --tag enseada/enseada:latest
+          docker build --file Dockerfile --tag enseada/enseada:$VERSION --tag enseada/enseada:latest --cache-from enseada/enseada:latest .
           docker push enseada/enseada:$VERSION
           docker push enseada/enseada:latest

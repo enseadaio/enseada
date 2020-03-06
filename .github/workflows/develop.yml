@@ -41,5 +41,5 @@ jobs:
       - name: Build the Docker image
         run: |
           docker pull enseada/enseada:edge || true
-          docker build . --file Dockerfile --tag enseada/enseada:edge
+          docker build --file Dockerfile --tag enseada/enseada:edge --cache-from enseada/enseada:edge .
           docker push enseada/enseada:edge
