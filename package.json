@@ -5,8 +5,8 @@
   "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
   "license": "MPL-2.0",
   "scripts": {
-    "watch": "parcel watch static/js/index.js",
-    "build": "parcel build static/js/index.js"
+    "watch": "parcel watch static/js/index.js --public-url='/static'",
+    "build": "parcel build static/js/index.js --public-url='/static'"
   },
   "devDependencies": {
     "del-cli": "^3.0.0",

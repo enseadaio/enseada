@@ -75,17 +75,20 @@ becomes of high importance. For real production workloads it is recommended to u
 ## HTTPS and HTTP/2 support
 Enseada has full support for strict HTTPS, enabling it is very simple.
 
-Passing the environment value `SSL=yes|true|active` (or any kind of non-empty value) will turn on
+Passing the environment value `ENSEADA_TLS=true` will turn on
 HTTPS on the entire application (with [HSTS](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) enabled). This will require two
 additional environment variables.
 
 ```.env
 ## The path to the key file
-SSL_KEY_PATH=nil
+ENSEADA_TLS_KEY_PATH=nil
 
 ## The path to the certificate file
-SSL_CERT_PATH=nil
+ENSEADA_TLS_CERT_PATH=nil
 ```
+
+The private key must be either an RSA or PKCS8 key.
+Both the certificate and the key must be in PEM format.
 
 When HTTPS is active, Enseada switches automatically to [HTTP/2](https://en.wikipedia.org/wiki/HTTP/2) if supported
 by the client.

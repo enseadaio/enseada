@@ -1,5 +1,6 @@
 use config::{Config, ConfigError, Environment};
 use url::Url;
+use std::iter::Map;
 
 #[derive(Debug, Deserialize)]
 pub struct Logging {
@@ -15,10 +16,31 @@ pub struct CouchDB {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct TLS {
+    enabled: bool,
+    cert: WithOptionalPath,
+    key: WithOptionalPath,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Configuration {
     log: Logging,
     couchdb: CouchDB,
+    tls: TLS,
+    public: Public,
+    port: i16,
 }
+
+#[derive(Debug, Deserialize)]
+struct WithOptionalPath {
+    path: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Public {
+    host: Option<String>,
+}
+
 
 impl Configuration {
     pub fn new() -> Result<Self, ConfigError> {
@@ -28,10 +50,20 @@ impl Configuration {
 
         c.merge(Environment::with_prefix("enseada").separator("_"))?;
 
+        c.set_default("port", 9623)?;
         c.set_default("log.level", "info")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
+        c.set_default("tls.enabled", false)?;
 
         c.try_into()
+    }
+
+    pub fn port(&self) -> i16 {
+        self.port
+    }
+
+    pub fn public_host(&self) -> Option<String> {
+        self.public.host.clone()
     }
 
     pub fn log(&self) -> &Logging {
@@ -40,6 +72,10 @@ impl Configuration {
 
     pub fn couchdb(&self) -> &CouchDB {
         &self.couchdb
+    }
+
+    pub fn tls(&self) -> &TLS {
+        &self.tls
     }
 }
 
@@ -71,6 +107,20 @@ impl CouchDB {
             .as_ref()
             .expect("missing couchdb.password")
             .clone()
+    }
+}
+
+impl TLS {
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
+    pub fn cert_path(&self) -> Option<String> {
+        self.cert.path.clone()
+    }
+
+    pub fn key_path(&self) -> Option<String> {
+        self.key.path.clone()
     }
 }
 
