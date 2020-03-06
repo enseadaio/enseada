@@ -1,3 +1,4 @@
+# build frontend assets
 FROM node:12 as assets
 
 WORKDIR /web
@@ -11,20 +12,18 @@ COPY static static
 
 RUN yarn build
 
+# build server executable
 FROM rust:1-buster as builder
 
 RUN apt-get update -y && apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
 
-WORKDIR /app
-
-RUN USER=root cargo new enseada
-
-COPY Cargo.lock ./enseada
-COPY Cargo.toml ./enseada
-
 WORKDIR /app/enseada
 
-RUN cargo build --release
+COPY Cargo.lock .
+COPY Cargo.toml .
+
+RUN mkdir .cargo
+RUN cargo vendor > .cargo/config
 
 COPY . .
 
