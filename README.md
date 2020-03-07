@@ -11,7 +11,7 @@
 
 >[!WARNING]
 >Enseada is still under initial development. Some of the features and characteristics
->described in this document may still be missing. 
+>described in this document may still be missing.
 
 Enseada is a modern, fast and scalable package registry, designed from the ground up to run in elastic, container-based environments and to be highly available and distributed.
 
@@ -60,12 +60,10 @@ The storage engine used by Enseada provides pluggable backends, allowing to easi
 multiple storage providers.
 See the [configuration guide](https://docs.enseada.io/users/configuration.html) for how to setup the storage layer.
 
-At the moment, only these providers are supported:
+At the moment, the following providers are supported:
 
+- CouchDB File Attachments
 - S3 compatible (AWS S3, Minio, DigitalOcean Spaces, Scaleway Object Storage, Ceph, etc)
-- Google Cloud Storage
-- Microsoft Azure Blobs
-- CouchDB
 
 The CouchDB provider allows to store packages as [file attachments](https://docs.couchdb.org/en/stable/api/document/attachments.html) in CouchDB.
 This has the advantage of working out of the box and without requiring a third party service to store packages. However performance can become a problem
@@ -73,6 +71,7 @@ if the number of stored packages is very high, or if files are very large. It al
 becomes of high importance. For real production workloads it is recommended to use a cloud object storage service instead. 
 
 ## HTTPS and HTTP/2 support
+
 Enseada has full support for strict HTTPS, enabling it is very simple.
 
 Passing the environment value `ENSEADA_TLS=true` will turn on
