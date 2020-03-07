@@ -32,10 +32,11 @@ RUN cargo build --release
 # final stage
 FROM bitnami/minideb:buster
 
-RUN install_packages ca-certificates libc6
+RUN install_packages ca-certificates
 
 RUN apt-get update && apt-get upgrade -y && \
     rm -r /var/lib/apt/lists /var/cache/apt/archives
+
 WORKDIR /app/enseada
 
 COPY --from=builder /app/enseada/target/release/enseada-server /app/enseada

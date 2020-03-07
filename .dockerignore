@@ -1,0 +1,9 @@
+*.md
+docker-compose.yml
+.env
+.env.*
+.github/
+examples/
+CODEOWNERS
+docs/
+Dockerfile

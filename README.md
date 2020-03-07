@@ -95,9 +95,9 @@ by the client.
 
 ## Build
 
-Enseada is built as a statically linked executable. The only dynamic dependencies are OpenSSL and libc.
-However it needs a few native libraries to build the executable, in particular libclang, libssl and LLVM. On Debian
-they can be installed with `apt install build-essential libssl-dev llvm-dev libclang-dev`.
+Enseada is built as a statically linked executable.
+However, it needs a few native libraries to build the executable, in particular libclang and LLVM. On Debian
+they can be installed with `apt install build-essential llvm-dev libclang-dev`. These libraries are not needed to run the executable.
  
 You need a nightly build of the Rust compiler and standard library to build the binary. You can install one
 using [rustup](https://rustup.rs).
