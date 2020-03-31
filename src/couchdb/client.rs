@@ -4,9 +4,6 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use url::{ParseError, Url};
 
-
-
-
 #[derive(Derivative)]
 #[derivative(Debug, Clone)]
 pub(super) struct Client {

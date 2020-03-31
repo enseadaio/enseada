@@ -1,8 +1,7 @@
-
-use actix_web::{Result, HttpRequest, HttpResponse, FromRequest};
+use actix_web::{HttpRequest, HttpResponse};
 
 use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError};
-use actix_web::web::{JsonConfig, FormConfig, QueryConfig, Query};
+use actix_web::web::{FormConfig, QueryConfig};
 use url::Url;
 
 use crate::handlers::oauth::redirect_back;
@@ -35,8 +34,7 @@ fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
                     None => HttpResponse::BadRequest().body("invalid redirect_uri parameter")
                 }
             }
-        },
-        _ => HttpResponse::BadRequest().content_type("text/plain").body(detail),
+        }
     };
     InternalError::from_response(err, res).into()
 }

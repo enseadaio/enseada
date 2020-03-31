@@ -7,7 +7,6 @@ mod errors;
 mod handlers;
 mod logger;
 mod oauth;
-mod oauth_impl;
 mod responses;
 mod routes;
 mod server;

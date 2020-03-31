@@ -4,6 +4,7 @@ use crate::oauth::Result;
 use crate::oauth::token::{AccessToken, RefreshToken};
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
+use crate::oauth::persistence::entity::client::ClientEntity;
 
 pub struct CouchStorage {
 }
@@ -11,6 +12,12 @@ pub struct CouchStorage {
 impl CouchStorage {
     pub fn new() -> CouchStorage {
         CouchStorage {}
+    }
+
+    pub fn save_client(&self, client: Client) -> Result<Client> {
+        let entity = ClientEntity::from(client.clone());
+
+        Ok(client)
     }
 }
 

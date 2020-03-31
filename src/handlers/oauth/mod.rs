@@ -12,7 +12,7 @@ use crate::oauth::handler::OAuthHandler;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::response::TokenResponse;
 use crate::oauth::response::TokenType::Bearer;
-use crate::oauth_impl::storage::CouchStorage;
+use crate::oauth::persistence::CouchStorage;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
 

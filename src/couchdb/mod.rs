@@ -11,6 +11,7 @@ pub mod db;
 pub mod errors;
 pub mod responses;
 pub mod status;
+pub mod guid;
 
 pub struct Couch {
     client: Box<Client>,
