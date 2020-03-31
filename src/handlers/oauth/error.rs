@@ -1,10 +1,10 @@
-use actix_web::dev::ServiceResponse;
+
 use actix_web::{Result, HttpRequest, HttpResponse, FromRequest};
-use actix_web::middleware::errhandlers::ErrorHandlerResponse;
+
 use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError};
 use actix_web::web::{JsonConfig, FormConfig, QueryConfig, Query};
 use url::Url;
-use crate::oauth::response::TokenResponse;
+
 use crate::handlers::oauth::redirect_back;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use std::str::FromStr;

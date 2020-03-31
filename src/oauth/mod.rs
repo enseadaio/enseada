@@ -1,7 +1,7 @@
-use std::fmt::{self, Display, Formatter};
-use serde::{Serialize, Deserialize, Deserializer, Serializer};
 
-use crate::oauth::error::{Error, ErrorKind};
+
+
+use crate::oauth::error::{Error};
 
 pub mod client;
 pub mod code;

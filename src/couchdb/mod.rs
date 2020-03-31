@@ -1,5 +1,5 @@
 use actix_web::web;
-use serde::{Serialize, Deserialize};
+
 
 use crate::config::CONFIG;
 use crate::couchdb::client::Client;

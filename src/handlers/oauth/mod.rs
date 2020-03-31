@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use actix_web::{HttpResponse, Responder};
-use actix_web::web::{Data, Form, HttpRequest, Json, Query, ServiceConfig};
-use serde::{Deserialize, Serialize};
+use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
+
 use url::Url;
 
 use crate::errors::ApiError;
 use crate::oauth::{RequestHandler, Scope};
-use crate::oauth::error::ErrorKind;
+
 use crate::oauth::handler::OAuthHandler;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::response::TokenResponse;
@@ -15,26 +15,29 @@ use crate::oauth::response::TokenType::Bearer;
 use crate::oauth_impl::storage::CouchStorage;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
-use crate::oauth::storage::TokenStorage;
-use crate::oauth_impl::token::AccessToken;
+
 
 pub mod error;
 
+type ConcreteOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
+
 pub fn add_oauth_handler(app: &mut ServiceConfig) {
-    let storage = CouchStorage::new();
-    let builder = &mut OAuthHandler::builder();
-    builder.client_storage(&storage);
-    builder.access_token_storage(&storage);
-    builder.refresh_token_storage(&storage);
-    builder.authorization_code_storage(&storage);
-    let handler = builder.build().expect("failed to build OAuthHandler");
-    app.data(handler);
+    let storage = Arc::new(CouchStorage::new());
+    let handler = OAuthHandler::new(
+        storage.clone(),
+        storage.clone(),
+        storage.clone(),
+        storage.clone()
+    );
+    app.data::<ConcreteOAuthHandler>(handler);
 }
 
-pub async fn login_form(handler: Data<OAuthHandler>, auth: Query<AuthorizationRequest>) -> impl Responder {
+pub async fn login_form(handler: Data<ConcreteOAuthHandler>, auth: Query<AuthorizationRequest>) -> impl Responder {
     if let Err(err) = handler.validate(&auth) {
         log::error!("{}", err);
     }
+
+
 
     let response_type = auth.response_type.to_string();
     let client_id = auth.client_id.clone();
@@ -51,7 +54,7 @@ pub async fn login_form(handler: Data<OAuthHandler>, auth: Query<AuthorizationRe
     }
 }
 
-pub async fn login(handler: Data<OAuthHandler>, auth: Form<AuthorizationRequest>) -> HttpResponse {
+pub async fn login(handler: Data<ConcreteOAuthHandler>, auth: Form<AuthorizationRequest>) -> HttpResponse {
     let validate = handler.validate(&auth);
     let handle = validate.and_then(|_| handler.handle(&auth));
     let redirect_uri = auth.redirect_uri.clone();

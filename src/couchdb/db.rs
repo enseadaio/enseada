@@ -1,4 +1,4 @@
-use reqwest::Error;
+
 use serde::de::DeserializeOwned;
 
 use crate::couchdb::client::Client;

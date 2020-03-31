@@ -1,9 +1,9 @@
 use std::fmt::{self, Debug, Formatter};
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::oauth::Scope;
-use std::convert::TryFrom;
+
 
 #[derive(Debug, Deserialize)]
 pub struct AuthorizationRequest {

@@ -4,8 +4,8 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use url::{ParseError, Url};
 
-use crate::couchdb::db::Database;
-use crate::couchdb::status::Status;
+
+
 
 #[derive(Derivative)]
 #[derivative(Debug, Clone)]
@@ -70,7 +70,7 @@ impl Client {
             .await;
 
         match result {
-            Ok(res) => Ok(true),
+            Ok(_res) => Ok(true),
             Err(err) => match err.status() {
                 Some(StatusCode::NOT_FOUND) => Ok(false),
                 Some(_) | None => Err(err),

@@ -1,7 +1,7 @@
 use std::fmt::{self, Debug, Formatter};
 
-use serde::{Serialize, Deserialize};
-use serde::export::fmt::Error;
+use serde::{Serialize};
+
 
 use crate::oauth::{Result, Scope};
 use crate::oauth::request::AuthorizationRequest;

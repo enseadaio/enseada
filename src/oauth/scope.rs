@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize, Deserializer, Serializer};
 use std::vec::Vec;
 
-#[derive(Default, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct Scope(Vec<String>);
 
 impl From<Vec<String>> for Scope {
