@@ -1,26 +1,17 @@
 use crate::oauth::Scope;
 use std::fmt::{self, Display, Formatter};
 
-pub struct AccessToken {
-    token: String,
-    scope: Scope,
-    expires_in: u16,
+pub trait Token: ToString {
+    fn token(&self) -> String;
 }
 
-impl Display for AccessToken {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.token)
-    }
+pub trait AccessToken: Token {
+    fn scope(&self) -> Scope;
+    fn expires_in(&self) -> u16;
 }
 
-pub struct RefreshToken {
-    token: String,
-    scope: Scope,
-    expires_in: u16,
-}
 
-impl Display for RefreshToken {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.token)
-    }
+pub trait RefreshToken: Token {
+    fn scope(&self) -> Scope;
+    fn expires_in(&self) -> u16;
 }

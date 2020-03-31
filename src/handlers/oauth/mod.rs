@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_web::{HttpResponse, Responder};
 use actix_web::web::{Data, Form, HttpRequest, Json, Query, ServiceConfig};
 use serde::{Deserialize, Serialize};
@@ -10,13 +12,23 @@ use crate::oauth::handler::OAuthHandler;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::response::TokenResponse;
 use crate::oauth::response::TokenType::Bearer;
-use crate::templates::oauth::LoginForm;
+use crate::oauth_impl::storage::CouchStorage;
 use crate::responses;
+use crate::templates::oauth::LoginForm;
+use crate::oauth::storage::TokenStorage;
+use crate::oauth_impl::token::AccessToken;
 
 pub mod error;
 
 pub fn add_oauth_handler(app: &mut ServiceConfig) {
-    app.data(OAuthHandler::new());
+    let storage = CouchStorage::new();
+    let builder = &mut OAuthHandler::builder();
+    builder.client_storage(&storage);
+    builder.access_token_storage(&storage);
+    builder.refresh_token_storage(&storage);
+    builder.authorization_code_storage(&storage);
+    let handler = builder.build().expect("failed to build OAuthHandler");
+    app.data(handler);
 }
 
 pub async fn login_form(handler: Data<OAuthHandler>, auth: Query<AuthorizationRequest>) -> impl Responder {
