@@ -5,8 +5,8 @@ use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError}
 use actix_web::web::{JsonConfig, FormConfig, QueryConfig, Query};
 use url::Url;
 use crate::oauth::response::TokenResponse;
+use crate::handlers::oauth::redirect_back;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
-use crate::responses;
 use std::str::FromStr;
 
 pub fn handle_query_errors(cfg: QueryConfig) -> QueryConfig {
@@ -48,12 +48,4 @@ fn handle_form_error(err: UrlencodedError, _req: &HttpRequest) -> Error {
         _ => HttpResponse::BadRequest().content_type("text/plain").body(detail),
     };
     InternalError::from_response(err, res).into()
-}
-
-pub fn redirect_back<T: serde::ser::Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {
-    let option = serde_urlencoded::to_string(data).ok();
-    let query = option.as_deref();
-    redirect_uri.set_query(query);
-    log::debug!("redirecting to {}", &redirect_uri);
-    responses::redirect_to(redirect_uri.to_string())
 }

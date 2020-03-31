@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::errors::ApiError;
-use crate::handlers::oauth::error::redirect_back;
 use crate::oauth::{RequestHandler, Scope};
 use crate::oauth::error::ErrorKind;
 use crate::oauth::handler::OAuthHandler;
@@ -12,6 +11,7 @@ use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::response::TokenResponse;
 use crate::oauth::response::TokenType::Bearer;
 use crate::templates::oauth::LoginForm;
+use crate::responses;
 
 pub mod error;
 
@@ -39,7 +39,7 @@ pub async fn login_form(handler: Data<OAuthHandler>, auth: Query<AuthorizationRe
     }
 }
 
-pub async fn login(req: HttpRequest, handler: Data<OAuthHandler>, auth: Form<AuthorizationRequest>) -> HttpResponse {
+pub async fn login(handler: Data<OAuthHandler>, auth: Form<AuthorizationRequest>) -> HttpResponse {
     let validate = handler.validate(&auth);
     let handle = validate.and_then(|_| handler.handle(&auth));
     let redirect_uri = auth.redirect_uri.clone();
@@ -59,4 +59,12 @@ pub async fn token(req: Form<TokenRequest>) -> Result<Json<TokenResponse>, ApiEr
         refresh_token: None,
         scope: Scope::from(vec!["profile", "email"]),
     }))
+}
+
+pub fn redirect_back<T: serde::ser::Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {
+    let option = serde_urlencoded::to_string(data).ok();
+    let query = option.as_deref();
+    redirect_uri.set_query(query);
+    log::debug!("redirecting to {}", &redirect_uri);
+    responses::redirect_to(redirect_uri.to_string())
 }
