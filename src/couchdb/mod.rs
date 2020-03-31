@@ -1,6 +1,7 @@
-use crate::config::CONFIG;
 use actix_web::web;
+use serde::{Serialize, Deserialize};
 
+use crate::config::CONFIG;
 use crate::couchdb::client::Client;
 use crate::couchdb::db::Database;
 use crate::couchdb::status::Status;

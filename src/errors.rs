@@ -1,9 +1,9 @@
+use serde::{Serialize, Deserialize};
 use actix_web::{
     error::{BlockingError, ResponseError},
     http::StatusCode,
     HttpResponse,
 };
-
 use derive_more::Display;
 
 #[derive(Debug, Display, PartialEq)]

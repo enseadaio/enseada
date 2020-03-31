@@ -1,14 +1,12 @@
 #[macro_use]
 extern crate lazy_static;
 
-#[macro_use]
-extern crate serde_derive;
-
 mod config;
 mod couchdb;
 mod errors;
 mod handlers;
 mod logger;
+mod oauth;
 mod responses;
 mod routes;
 mod server;

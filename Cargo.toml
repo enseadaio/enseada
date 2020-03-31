@@ -15,9 +15,10 @@ actix-web = { version = "2.0", features = ["default", "rustls"] }
 actix-rt = "1.0"
 actix-files = "0.2"
 actix-tls = { version = "1.0.0", features = ["rustls"] }
-serde = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_urlencoded = "0.6.1"
+url_serde = "0.2"
 log = "0.4"
 config = "0.9"
 dotenv = "0.15"
@@ -41,18 +42,6 @@ features = [
 "pattern_encoder",
 "threshold_filter"
 ]
-
-[dependencies.oxide-auth-actix]
-# We use this until this PR is merged, which updates ring to 0.16, which we need.
-# https://github.com/HeroicKatora/oxide-auth/pull/73
-git = "https://github.com/gzp-crey/oxide-auth"
-rev = "7d67d8db70dfc9bf8c4d8ed550d22bf070132039"
-
-[dependencies.oxide-auth]
-# We use this until this PR is merged, which updates ring to 0.16, which we need.
-# https://github.com/HeroicKatora/oxide-auth/pull/73
-git = "https://github.com/gzp-crey/oxide-auth"
-rev = "7d67d8db70dfc9bf8c4d8ed550d22bf070132039"
 
 [build-dependencies]
 yarte = { version = "0.7", features = ["with-actix-web"]  }

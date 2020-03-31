@@ -1,12 +1,13 @@
+use std::str::FromStr;
+
 use log::{Level, LevelFilter};
 use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Config, Root};
+use log4rs::encode::Encode;
 use log4rs::encode::json::JsonEncoder;
 use log4rs::encode::pattern::PatternEncoder;
-use log4rs::encode::Encode;
 
 use crate::config::CONFIG;
-use std::str::FromStr;
 
 fn encoder() -> Box<dyn Encode> {
     let fmt = CONFIG.log().format().to_lowercase();

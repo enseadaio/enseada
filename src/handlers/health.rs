@@ -1,4 +1,5 @@
 use actix_web::web::{Data, Json};
+use serde::{Serialize, Deserialize};
 
 use crate::couchdb;
 use crate::couchdb::status::Status;

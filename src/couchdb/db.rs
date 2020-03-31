@@ -1,7 +1,8 @@
-use crate::couchdb::client::Client;
-use crate::couchdb::responses;
 use reqwest::Error;
 use serde::de::DeserializeOwned;
+
+use crate::couchdb::client::Client;
+use crate::couchdb::responses;
 
 pub struct Database {
     name: String,

@@ -1,15 +1,16 @@
+use io::BufReader;
+use std::fs::File;
+use std::io;
+use std::io::{Seek, SeekFrom};
+
 use actix_web::{App, HttpServer};
-use actix_web::middleware::{Logger, DefaultHeaders};
+use actix_web::middleware::{DefaultHeaders, Logger};
+use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
+use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 
 use crate::config::CONFIG;
 use crate::couchdb::add_couch_client;
 use crate::routes::routes;
-use rustls::{ServerConfig, NoClientAuth, PrivateKey, Certificate};
-use rustls::internal::pemfile::{certs, rsa_private_keys, pkcs8_private_keys};
-use std::fs::File;
-use std::io;
-use io::BufReader;
-use std::io::{ErrorKind, Read, BufRead, SeekFrom, Seek};
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());

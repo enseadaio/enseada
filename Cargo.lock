@@ -122,10 +122,9 @@ dependencies = [
  "pin-project",
  "rand",
  "regex",
- "ring",
  "serde 1.0.104",
  "serde_json",
- "serde_urlencoded 0.6.1",
+ "serde_urlencoded",
  "sha1",
  "slab",
  "time",
@@ -194,22 +193,6 @@ checksum = "d3e4fc95dfa7e24171b2d0bb46b85f8ab0e8499e4e3caec691fc4ea65c287564"
 dependencies = [
  "futures-util",
  "pin-project",
-]
-
-[[package]]
-name = "actix-session"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca833a08799c95281204f9cc76223da4d12d2caa03de24362b3e268c60da328c"
-dependencies = [
- "actix-service",
- "actix-web",
- "bytes",
- "derive_more",
- "futures",
- "serde 1.0.104",
- "serde_json",
- "time",
 ]
 
 [[package]]
@@ -312,7 +295,7 @@ dependencies = [
  "rustls 0.16.0",
  "serde 1.0.104",
  "serde_json",
- "serde_urlencoded 0.6.1",
+ "serde_urlencoded",
  "time",
  "url 2.1.1",
 ]
@@ -460,7 +443,7 @@ dependencies = [
  "rustls 0.16.0",
  "serde 1.0.104",
  "serde_json",
- "serde_urlencoded 0.6.1",
+ "serde_urlencoded",
 ]
 
 [[package]]
@@ -1027,14 +1010,13 @@ dependencies = [
  "lazy_static 1.4.0",
  "log",
  "log4rs",
- "oxide-auth",
- "oxide-auth-actix",
  "reqwest",
  "rustls 0.16.0",
  "serde 1.0.104",
- "serde_derive",
  "serde_json",
+ "serde_urlencoded",
  "url 2.1.1",
+ "url_serde",
  "yarte",
 ]
 
@@ -1873,35 +1855,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oxide-auth"
-version = "0.5.0-preview.0"
-source = "git+https://github.com/gzp-crey/oxide-auth?rev=7d67d8db70dfc9bf8c4d8ed550d22bf070132039#7d67d8db70dfc9bf8c4d8ed550d22bf070132039"
-dependencies = [
- "base64 0.11.0",
- "chrono",
- "ring",
- "rmp-serde",
- "serde 1.0.104",
- "serde_derive",
- "serde_json",
- "url 1.7.2",
-]
-
-[[package]]
-name = "oxide-auth-actix"
-version = "0.0.1"
-source = "git+https://github.com/gzp-crey/oxide-auth?rev=7d67d8db70dfc9bf8c4d8ed550d22bf070132039#7d67d8db70dfc9bf8c4d8ed550d22bf070132039"
-dependencies = [
- "actix",
- "actix-session",
- "actix-web",
- "futures",
- "oxide-auth",
- "serde_urlencoded 0.5.5",
- "url 1.7.2",
-]
-
-[[package]]
 name = "parking_lot"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2247,7 +2200,7 @@ dependencies = [
  "rustls 0.17.0",
  "serde 1.0.104",
  "serde_json",
- "serde_urlencoded 0.6.1",
+ "serde_urlencoded",
  "time",
  "tokio",
  "tokio-rustls 0.13.0",
@@ -2283,27 +2236,6 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi 0.3.8",
-]
-
-[[package]]
-name = "rmp"
-version = "0.8.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f10b46df14cf1ee1ac7baa4d2fbc2c52c0622a4b82fa8740e37bc452ac0184f"
-dependencies = [
- "byteorder",
- "num-traits 0.2.11",
-]
-
-[[package]]
-name = "rmp-serde"
-version = "0.14.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c1ee98f14fe8b8e9c5ea13d25da7b2a1796169202c57a09d7288de90d56222b"
-dependencies = [
- "byteorder",
- "rmp",
- "serde 1.0.104",
 ]
 
 [[package]]
@@ -2540,18 +2472,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "110b3dbdf8607ec493c22d5d947753282f3bae73c0f56d322af1e8c78e4c23d5"
 dependencies = [
  "serde 0.8.23",
-]
-
-[[package]]
-name = "serde_urlencoded"
-version = "0.5.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "642dd69105886af2efd227f75a520ec9b44a820d65bc133a9131f7d229fd165a"
-dependencies = [
- "dtoa",
- "itoa",
- "serde 1.0.104",
- "url 1.7.2",
 ]
 
 [[package]]
@@ -3085,6 +3005,16 @@ dependencies = [
  "idna 0.2.0",
  "matches",
  "percent-encoding 2.1.0",
+]
+
+[[package]]
+name = "url_serde"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74e7d099f1ee52f823d4bdd60c93c3602043c728f5db3b97bdb548467f7bddea"
+dependencies = [
+ "serde 1.0.104",
+ "url 1.7.2",
 ]
 
 [[package]]
