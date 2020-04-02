@@ -1,70 +1,91 @@
-use crate::oauth::storage::{ClientStorage, TokenStorage, AuthorizationCodeStorage};
+use async_trait::async_trait;
 
+use crate::oauth::storage::{ClientStorage, TokenStorage, AuthorizationCodeStorage};
 use crate::oauth::Result;
 use crate::oauth::token::{AccessToken, RefreshToken};
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
-use crate::oauth::persistence::entity::client::ClientEntity;
+use crate::oauth::persistence::client::ClientEntity;
+use std::sync::Arc;
+use crate::couchdb::db::Database;
+use reqwest::StatusCode;
 
 pub struct CouchStorage {
+    db: Arc<Database>
 }
 
 impl CouchStorage {
-    pub fn new() -> CouchStorage {
-        CouchStorage {}
+    pub fn new(db: Arc<Database>) -> CouchStorage {
+        CouchStorage { db }
     }
 
     pub fn save_client(&self, client: Client) -> Result<Client> {
         let entity = ClientEntity::from(client.clone());
-
+        log::info!("{:?}", entity);
         Ok(client)
     }
 }
 
+#[async_trait]
 impl ClientStorage for CouchStorage {
-    fn get_client(&self, _id: &str) -> Option<Client> {
-        None
+    async fn get_client(&self, id: &str) -> Option<Client> {
+        let guid = ClientEntity::build_guid(&String::from(id));
+        let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
+            Ok(client) => client,
+            Err(err) => {
+                if !err.is_status() || err.status().unwrap() != StatusCode::NOT_FOUND {
+                    log::error!("Error fetching client from database: {}", err);
+                }
+
+                return None
+            }
+        };
+
+        Some(client.into())
     }
 }
 
+#[async_trait]
 impl TokenStorage<AccessToken> for CouchStorage {
-    fn get_token(&self, _sig: &str) -> Option<AccessToken> {
+    async fn get_token(&self, _sig: &str) -> Option<AccessToken> {
         None
     }
 
-    fn store_token(&self, _sig: &str, token: AccessToken) -> Result<AccessToken> {
+    async fn store_token(&self, _sig: &str, token: AccessToken) -> Result<AccessToken> {
         Ok(token)
     }
 
-    fn revoke_token(&self, _sig: &str) -> Result<()> {
+    async fn revoke_token(&self, _sig: &str) -> Result<()> {
         Ok(())
     }
 }
 
+#[async_trait]
 impl TokenStorage<RefreshToken> for CouchStorage {
-    fn get_token(&self, _sig: &str) -> Option<RefreshToken> {
+    async fn get_token(&self, _sig: &str) -> Option<RefreshToken> {
         None
     }
 
-    fn store_token(&self, _sig: &str, token: RefreshToken) -> Result<RefreshToken> {
+    async fn store_token(&self, _sig: &str, token: RefreshToken) -> Result<RefreshToken> {
         Ok(token)
     }
 
-    fn revoke_token(&self, _sig: &str) -> Result<()> {
+    async fn revoke_token(&self, _sig: &str) -> Result<()> {
         Ok(())
     }
 }
 
+#[async_trait]
 impl AuthorizationCodeStorage for CouchStorage {
-    fn get_code(&self, _sig: &str) -> Option<AuthorizationCode> {
+    async fn get_code(&self, _sig: &str) -> Option<AuthorizationCode> {
         None
     }
 
-    fn store_code(&self, _sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
+    async fn store_code(&self, _sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
         Ok(code)
     }
 
-    fn revoke_code(&self, _sig: &str) -> Result<()> {
+    async fn revoke_code(&self, _sig: &str) -> Result<()> {
         Ok(())
     }
 }

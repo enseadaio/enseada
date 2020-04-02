@@ -16,7 +16,6 @@ pub(super) struct Client {
 
 impl Client {
     pub fn new(base_url: Url, username: String, password: String) -> Client {
-        log::debug!("Creating new CouchDB client instance");
         let client = HttpClient::builder()
             .use_rustls_tls()
             .build()
@@ -40,10 +39,11 @@ impl Client {
             .await
     }
 
-    pub async fn put<B: Serialize, R: DeserializeOwned>(
+    pub async fn put<B: Serialize, Q: Serialize, R: DeserializeOwned>(
         &self,
         path: &str,
         body: Option<B>,
+        query: Option<Q>
     ) -> reqwest::Result<R> {
         let req = self
             .client
@@ -51,6 +51,12 @@ impl Client {
             .basic_auth(&self.username, self.password.as_ref());
         let req = if let Some(body) = body {
             req.json::<B>(&body)
+        } else {
+            req
+        };
+
+        let req = if let Some(query) = query {
+            req.query::<Q>(&query)
         } else {
             req
         };

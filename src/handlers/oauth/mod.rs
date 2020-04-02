@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use actix_web::{HttpResponse, Responder};
 use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
-
+use futures::TryFutureExt;
 use url::Url;
 
 use crate::errors::ApiError;
 use crate::oauth::{RequestHandler, Scope};
-
+use crate::oauth::error::{ErrorKind};
 use crate::oauth::handler::OAuthHandler;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::response::TokenResponse;
@@ -15,6 +15,7 @@ use crate::oauth::response::TokenType::Bearer;
 use crate::oauth::persistence::CouchStorage;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
+use crate::couchdb::{db, Couch};
 
 
 pub mod error;
@@ -22,7 +23,9 @@ pub mod error;
 type ConcreteOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
 
 pub fn add_oauth_handler(app: &mut ServiceConfig) {
-    let storage = Arc::new(CouchStorage::new());
+    let couch = Couch::from_global_config();
+    let db = couch.database(db::name::OAUTH, true);
+    let storage = Arc::new(CouchStorage::new(Arc::new(db)));
     let handler = OAuthHandler::new(
         storage.clone(),
         storage.clone(),
@@ -33,11 +36,9 @@ pub fn add_oauth_handler(app: &mut ServiceConfig) {
 }
 
 pub async fn login_form(handler: Data<ConcreteOAuthHandler>, auth: Query<AuthorizationRequest>) -> impl Responder {
-    if let Err(err) = handler.validate(&auth) {
+    if let Err(err) = handler.validate(&auth).await {
         log::error!("{}", err);
     }
-
-
 
     let response_type = auth.response_type.to_string();
     let client_id = auth.client_id.clone();
@@ -56,12 +57,15 @@ pub async fn login_form(handler: Data<ConcreteOAuthHandler>, auth: Query<Authori
 
 pub async fn login(handler: Data<ConcreteOAuthHandler>, auth: Form<AuthorizationRequest>) -> HttpResponse {
     let validate = handler.validate(&auth);
-    let handle = validate.and_then(|_| handler.handle(&auth));
+    let handle = validate.and_then(|_| handler.handle(&auth)).await;
     let redirect_uri = auth.redirect_uri.clone();
     let mut url = Url::parse(&redirect_uri).unwrap();
     match handle {
         Ok(res) => redirect_back(&mut url, res),
-        Err(err) => redirect_back(&mut url, err),
+        Err(err) => match err.kind() {
+            ErrorKind::InvalidRedirectUri => HttpResponse::BadRequest().body(err.to_string()),
+            _ => redirect_back(&mut url, err),
+        }
     }
 }
 

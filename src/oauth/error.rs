@@ -19,6 +19,10 @@ impl Error {
         }
     }
 
+    pub fn kind(&self) -> &ErrorKind {
+        &self.error
+    }
+
     pub fn set_error_uri(&mut self, url: url::Url) -> &mut Self {
         self.error_uri = Some(url.to_string());
         self
@@ -37,6 +41,7 @@ pub enum ErrorKind {
     AccessDenied,
     InvalidClient,
     InvalidGrant,
+    InvalidRedirectUri,
     InvalidRequest,
     InvalidScope,
     ServerError,

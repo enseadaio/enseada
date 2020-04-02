@@ -1,5 +1,4 @@
-
-
+use async_trait::async_trait;
 
 use crate::oauth::error::{Error};
 
@@ -18,7 +17,8 @@ pub use scope::*;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[async_trait]
 pub trait RequestHandler<T, R> {
-    fn validate(&self, req: &T) -> Result<()>;
-    fn handle(&self, req: &T) -> Result<R>;
+    async fn validate(&self, req: &T) -> Result<()>;
+    async fn handle(&self, req: &T) -> Result<R>;
 }

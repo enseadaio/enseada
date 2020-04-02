@@ -9,6 +9,7 @@ use crate::oauth::request::AuthorizationRequest;
 #[derive(Debug, Serialize)]
 pub struct AuthorizationResponse {
         code: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         state: Option<String>,
 }
 

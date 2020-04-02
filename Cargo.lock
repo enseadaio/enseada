@@ -396,9 +396,9 @@ checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
 
 [[package]]
 name = "async-trait"
-version = "0.1.24"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "750b1c38a1dfadd108da0f01c08f4cdc7ff1bb39b325f9c82cc972361780a6e1"
+checksum = "bab5c215748dc1ad11a145359b1067107ae0f8ca5e99844fa64067ed5bf198e3"
 dependencies = [
  "proc-macro2 1.0.9",
  "quote 1.0.2",
@@ -1003,10 +1003,12 @@ dependencies = [
  "actix-rt",
  "actix-tls",
  "actix-web",
+ "async-trait",
  "config",
  "derivative",
  "derive_more",
  "dotenv",
+ "futures",
  "lazy_static 1.4.0",
  "log",
  "log4rs",

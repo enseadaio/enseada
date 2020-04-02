@@ -16,6 +16,8 @@ mod templates;
 async fn main() -> std::io::Result<()> {
     logger::init();
 
+    couchdb::migrate().await?;
+
     log::info!("Starting Enseada...");
 
     server::run().await
