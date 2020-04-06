@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize, Serializer, Deserializer};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Guid {
     partition: Option<String>,
     id: String,

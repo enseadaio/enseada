@@ -51,7 +51,7 @@ pub enum TokenRequest {
     AuthorizationCode {
         code: String,
         redirect_uri: String,
-        client_id: String,
+        client_id: Option<String>,
     }
 }
 

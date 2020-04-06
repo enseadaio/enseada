@@ -19,6 +19,9 @@ impl SecureSecret {
     pub fn new(bytes: Vec<u8>) -> SecureSecret {
         return SecureSecret(bytes)
     }
+    pub fn empty() -> SecureSecret {
+        SecureSecret(vec![])
+    }
 }
 
 impl Display for SecureSecret {

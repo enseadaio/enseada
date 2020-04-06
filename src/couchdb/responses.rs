@@ -1,4 +1,5 @@
 use serde::{Serialize, Deserialize};
+use serde::de::DeserializeOwned;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DBInfo {
@@ -38,4 +39,11 @@ pub struct DBProps {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Ok {
     pub ok: bool,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct FindResponse<T> {
+    pub docs: Vec<T>,
+    pub bookmark: String,
+    pub warning: Option<String>,
 }

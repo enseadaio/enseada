@@ -11,6 +11,9 @@ use crate::couchdb::db::Database;
 use reqwest::StatusCode;
 use crate::oauth::persistence::entity::auth_code::AuthorizationCodeEntity;
 use crate::oauth::error::{Error, ErrorKind};
+use futures::FutureExt;
+use crate::secure::SecureSecret;
+use crate::couchdb::responses::FindResponse;
 
 pub struct CouchStorage {
     db: Arc<Database>
@@ -26,6 +29,23 @@ impl CouchStorage {
         log::info!("{:?}", entity);
         Ok(client)
     }
+
+    async fn get_code_entity(&self, sig: &str) -> Option<AuthorizationCodeEntity> {
+        let res: FindResponse<AuthorizationCodeEntity> = match self.db.find(serde_json::json!({
+            "sig": sig,
+        })).await.map_err(map_reqwest_err) {
+            Ok(res) => res,
+            Err(err) => {
+                log::error!("{}", err);
+                return None;
+            }
+        };
+        if let Some(w) = res.warning {
+            log::warn!("{}", w);
+        }
+
+        res.docs.first().clone().map(AuthorizationCodeEntity::clone)
+    }
 }
 
 #[async_trait]
@@ -39,7 +59,7 @@ impl ClientStorage for CouchStorage {
                     log::error!("Error fetching client from database: {}", err);
                 }
 
-                return None
+                return None;
             }
         };
 
@@ -79,18 +99,29 @@ impl TokenStorage<RefreshToken> for CouchStorage {
 
 #[async_trait]
 impl AuthorizationCodeStorage for CouchStorage {
-    async fn get_code(&self, _sig: &str) -> Option<AuthorizationCode> {
-        None
+    async fn get_code(&self, sig: &str) -> Option<AuthorizationCode> {
+        let code = self.get_code_entity(sig).await;
+        code.map(|code| code.to_empty_code())
     }
 
     async fn store_code(&self, sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
-        let entity = AuthorizationCodeEntity::new(String::from(sig));
+        let entity = AuthorizationCodeEntity::new(String::from(sig), code.session().clone());
         self.db.put::<AuthorizationCodeEntity, serde_json::Value>(&entity.id().to_string(), entity).await
-            .map_err(|err| Error::new(ErrorKind::ServerError, err.to_string()))?;
+            .map_err(map_reqwest_err)?;
         Ok(code)
     }
 
-    async fn revoke_code(&self, _sig: &str) -> Result<()> {
-        Ok(())
+    async fn revoke_code(&self, sig: &str) -> Result<()> {
+        match self.get_code_entity(sig).await {
+            Some(code) => {
+                self.db.delete(code.id().to_string().as_str(), code.rev().unwrap().as_str()).await
+                    .map_err(map_reqwest_err)
+            },
+            None => Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string()))
+        }
     }
+}
+
+fn map_reqwest_err(err: reqwest::Error) -> Error {
+    Error::new(ErrorKind::ServerError, err.to_string())
 }

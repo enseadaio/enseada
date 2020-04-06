@@ -1,4 +1,5 @@
 use crate::oauth::Scope;
+use crate::secure::SecureSecret;
 
 
 pub trait Token: ToString {
@@ -12,6 +13,14 @@ pub struct AccessToken {
 }
 
 impl AccessToken {
+    pub fn new(token: SecureSecret, scope: Scope, expires_in: u16) -> AccessToken {
+        AccessToken {
+            token_rep: Some(token.to_string()),
+            scope,
+            expires_in,
+        }
+    }
+
     pub fn scope(&self) -> &Scope {
         &self.scope
     }
@@ -40,6 +49,13 @@ pub struct RefreshToken {
 }
 
 impl RefreshToken {
+    pub fn new(token: SecureSecret, scope: Scope, expires_in: u16) -> RefreshToken {
+        RefreshToken {
+            token_rep: Some(token.to_string()),
+            scope,
+            expires_in,
+        }
+    }
     pub fn scope(&self) -> &Scope {
         &self.scope
     }

@@ -8,6 +8,7 @@ pub mod error;
 pub mod handler;
 pub mod request;
 pub mod response;
+pub mod session;
 pub mod storage;
 pub mod token;
 pub mod persistence;

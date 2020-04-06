@@ -4,6 +4,8 @@ use crate::couchdb::client::Client;
 use crate::couchdb::responses;
 use std::sync::Arc;
 use serde::Serialize;
+use reqwest::StatusCode;
+use crate::couchdb::responses::FindResponse;
 
 pub mod name {
     pub const OAUTH: &'static str = "oauth";
@@ -37,7 +39,7 @@ impl Database {
             .map(|responses::Ok { ok }| ok)
     }
 
-    pub async fn get<T: DeserializeOwned>(&self, id: &str) -> reqwest::Result<T> {
+    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> reqwest::Result<R> {
         let path = format!("{}/{}", &self.name, id);
         log::debug!("getting {} from couch", &path);
         self.client.get(path.as_str()).await
@@ -47,5 +49,19 @@ impl Database {
         let path = format!("{}/{}", &self.name, id);
         log::debug!("putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
         self.client.put(path.as_str(), Some(entity), None::<usize>).await
+    }
+
+    pub async fn find<R: DeserializeOwned>(&self, selector: serde_json::Value) -> reqwest::Result<FindResponse<R>> {
+        let path = format!("{}/_find", &self.name);
+        let body = serde_json::json!({
+            "selector": selector,
+        });
+
+        self.client.post(path.as_str(), Some(body), None::<bool>).await
+    }
+
+    pub async fn delete(&self, id: &str, rev: &str) -> reqwest::Result<()> {
+        let path = format!("{}/{}", &self.name, id);
+        self.client.delete(path.as_str(), Some(&[("rev", rev)])).await
     }
 }

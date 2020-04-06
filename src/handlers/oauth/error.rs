@@ -1,7 +1,7 @@
-use actix_web::{HttpRequest, HttpResponse};
+use actix_web::{HttpRequest, HttpResponse, HttpMessage, FromRequest};
 
 use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError};
-use actix_web::web::{FormConfig, QueryConfig};
+use actix_web::web::{FormConfig, QueryConfig, Form};
 use url::Url;
 
 use crate::handlers::oauth::redirect_back;
@@ -39,9 +39,10 @@ fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
     InternalError::from_response(err, res).into()
 }
 
-fn handle_form_error(err: UrlencodedError, _req: &HttpRequest) -> Error {
+fn handle_form_error(err: UrlencodedError, req: &HttpRequest) -> Error {
     let detail = err.to_string();
     log::error!("Error: {}", &detail);
+    log::debug!("{:?}", req);
     let res = match &err {
          UrlencodedError::Parse => HttpResponse::BadRequest().json(OAuthError::new(ErrorKind::InvalidRequest, "request data is invalid or is missing a required parameter".to_string())),
         _ => HttpResponse::BadRequest().content_type("text/plain").body(detail),

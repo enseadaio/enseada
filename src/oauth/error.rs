@@ -1,6 +1,9 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
 use serde::Serialize;
+use actix_web::{ResponseError, HttpResponse};
+use reqwest::StatusCode;
+use actix_web::body::Body;
 
 #[derive(Serialize, Debug)]
 pub struct Error {
@@ -32,6 +35,20 @@ impl Error {
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", self.error, self.error_description)
+    }
+}
+
+impl std::error::Error for Error {}
+
+impl ResponseError for Error {
+    fn error_response(&self) -> HttpResponse {
+        match self.kind() {
+            ErrorKind::AccessDenied => HttpResponse::Forbidden(),
+            ErrorKind::InvalidClient => HttpResponse::Unauthorized(),
+            ErrorKind::ServerError | ErrorKind::Unknown => HttpResponse::InternalServerError(),
+            ErrorKind::TemporarilyUnavailable => HttpResponse::ServiceUnavailable(),
+            _ => HttpResponse::BadRequest(),
+        }.json(self)
     }
 }
 

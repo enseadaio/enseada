@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use actix_web::{HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, ResponseError};
 use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
 use futures::TryFutureExt;
 use url::Url;
 
 use crate::errors::ApiError;
 use crate::oauth::{RequestHandler, Scope};
-use crate::oauth::error::{ErrorKind};
+use crate::oauth::error::{ErrorKind, Error as OAuthError};
 use crate::oauth::handler::OAuthHandler;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::response::TokenResponse;
@@ -16,6 +16,7 @@ use crate::oauth::persistence::CouchStorage;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
 use crate::couchdb::{db, Couch};
+use std::collections::HashMap;
 
 
 pub mod error;
@@ -35,7 +36,8 @@ pub fn add_oauth_handler(app: &mut ServiceConfig) {
     app.data::<ConcreteOAuthHandler>(handler);
 }
 
-pub async fn login_form(handler: Data<ConcreteOAuthHandler>, auth: Query<AuthorizationRequest>) -> impl Responder {
+pub async fn login_form(handler: Data<ConcreteOAuthHandler>, query: Query<AuthorizationRequest>) -> impl Responder {
+    let auth = query.into_inner();
     if let Err(err) = handler.validate(&auth).await {
         log::error!("{}", err);
     }
@@ -55,7 +57,8 @@ pub async fn login_form(handler: Data<ConcreteOAuthHandler>, auth: Query<Authori
     }
 }
 
-pub async fn login(handler: Data<ConcreteOAuthHandler>, auth: Form<AuthorizationRequest>) -> HttpResponse {
+pub async fn login(handler: Data<ConcreteOAuthHandler>, form: Form<AuthorizationRequest>) -> HttpResponse {
+    let auth = form.into_inner();
     let validate = handler.validate(&auth);
     let handle = validate.and_then(|_| handler.handle(&auth)).await;
     let redirect_uri = auth.redirect_uri.clone();
@@ -69,16 +72,24 @@ pub async fn login(handler: Data<ConcreteOAuthHandler>, auth: Form<Authorization
     }
 }
 
-pub async fn token(req: Form<TokenRequest>) -> Result<Json<TokenResponse>, ApiError> {
-    log::info!("received token request {:?}", &req);
-    Ok(Json(TokenResponse {
-        access_token: "access_token".to_string(),
-        token_type: Bearer,
-        expires_in: 3600,
-        refresh_token: None,
-        scope: Scope::from(vec!["profile", "email"]),
-    }))
-}
+pub async fn token(handler: Data<ConcreteOAuthHandler>, form: Form<TokenRequest>) -> Result<Json<TokenResponse>, OAuthError> {
+    let req = form.into_inner();
+    log::debug!("received token request {:?}", &req);
+
+    let validate = handler.validate(&req);
+    let res: TokenResponse = validate.and_then(|_| handler.handle(&req)).await?;
+    Ok(Json(res))
+
+    // Uncomment to debug
+    //     log::info!("received token request {:?}", &form);
+    //     Ok(Json(TokenResponse {
+    //         access_token: "access_token".to_string(),
+    //         token_type: Bearer,
+    //         expires_in: 3600,
+    //         refresh_token: None,
+    //         scope: Scope::from(vec!["profile", "email"]),
+    //     }))
+    }
 
 pub fn redirect_back<T: serde::ser::Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {
     let option = serde_urlencoded::to_string(data).ok();

@@ -2,24 +2,21 @@ use crate::secure::SecureSecret;
 use std::convert::TryFrom;
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use serde::de::Error;
+use crate::oauth::session::Session;
 
 #[derive(Debug, Clone)]
 pub struct AuthorizationCode {
-    code: SecureSecret
+    code: SecureSecret,
+    session: Session,
 }
 
-impl TryFrom<String> for AuthorizationCode {
-    type Error = hex::FromHexError;
-
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        let code = hex::decode(s)?;
-        Ok(AuthorizationCode { code: SecureSecret::new(code) })
+impl AuthorizationCode {
+    pub fn new(code: SecureSecret, session: Session) -> AuthorizationCode {
+        AuthorizationCode { code, session }
     }
-}
 
-impl From<SecureSecret> for AuthorizationCode {
-    fn from(code: SecureSecret) -> Self {
-        AuthorizationCode { code }
+    pub fn session(&self) -> &Session {
+        &self.session
     }
 }
 
@@ -34,14 +31,5 @@ impl Serialize for AuthorizationCode {
         S: Serializer {
         let code = self.code.to_string();
         code.serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for AuthorizationCode {
-    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
-        D: Deserializer<'de> {
-        let code = String::deserialize(deserializer)?;
-        AuthorizationCode::try_from(code).map_err(serde::de::Error::custom)
-
     }
 }
