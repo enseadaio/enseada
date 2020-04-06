@@ -29,6 +29,7 @@ pub struct Configuration {
     tls: TLS,
     public: Public,
     port: i16,
+    secretkey: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -80,6 +81,10 @@ impl Configuration {
 
     pub fn tls(&self) -> &TLS {
         &self.tls
+    }
+
+    pub fn secret_key(&self) -> String {
+        self.secretkey.clone()
     }
 }
 

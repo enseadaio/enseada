@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::oauth::{RequestHandler, Result};
+use crate::oauth::code;
 use crate::oauth::request::AuthorizationRequest;
 use crate::oauth::error::{ErrorKind, Error};
 use crate::oauth::response::AuthorizationResponse;
@@ -9,6 +10,9 @@ use crate::oauth::token::{AccessToken, RefreshToken};
 
 use std::sync::Arc;
 use url::Url;
+use crate::secure;
+use crate::secure::SecureSecret;
+use crate::oauth::request::TokenRequest::AuthorizationCode;
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
     where
@@ -70,13 +74,18 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
         let uri = Url::parse(&req.redirect_uri).map_err(|err| Error::new(ErrorKind::InvalidRedirectUri, err.to_string()))?;
 
         if !client.allowed_redirect_uris().contains(&uri) {
-            return Err(Error::new(ErrorKind::InvalidRedirectUri, String::from("invalid redirect URI")))
+            return Err(Error::new(ErrorKind::InvalidRedirectUri, String::from("invalid redirect URI")));
         }
 
         Ok(())
     }
 
     async fn handle(&self, req: &AuthorizationRequest) -> Result<AuthorizationResponse> {
-        AuthorizationResponse::from_req(req)
+        let secret = secure::generate_token(16).unwrap();
+        let code = code::AuthorizationCode::from(secret);
+        let code_sig = secure::generate_signature(code.to_string().as_str());
+        let code = self.authorization_code_storage.store_code(code_sig.to_string().as_ref(), code).await?;
+        let res = AuthorizationResponse::new(code, req.state.as_ref().map(String::clone));
+        Ok(res)
     }
 }

@@ -1009,16 +1009,19 @@ dependencies = [
  "derive_more",
  "dotenv",
  "futures",
+ "hex",
  "lazy_static 1.4.0",
  "log",
  "log4rs",
  "reqwest",
+ "ring",
  "rustls 0.16.0",
  "serde 1.0.104",
  "serde_json",
  "serde_urlencoded",
  "url 2.1.1",
  "url_serde",
+ "uuid",
  "yarte",
 ]
 
@@ -1291,6 +1294,12 @@ checksum = "1010591b26bbfe835e9faeabeb11866061cc7dcebffd56ad7d0942d0e61aefd8"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hex"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "644f9158b2f133fd50f5fb3242878846d9eb792e445c893805ff0e3824006e35"
 
 [[package]]
 name = "hostname"
@@ -3024,6 +3033,15 @@ name = "utf-8"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05e42f7c18b8f902290b009cde6d651262f956c98bc51bca4cd1d511c9cd85c7"
+
+[[package]]
+name = "uuid"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
+dependencies = [
+ "rand",
+]
 
 [[package]]
 name = "v_escape"

@@ -9,6 +9,8 @@ use crate::oauth::persistence::client::ClientEntity;
 use std::sync::Arc;
 use crate::couchdb::db::Database;
 use reqwest::StatusCode;
+use crate::oauth::persistence::entity::auth_code::AuthorizationCodeEntity;
+use crate::oauth::error::{Error, ErrorKind};
 
 pub struct CouchStorage {
     db: Arc<Database>
@@ -81,7 +83,10 @@ impl AuthorizationCodeStorage for CouchStorage {
         None
     }
 
-    async fn store_code(&self, _sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
+    async fn store_code(&self, sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
+        let entity = AuthorizationCodeEntity::new(String::from(sig));
+        self.db.put::<AuthorizationCodeEntity, serde_json::Value>(&entity.id().to_string(), entity).await
+            .map_err(|err| Error::new(ErrorKind::ServerError, err.to_string()))?;
         Ok(code)
     }
 

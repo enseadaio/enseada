@@ -8,7 +8,7 @@ use url::Url;
 pub struct ClientEntity {
     #[serde(rename = "_id")]
     id: Guid,
-    #[serde(rename = "_rev")]
+    #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
     allowed_scopes: Scope,
     allowed_redirect_uris: Vec<String>,

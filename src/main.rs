@@ -9,6 +9,7 @@ mod logger;
 mod oauth;
 mod responses;
 mod routes;
+mod secure;
 mod server;
 mod templates;
 

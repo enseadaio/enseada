@@ -35,7 +35,7 @@ impl Display for Error {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ErrorKind {
     AccessDenied,

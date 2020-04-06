@@ -18,9 +18,9 @@ pub fn handle_form_errors(cfg: FormConfig) -> FormConfig {
 
 fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
     let detail = err.to_string();
+    log::error!("Error: {}", &detail);
     let res = match &err {
         QueryPayloadError::Deserialize(err) => {
-            log::error!("{:?}", err);
             if detail.contains("redirect_uri") {
                 HttpResponse::BadRequest().body("invalid redirect_uri parameter")
             } else {
@@ -41,6 +41,7 @@ fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
 
 fn handle_form_error(err: UrlencodedError, _req: &HttpRequest) -> Error {
     let detail = err.to_string();
+    log::error!("Error: {}", &detail);
     let res = match &err {
          UrlencodedError::Parse => HttpResponse::BadRequest().json(OAuthError::new(ErrorKind::InvalidRequest, "request data is invalid or is missing a required parameter".to_string())),
         _ => HttpResponse::BadRequest().content_type("text/plain").body(detail),

@@ -104,7 +104,7 @@ mod test {
         let b = Scope::from("test something");
 
         let i = a.matches(&b).unwrap_err();
-        assert_eq!(&i.kind(), ErrorKind::InvalidScope);
+        assert_eq!(i.kind(), &ErrorKind::InvalidScope);
         assert_eq!(i.to_string(), "\"invalid_scope\": invalid scopes");
     }
 }

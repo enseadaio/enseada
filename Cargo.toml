@@ -25,11 +25,14 @@ log = "0.4"
 config = "0.9"
 dotenv = "0.15"
 rustls = "0.16"
+ring = "0.16"
+hex = "0.4"
 reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
 url = "2.1"
 derivative = "1.0.3"
 lazy_static = "1.4"
 derive_more = "0.99"
+uuid = { version = "0.8", features = ["v4"] }
 yarte = { version = "0.7", features = ["with-actix-web"]  }
 
 [dependencies.log4rs]
