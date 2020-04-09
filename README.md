@@ -98,7 +98,7 @@ Enseada is built as a statically linked executable.
 However, it needs a few native libraries to build the executable, in particular libclang and LLVM. On Debian
 they can be installed with `apt install build-essential llvm-dev libclang-dev`. These libraries are not needed to run the executable.
  
-You need a nightly build of the Rust compiler and standard library to build the binary. You can install one
+You need a stable build of the Rust compiler and standard library to build the binary. You can install one
 using [rustup](https://rustup.rs).
 
 Standard `cargo` commands work perfectly fine. For example, `cargo run` will compile and start the server.

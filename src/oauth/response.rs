@@ -27,7 +27,7 @@ impl AuthorizationResponse {
 pub struct TokenResponse {
     pub access_token: String,
     pub token_type: TokenType,
-    pub expires_in: u16,
+    pub expires_in: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub refresh_token: Option<String>,
     pub scope: Scope,

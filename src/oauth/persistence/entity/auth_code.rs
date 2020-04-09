@@ -14,7 +14,6 @@ pub struct AuthorizationCodeEntity {
     id: Guid,
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
-    sig: String,
     session: Session,
 }
 
@@ -23,8 +22,8 @@ impl AuthorizationCodeEntity {
         Guid::from(format!("code:{}", id))
     }
     pub fn new(sig: String, session: Session) -> AuthorizationCodeEntity {
-        let id = Self::build_guid(Uuid::new_v4().to_string());
-        AuthorizationCodeEntity { id, rev: None::<String>, sig, session, }
+        let id = Self::build_guid(sig);
+        AuthorizationCodeEntity { id, rev: None::<String>, session, }
     }
 
     pub fn id(&self) -> &Guid {

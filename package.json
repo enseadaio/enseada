@@ -6,9 +6,11 @@
   "license": "MPL-2.0",
   "scripts": {
     "watch": "parcel watch static/js/index.js --public-url='/static'",
-    "build": "parcel build static/js/index.js --public-url='/static'"
+    "build": "parcel build static/js/index.js --public-url='/static'",
+    "openapi:generate": "JAVA_OPTS=\"-Dmodels -DmodelDocs=false\" openapi-generator generate -i docs/openapi.yml -g rust -o target/api"
   },
   "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^1.0.12-4.3.0",
     "del-cli": "^3.0.0",
     "parcel-bundler": "^1.12.4",
     "sass": "^1.26.3",

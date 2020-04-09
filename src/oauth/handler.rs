@@ -157,13 +157,16 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                 };
 
                 let session = code.session();
-                let scope = session.scope();
 
-                let access_token_s = secure::generate_token(32).unwrap();
-                let access_token = AccessToken::new(access_token_s, scope.clone(), 3600);
+                let access_token_value = secure::generate_token(32).unwrap();
+                let access_token_sig = secure::generate_signature(access_token_value.to_string().as_str());
+                let access_token = AccessToken::new(access_token_value, session.clone(), 3600);
+                let access_token = self.access_token_storage.store_token(access_token_sig.to_string().as_str(), access_token).await?;
 
-                let refresh_token_s = secure::generate_token(32).unwrap();
-                let refresh_token = RefreshToken::new(refresh_token_s, scope.clone(), 3600);
+                let refresh_token_value = secure::generate_token(32).unwrap();
+                let refresh_token_sig = secure::generate_signature(refresh_token_value.to_string().as_str());
+                let refresh_token = RefreshToken::new(refresh_token_value, session.clone(), 3600);
+                let refresh_token = self.refresh_token_storage.store_token(refresh_token_sig.to_string().as_str(), refresh_token).await?;
 
                 self.authorization_code_storage.revoke_code(code_sig.to_string().as_str()).await?;
 
@@ -172,7 +175,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                     token_type: TokenType::Bearer,
                     expires_in: access_token.expires_in().clone(),
                     refresh_token: Some(refresh_token.to_string()),
-                    scope: scope.clone(),
+                    scope: session.scope().clone(),
                 }
             }
         };

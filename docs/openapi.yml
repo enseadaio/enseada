@@ -1,0 +1,70 @@
+openapi: 3.0.1
+info:
+  title: Enseada
+  description: A Cloud native multi-package registry
+  contact:
+    email: enseada@pm.me
+    url: https://enseada.io
+  license:
+    name: MPL 2.0
+    url: https://opensource.org/licenses/MPL-2.0
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Enseada
+  url: https://enseada.io
+tags:
+  - name: maven
+    description: Maven registry endpoints
+  - name: docker
+    description: Docker V2 registry endpoints
+  - name: monitoring
+    description: Monitoring and observability endpoints
+paths:
+  /health:
+    get:
+      tags:
+        - monitoring
+      summary: Get the server health status
+      operationId: health::get
+      responses:
+        200:
+          description: Server is active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        503:
+          description: Server is not active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: ['ok']
+    APIError:
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+          example: ['an error has occurred']
+  securitySchemes:
+    oauth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth/authorize
+          tokenUrl: /oauth/token
+          scopes:
+            profile: access user profile information
