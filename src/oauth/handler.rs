@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 
-use crate::oauth::{RequestHandler, Result, Scope};
+use crate::oauth::{RequestHandler, Result};
 use crate::oauth::code;
+use crate::oauth::scope::Scope;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::error::{ErrorKind, Error};
 use crate::oauth::response::{AuthorizationResponse, TokenResponse, TokenType};
@@ -96,7 +97,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
             .clone();
 
         let secret = secure::generate_token(16).unwrap();
-        let code = code::AuthorizationCode::new(secret, session);
+        let code = code::AuthorizationCode::new(secret, session, 300);
         let code_sig = secure::generate_signature(code.to_string().as_str());
         log::debug!("Storing token with signature {}", code_sig);
         let code = self.authorization_code_storage.store_code(code_sig.to_string().as_str(), code).await?;
@@ -130,6 +131,10 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                     Some(code) => code,
                     None => return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string())),
                 };
+
+                if code.expires_in() < &1 {
+                    return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string()));
+                }
 
                 let session = code.session();
 

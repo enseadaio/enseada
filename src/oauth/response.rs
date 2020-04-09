@@ -3,7 +3,8 @@ use std::fmt::{self, Debug, Formatter};
 use serde::Serialize;
 
 
-use crate::oauth::{Result, Scope};
+use crate::oauth::Result;
+use crate::oauth::scope::Scope;
 use crate::oauth::request::AuthorizationRequest;
 use crate::oauth::code::AuthorizationCode;
 

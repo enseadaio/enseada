@@ -38,11 +38,12 @@ pub async fn run() -> io::Result<()> {
         let certs = get_certs(cert_f);
         let key = get_rsa_key(key_f);
         config.set_single_cert(certs, key).unwrap();
-        server.bind_rustls(address, config)
+        server.bind_rustls(&address, config)
     } else {
-        server.bind(address)
+        server.bind(&address)
     }?;
 
+    log::info!("Server started listening on {}", &address);
     server.run().await
 }
 

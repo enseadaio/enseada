@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::oauth::Scope;
+use crate::oauth::scope::Scope;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Session {

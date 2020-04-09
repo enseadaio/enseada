@@ -1,10 +1,13 @@
+use chrono::{DateTime, Utc};
+use chrono::serde::ts_seconds;
 use serde::{Deserialize, Serialize};
-use crate::oauth::client::Client;
-use crate::couchdb::guid::Guid;
-use crate::oauth::Scope;
 use url::Url;
 use uuid::Uuid;
+
+use crate::couchdb::guid::Guid;
+use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
+use crate::oauth::scope::Scope;
 use crate::oauth::session::Session;
 use crate::secure::SecureSecret;
 
@@ -15,15 +18,17 @@ pub struct AuthorizationCodeEntity {
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
     session: Session,
+    #[serde(with = "ts_seconds")]
+    expiration: DateTime<Utc>,
 }
 
 impl AuthorizationCodeEntity {
     pub fn build_guid(id: String) -> Guid {
         Guid::from(format!("code:{}", id))
     }
-    pub fn new(sig: String, session: Session) -> AuthorizationCodeEntity {
+    pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AuthorizationCodeEntity {
         let id = Self::build_guid(sig);
-        AuthorizationCodeEntity { id, rev: None::<String>, session, }
+        AuthorizationCodeEntity { id, rev: None::<String>, session, expiration, }
     }
 
     pub fn id(&self) -> &Guid {
@@ -39,6 +44,7 @@ impl AuthorizationCodeEntity {
     }
 
     pub fn to_empty_code(&self) -> AuthorizationCode {
-        AuthorizationCode::new(SecureSecret::empty(), self.session().clone())
+        let expires_in = self.expiration.signed_duration_since(Utc::now()).num_seconds() as u64;
+        AuthorizationCode::new(SecureSecret::empty(), self.session().clone(), expires_in)
     }
 }

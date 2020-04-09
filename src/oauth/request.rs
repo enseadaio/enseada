@@ -2,7 +2,7 @@ use std::fmt::{self, Debug, Formatter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::oauth::Scope;
+use crate::oauth::scope::Scope;
 
 
 #[derive(Debug, Deserialize)]

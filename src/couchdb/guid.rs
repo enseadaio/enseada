@@ -1,4 +1,7 @@
 use serde::{Deserialize, Serialize, Serializer, Deserializer};
+use std::fmt::Display;
+use serde::export::Formatter;
+use serde::export::fmt::Error;
 
 #[derive(Clone, Debug)]
 pub struct Guid {
@@ -16,11 +19,11 @@ impl Guid {
     }
 }
 
-impl ToString for Guid {
-    fn to_string(&self) -> String {
+impl Display for Guid {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let partition = self.partition().map(|s| format!("{}:", s.clone()))
             .unwrap_or("".to_string());
-        format!("{}{}", partition, &self.id)
+        write!(f, "{}{}", partition, &self.id)
     }
 }
 

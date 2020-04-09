@@ -1,5 +1,5 @@
 use derivative::Derivative;
-use reqwest::{Client as HttpClient, Method, StatusCode};
+use reqwest::{Client as HttpClient, Method, StatusCode, Response};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use url::{ParseError, Url};
@@ -62,7 +62,8 @@ impl Client {
             .head(self.build_url(path).unwrap())
             .basic_auth(&self.username, self.password.as_ref())
             .send()
-            .await;
+            .await?
+            .error_for_status();
 
         match result {
             Ok(_res) => Ok(true),

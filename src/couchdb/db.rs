@@ -64,4 +64,9 @@ impl Database {
         let path = format!("{}/{}", &self.name, id);
         self.client.delete(path.as_str(), Some(&[("rev", rev)])).await
     }
+
+    pub async fn exists(&self, id: &str) -> reqwest::Result<bool> {
+        let path = format!("{}/{}", &self.name, id);
+        self.client.exists(path.as_str()).await
+    }
 }

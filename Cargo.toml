@@ -32,6 +32,7 @@ futures = "0.3.4"
 # Security
 rustls = "0.16"
 ring = "0.16"
+rust-argon2 = "0.8.2"
 
 # Macros
 derive_more = "0.99"

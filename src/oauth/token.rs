@@ -1,4 +1,4 @@
-use crate::oauth::Scope;
+use crate::oauth::scope::Scope;
 use crate::secure::SecureSecret;
 use crate::oauth::session::Session;
 

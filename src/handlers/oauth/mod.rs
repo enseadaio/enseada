@@ -6,7 +6,8 @@ use futures::TryFutureExt;
 use url::Url;
 
 use crate::errors::ApiError;
-use crate::oauth::{RequestHandler, Scope};
+use crate::oauth::RequestHandler;
+use crate::oauth::scope::Scope;
 use crate::oauth::error::{ErrorKind, Error as OAuthError};
 use crate::oauth::handler::OAuthHandler;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};

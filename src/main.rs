@@ -21,5 +21,9 @@ async fn main() -> std::io::Result<()> {
 
     log::info!("Starting Enseada...");
 
-    server::run().await
+    server::run().await?;
+
+    log::info!("Stopping Enseada...");
+
+    Ok(())
 }

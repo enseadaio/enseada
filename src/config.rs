@@ -1,10 +1,11 @@
-use serde::{Deserialize};
 use config::{Config, ConfigError, Environment};
+use serde::Deserialize;
 use url::Url;
 
 #[derive(Debug, Deserialize)]
 pub struct Logging {
     level: String,
+    rootlevel: String,
     format: Option<String>,
 }
 
@@ -54,6 +55,7 @@ impl Configuration {
         c.set_default("port", 9623)?;
         c.set_default("public.host", "localhost")?;
         c.set_default("log.level", "info")?;
+        c.set_default("log.rootlevel", "warn")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
         c.set_default("tls.enabled", false)?;
         // So we don't have 'missing field' errors
@@ -91,6 +93,10 @@ impl Configuration {
 impl Logging {
     pub fn level(&self) -> String {
         self.level.clone()
+    }
+
+    pub fn root_level(&self) -> String {
+        self.rootlevel.clone()
     }
 
     pub fn format(&self) -> String {

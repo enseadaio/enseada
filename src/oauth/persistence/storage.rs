@@ -17,6 +17,7 @@ use crate::couchdb::responses::FindResponse;
 use crate::oauth::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
 use chrono::{DateTime, Utc, Duration};
 use std::ops::Add;
+use std::convert::TryInto;
 
 pub struct CouchStorage {
     db: Arc<Database>
@@ -49,7 +50,7 @@ impl ClientStorage for CouchStorage {
             }
         };
 
-        Some(client.into())
+        client.try_into().ok()
     }
 }
 
@@ -122,7 +123,8 @@ impl AuthorizationCodeStorage for CouchStorage {
     }
 
     async fn store_code(&self, sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
-        let entity = AuthorizationCodeEntity::new(String::from(sig), code.session().clone());
+        let exp = Utc::now().add(Duration::seconds(code.expires_in().clone() as i64));
+        let entity = AuthorizationCodeEntity::new(String::from(sig), code.session().clone(), exp);
         self.db.put::<&AuthorizationCodeEntity, serde_json::Value>(&entity.id().to_string(), &entity).await
             .map_err(map_reqwest_err)?;
         Ok(code)

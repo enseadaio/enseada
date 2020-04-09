@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use crate::oauth::client::Client;
 use crate::couchdb::guid::Guid;
-use crate::oauth::Scope;
+use crate::oauth::scope::Scope;
 use url::Url;
 use uuid::Uuid;
 use crate::oauth::code::AuthorizationCode;
