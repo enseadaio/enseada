@@ -1,7 +1,7 @@
-use actix_web::{HttpRequest, HttpResponse, HttpMessage, FromRequest};
+use actix_web::{HttpRequest, HttpResponse, HttpMessage};
 
 use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError};
-use actix_web::web::{FormConfig, QueryConfig, Form};
+use actix_web::web::{FormConfig, QueryConfig};
 use url::Url;
 
 use crate::handlers::oauth::redirect_to_client;

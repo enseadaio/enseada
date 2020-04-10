@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use serde::{Deserialize, Serialize, Serializer, Deserializer};
+
 
 use crate::oauth::Result;
 use crate::oauth::scope::Scope;

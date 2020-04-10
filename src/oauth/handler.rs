@@ -12,10 +12,10 @@ use crate::oauth::token::{AccessToken, RefreshToken};
 use std::sync::Arc;
 use url::Url;
 use crate::secure;
-use crate::secure::SecureSecret;
-use crate::oauth::request::TokenRequest::AuthorizationCode;
+
+
 use crate::oauth::session::Session;
-use std::ops::Deref;
+
 use std::collections::HashMap;
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
@@ -58,7 +58,7 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
         }
     }
 
-    async fn validate_client(&self, client_id: &String, client_secret: Option<String>, redirect_uri: &String, scope: &Scope) -> Result<()> {
+    async fn validate_client(&self, client_id: &String, _client_secret: Option<String>, redirect_uri: &String, scope: &Scope) -> Result<()> {
         let client_id = client_id.as_str();
         let client = self.client_storage.get_client(client_id).await
             .ok_or_else(|| Error::new(ErrorKind::InvalidClient, format!("client id '{}' is invalid", &client_id)))?;
@@ -150,7 +150,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
     async fn handle(&self, req: &TokenRequest, _session: &mut Session) -> Result<TokenResponse> {
         let res = match req {
             TokenRequest::AuthorizationCode {
-                code, redirect_uri, client_id
+                code, redirect_uri: _, client_id: _
             } => {
                 let code_sig = secure::generate_signature(code.as_str());
                 let code = self.authorization_code_storage.get_code(code_sig.to_string().as_str()).await;

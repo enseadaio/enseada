@@ -9,7 +9,7 @@ use crate::couchdb::responses;
 use crate::couchdb::responses::{FindResponse, PutResponse};
 use crate::couchdb::Result;
 use crate::couchdb::error::Error;
-use std::borrow::Cow;
+
 
 pub mod name {
     pub const OAUTH: &'static str = "oauth";

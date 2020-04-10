@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use ring::hmac::{self, Key, HMAC_SHA512};
 
 use crate::config::CONFIG;
-use argon2::Config;
+
 
 lazy_static! {
     static ref SECURE_RANDOM: SystemRandom = SystemRandom::new();

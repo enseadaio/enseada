@@ -6,7 +6,7 @@ use crate::oauth::client::ClientKind as ExtClientKind;
 use url::Url;
 use std::convert::TryInto;
 use crate::oauth::error::Error;
-use rustls::internal::msgs::enums::HandshakeType::ClientKeyExchange;
+
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

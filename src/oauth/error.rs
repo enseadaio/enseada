@@ -2,8 +2,8 @@ use std::fmt::{self, Debug, Display, Formatter};
 
 use serde::Serialize;
 use actix_web::{ResponseError, HttpResponse};
-use reqwest::StatusCode;
-use actix_web::body::Body;
+
+
 
 #[derive(Serialize, Debug)]
 pub struct Error {

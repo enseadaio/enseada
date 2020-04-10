@@ -2,15 +2,12 @@ use std::convert::TryInto;
 use std::ops::Add;
 use std::sync::Arc;
 
-use chrono::{DateTime, Duration, Utc};
-use futures::FutureExt;
-use reqwest::StatusCode;
+use chrono::{Duration, Utc};
 
 use async_trait::async_trait;
 
 use crate::couchdb;
 use crate::couchdb::db::Database;
-use crate::couchdb::responses::FindResponse;
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::error::{Error, ErrorKind};
@@ -20,7 +17,6 @@ use crate::oauth::persistence::entity::token::{AccessTokenEntity, RefreshTokenEn
 use crate::oauth::Result;
 use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::oauth::token::{AccessToken, RefreshToken, Token};
-use crate::secure::SecureSecret;
 
 pub struct CouchStorage {
     db: Arc<Database>
@@ -45,7 +41,7 @@ impl ClientStorage for CouchStorage {
         let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
             Ok(client) => client,
             Err(err) => {
-                if let couchdb::error::Error::NotFound(s) = err {
+                if let couchdb::error::Error::NotFound(_s) = err {
                     return None;
                 }
                 log::error!("Error fetching client from database: {}", err);

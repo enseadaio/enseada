@@ -2,12 +2,12 @@ use actix_web::web::{Data, Json, ServiceConfig, Form};
 use serde::{Serialize, Deserialize};
 
 use crate::couchdb;
-use crate::couchdb::status::Status;
+
 use crate::error::ApiError;
-use crate::error::ApiError::ServiceUnavailable;
+
 use crate::responses;
 use crate::user::{UserService, User};
-use crate::couchdb::{Couch, db};
+use crate::couchdb::{db};
 
 pub fn add_user_service(app: &mut ServiceConfig) {
     let couch = &couchdb::SINGLETON;

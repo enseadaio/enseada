@@ -1,9 +1,9 @@
 use derivative::Derivative;
-use reqwest::{Client as HttpClient, Method, StatusCode, Response};
+use reqwest::{Client as HttpClient, Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use url::{ParseError, Url};
-use actix_web::web::method;
+
 use crate::couchdb::responses::Ok;
 
 #[derive(Derivative)]

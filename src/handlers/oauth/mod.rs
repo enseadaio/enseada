@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 use std::sync::Arc;
 
 use actix_web::{HttpResponse, Responder, ResponseError};
@@ -7,20 +7,20 @@ use futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::couchdb::{self, Couch, db};
-use crate::error::{ApiError, Error};
+use crate::couchdb::{self, db};
+use crate::error::{ApiError};
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::oauth::handler::OAuthHandler;
 use crate::oauth::persistence::CouchStorage;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::RequestHandler;
 use crate::oauth::response::TokenResponse;
-use crate::oauth::response::TokenType::Bearer;
-use crate::oauth::scope::Scope;
+
+
 use crate::oauth::session::Session;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
-use crate::user::{User, UserService};
+use crate::user::{UserService};
 
 pub mod error;
 

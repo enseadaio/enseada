@@ -1,8 +1,8 @@
-use std::collections::HashSet;
-use std::io::{Error, ErrorKind};
-use std::iter::FromIterator;
 
-use url::Url;
+use std::io::{Error, ErrorKind};
+
+
+
 
 use crate::couchdb;
 use crate::couchdb::Result;
@@ -10,7 +10,7 @@ use crate::couchdb::Couch;
 use crate::couchdb::db::{self, Database};
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
-use crate::oauth::scope::Scope;
+
 
 pub async fn migrate() -> std::io::Result<()> {
     let couch = &couchdb::SINGLETON;
