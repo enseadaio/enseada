@@ -64,9 +64,11 @@ fn get_rsa_key(key: &mut File) -> PrivateKey {
 }
 
 fn default_headers() -> DefaultHeaders{
-    let h = DefaultHeaders::new();
+    let h = DefaultHeaders::new()
+        .header("Server", "Enseada");
+
     if CONFIG.tls().enabled() {
-        h.header("Strict-Transport-Security", "max-age=31536000")
+        h.header("Strict-Transport-Security", "max-age=31536000;includeSubDomains")
     } else {
         h
     }
