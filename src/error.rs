@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
 use actix_web::{
     error::{BlockingError, ResponseError},
-    http::StatusCode,
+    http::{StatusCode},
     HttpResponse,
+    Error as HttpError,
 };
 use derive_more::Display;
 use std::fmt;
@@ -137,5 +138,11 @@ impl From<CouchError> for ApiError {
             CouchError::NotFound(err) => ApiError::NotFound(err),
             CouchError::Conflict(err) => ApiError::Conflict(err),
         }
+    }
+}
+
+impl From<HttpError> for ApiError {
+    fn from(err: HttpError) -> Self {
+        ApiError::InternalServerError(err.to_string())
     }
 }

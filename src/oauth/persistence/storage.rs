@@ -8,13 +8,13 @@ use async_trait::async_trait;
 
 use crate::couchdb;
 use crate::couchdb::db::Database;
+use crate::oauth::{Expirable, Result};
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::error::{Error, ErrorKind};
 use crate::oauth::persistence::client::ClientEntity;
 use crate::oauth::persistence::entity::auth_code::AuthorizationCodeEntity;
 use crate::oauth::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
-use crate::oauth::Result;
 use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::oauth::token::{AccessToken, RefreshToken, Token};
 
@@ -62,8 +62,7 @@ impl TokenStorage<AccessToken> for CouchStorage {
     }
 
     async fn store_token(&self, sig: &str, token: AccessToken) -> Result<AccessToken> {
-        let expiration = Utc::now().add(Duration::seconds(token.expires_in().clone() as i64));
-        let entity = AccessTokenEntity::new(String::from(sig), token.session().clone(), expiration);
+        let entity = AccessTokenEntity::new(String::from(sig), token.session().clone(), token.expiration().clone());
         self.db.put(&entity.id().to_string(), &entity).await
             .map_err(map_couch_err)?;
         Ok(entity.to_token(token.token()))
@@ -92,8 +91,7 @@ impl TokenStorage<RefreshToken> for CouchStorage {
     }
 
     async fn store_token(&self, sig: &str, token: RefreshToken) -> Result<RefreshToken> {
-        let expiration = Utc::now().add(Duration::seconds(token.expires_in().clone() as i64));
-        let entity = RefreshTokenEntity::new(String::from(sig), token.session().clone(), expiration);
+        let entity = RefreshTokenEntity::new(String::from(sig), token.session().clone(), token.expiration().clone());
         self.db.put(&entity.id().to_string(), &entity).await
             .map_err(map_couch_err)?;
         Ok(entity.to_token(token.token()))
@@ -122,8 +120,7 @@ impl AuthorizationCodeStorage for CouchStorage {
     }
 
     async fn store_code(&self, sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
-        let exp = Utc::now().add(Duration::seconds(code.expires_in().clone() as i64));
-        let entity = AuthorizationCodeEntity::new(String::from(sig), code.session().clone(), exp);
+        let entity = AuthorizationCodeEntity::new(String::from(sig), code.session().clone(), code.expiration().clone());
         self.db.put(&entity.id().to_string(), &entity).await
             .map_err(map_couch_err)?;
         Ok(code)

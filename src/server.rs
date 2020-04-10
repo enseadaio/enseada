@@ -12,23 +12,34 @@ use crate::config::CONFIG;
 use crate::couchdb::add_couch_client;
 use crate::handlers::user::add_user_service;
 use crate::routes::routes;
+use url::Url;
+use actix_session::CookieSession;
+use actix_web::cookie::SameSite;
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());
-    let public_host = CONFIG.public_host();
+    let public_host: &Url = CONFIG.public_host();
+    let secret_key = CONFIG.secret_key();
     let tls = CONFIG.tls();
 
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .wrap(CookieSession::private(secret_key.as_bytes())
+                .domain(public_host.domain().expect("public_host.domain()"))
+                .name("enseada_session")
+                .path("/")
+                .secure(tls.enabled())
+                .http_only(true)
+                .same_site(SameSite::Strict))
             .wrap(default_headers())
             .configure(add_couch_client)
             .configure(add_user_service)
             .configure(routes)
     });
 
-    let server = if let Some(public_host) = public_host {
-        server.server_hostname(public_host)
+    let server = if let Some(host) = public_host.host() {
+        server.server_hostname(host.to_string())
     } else {
         server
     };

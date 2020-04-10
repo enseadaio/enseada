@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::oauth::scope::Scope;
 
-
 #[derive(Debug, Deserialize)]
 pub struct AuthorizationRequest {
     pub response_type: ResponseType,
@@ -23,7 +22,7 @@ pub enum ResponseType {
 impl Debug for ResponseType {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match serde_json::to_string(self) {
-            Ok(s) => write!(f, "{}", s),
+            Ok(s) => s.fmt(f),
             Err(_) => Err(fmt::Error),
         }
     }
@@ -52,6 +51,8 @@ pub enum TokenRequest {
         code: String,
         redirect_uri: String,
         client_id: Option<String>,
-    }
+    },
+    #[serde(other)]
+    Unknown,
 }
 

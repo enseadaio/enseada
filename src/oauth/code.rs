@@ -3,26 +3,43 @@ use crate::secure::SecureSecret;
 use serde::{Serialize, Serializer};
 
 use crate::oauth::session::Session;
+use chrono::{DateTime, Utc, Duration};
+use std::ops::Add;
+use crate::oauth::Expirable;
 
 
 #[derive(Debug, Clone)]
 pub struct AuthorizationCode {
     code: SecureSecret,
     session: Session,
-    expires_in: u64,
+    expiration: DateTime<Utc>,
 }
 
 impl AuthorizationCode {
-    pub fn new(code: SecureSecret, session: Session, expires_in: u64) -> AuthorizationCode {
-        AuthorizationCode { code, session, expires_in, }
+    pub fn new(code: SecureSecret, session: Session, expires_in: Duration) -> AuthorizationCode {
+        AuthorizationCode {
+            code,
+            session,
+            expiration: Utc::now().add(expires_in),
+        }
     }
 
     pub fn session(&self) -> &Session {
         &self.session
     }
+}
 
-    pub fn expires_in(&self) -> &u64 {
-        &self.expires_in
+impl Expirable for AuthorizationCode {
+    fn expiration(&self) -> &DateTime<Utc> {
+        &self.expiration
+    }
+
+    fn expires_in(&self) -> i64 {
+        self.expiration.signed_duration_since(Utc::now()).num_seconds()
+    }
+
+    fn is_expired(&self) -> bool {
+        self.expiration.lt(&Utc::now())
     }
 }
 

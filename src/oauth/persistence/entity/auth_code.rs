@@ -44,7 +44,7 @@ impl AuthorizationCodeEntity {
     }
 
     pub fn to_empty_code(&self) -> AuthorizationCode {
-        let expires_in = self.expiration.signed_duration_since(Utc::now()).num_seconds() as u64;
+        let expires_in = self.expiration.signed_duration_since(Utc::now());
         AuthorizationCode::new(SecureSecret::empty(), self.session().clone(), expires_in)
     }
 }

@@ -52,8 +52,8 @@ impl UserService {
         UserService { db }
     }
 
-    pub async fn find_user(&self, username: String) -> Result<Option<User>, Error> {
-        let guid = User::build_guid(username).to_string();
+    pub async fn find_user(&self, username: &str) -> Result<Option<User>, Error> {
+        let guid = User::build_guid(username.to_string()).to_string();
         match self.db.get(guid.as_str()).await {
             Ok(user) => Ok(Some(user)),
             Err(err) => match err {
@@ -73,7 +73,7 @@ impl UserService {
 
     pub async fn authenticate_user(&self, username: String, password: String) -> Result<User, Error> {
         log::debug!("Authenticating user {}", &username);
-        let user = match self.find_user(username).await? {
+        let user = match self.find_user(&username).await? {
             Some(user) => user,
             None => return Err(Error::from("authentication failed")),
         };

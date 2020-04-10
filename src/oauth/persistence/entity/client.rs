@@ -6,6 +6,7 @@ use crate::oauth::client::ClientKind as ExtClientKind;
 use url::Url;
 use std::convert::TryInto;
 use crate::oauth::error::Error;
+use std::collections::HashSet;
 
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -34,7 +35,7 @@ pub struct ClientEntity {
     #[serde(skip_serializing_if = "Option::is_none")]
     client_secret_hash: Option<String>,
     allowed_scopes: Scope,
-    allowed_redirect_uris: Vec<String>,
+    allowed_redirect_uris: HashSet<Url>,
 }
 
 impl ClientEntity {
@@ -55,8 +56,6 @@ impl From<Client> for ClientEntity {
     fn from(client: Client) -> Self {
         let id = Self::build_guid(client.client_id());
         let kind = client.kind().clone();
-        let uris = client.allowed_redirect_uris().clone();
-        let allowed_redirect_uris = uris.iter().map(|url| url.to_string()).collect();
         ClientEntity {
             id,
             rev: None,
@@ -66,7 +65,7 @@ impl From<Client> for ClientEntity {
             },
             kind: ClientKind::from(kind),
             allowed_scopes: client.allowed_scopes().clone(),
-            allowed_redirect_uris,
+            allowed_redirect_uris: client.allowed_redirect_uris().clone(),
         }
     }
 }
@@ -76,8 +75,7 @@ impl TryInto<Client> for ClientEntity {
 
     fn try_into(self) -> Result<Client, Self::Error> {
         let guid = &self.id;
-        let uris = self.allowed_redirect_uris.clone();
-        let allowed_redirect_uris = uris.iter().map(|url| Url::parse(url).unwrap()).collect(); // TODO: handle
+        let allowed_redirect_uris = self.allowed_redirect_uris.clone();
         let client_id = guid.id().clone();
         let scopes = self.allowed_scopes.clone();
         let client = match &self.kind {

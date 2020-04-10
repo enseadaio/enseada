@@ -3,6 +3,16 @@ use serde::Deserialize;
 use url::Url;
 
 #[derive(Debug, Deserialize)]
+pub struct Configuration {
+    port: i16,
+    log: Logging,
+    couchdb: CouchDB,
+    tls: TLS,
+    public: Public,
+    secret: Secret,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Logging {
     level: String,
     rootlevel: String,
@@ -24,23 +34,18 @@ pub struct TLS {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Configuration {
-    log: Logging,
-    couchdb: CouchDB,
-    tls: TLS,
-    public: Public,
-    port: i16,
-    secretkey: String,
-}
-
-#[derive(Debug, Deserialize)]
 struct WithOptionalPath {
     path: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct Public {
-    host: Option<String>,
+    host: Url,
+}
+
+#[derive(Debug, Deserialize)]
+struct Secret {
+    key: String,
 }
 
 
@@ -52,16 +57,28 @@ impl Configuration {
 
         c.merge(Environment::with_prefix("enseada").separator("_"))?;
 
+        // Defaults
         c.set_default("port", 9623)?;
-        c.set_default("public.host", "localhost")?;
-        c.set_default("log.level", "info")?;
-        c.set_default("log.rootlevel", "warn")?;
-        c.set_default("couchdb.url", "http://localhost:5984")?;
         c.set_default("tls.enabled", false)?;
-        // So we don't have 'missing field' errors
         c.set_default("tls.cert.path", None::<String>)?;
         c.set_default("tls.key.path", None::<String>)?;
 
+        let port = c.get_int("port")?;
+        let proto = if c.get_bool("tls.enabled")? { "https" } else { "http" };
+        c.set_default("public.host", format!("{}://localhost:{}", proto, port))?;
+
+        c.set_default("log.level", "info")?;
+        c.set_default("log.rootlevel", "warn")?;
+        c.set_default("couchdb.url", "http://localhost:5984")?;
+
+
+        // Validations
+        let secret_key = c.get_str("secret.key")?;
+        if secret_key.len() < 32 {
+            return Err(ConfigError::Message("insecure secret key, must be at least 32 bytes".to_string()))
+        }
+
+        // Deserialize
         c.try_into()
     }
 
@@ -69,8 +86,8 @@ impl Configuration {
         self.port
     }
 
-    pub fn public_host(&self) -> Option<String> {
-        self.public.host.clone()
+    pub fn public_host(&self) -> &Url {
+        &self.public.host
     }
 
     pub fn log(&self) -> &Logging {
@@ -86,7 +103,7 @@ impl Configuration {
     }
 
     pub fn secret_key(&self) -> String {
-        self.secretkey.clone()
+        self.secret.key.clone()
     }
 }
 
@@ -141,7 +158,7 @@ impl TLS {
 
 // Throw the Config struct into a CONFIG lazy_static to avoid multiple processing
 lazy_static! {
-    pub static ref CONFIG: Configuration = Configuration::new().expect("Configuration::new()");
+    pub static ref CONFIG: Configuration = Configuration::new().expect("failed to load configuration");
 }
 
 #[cfg(debug_assertions)]

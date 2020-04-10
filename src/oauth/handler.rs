@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 
-use crate::oauth::{RequestHandler, Result};
+use crate::oauth::{RequestHandler, Result, Expirable};
 use crate::oauth::code;
 use crate::oauth::scope::Scope;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 use crate::oauth::error::{ErrorKind, Error};
 use crate::oauth::response::{AuthorizationResponse, TokenResponse, TokenType};
 use crate::oauth::storage::{ClientStorage, TokenStorage, AuthorizationCodeStorage};
-use crate::oauth::token::{AccessToken, RefreshToken};
+use crate::oauth::token::{AccessToken, RefreshToken, Token};
 
 use std::sync::Arc;
 use url::Url;
@@ -17,6 +17,7 @@ use crate::secure;
 use crate::oauth::session::Session;
 
 use std::collections::HashMap;
+use chrono::Duration;
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
     where
@@ -95,7 +96,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
             .set_scope(req.scope.clone());
 
         let secret = secure::generate_token(16).unwrap();
-        let code = code::AuthorizationCode::new(secret, session.clone(), 300);
+        let code = code::AuthorizationCode::new(secret, session.clone(), Duration::minutes(5));
         let code_sig = secure::generate_signature(code.to_string().as_str());
         log::debug!("Storing token with signature {}", code_sig);
         let code = self.authorization_code_storage.store_code(code_sig.to_string().as_str(), code).await?;
@@ -130,7 +131,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                     None => return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string())),
                 };
 
-                if code.expires_in() < &1 {
+                if code.is_expired() {
                     return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string()));
                 }
 
@@ -141,14 +142,14 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                 }
 
                 self.validate_client(&client_id, None, &redirect_uri, session.scope()).await?;
+                Ok(())
             }
-        };
-
-        Ok(())
+            TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))
+        }
     }
 
     async fn handle(&self, req: &TokenRequest, _session: &mut Session) -> Result<TokenResponse> {
-        let res = match req {
+        match req {
             TokenRequest::AuthorizationCode {
                 code, redirect_uri: _, client_id: _
             } => {
@@ -163,27 +164,26 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
 
                 let access_token_value = secure::generate_token(32).unwrap();
                 let access_token_sig = secure::generate_signature(access_token_value.to_string().as_str());
-                let access_token = AccessToken::new(access_token_value, session.clone(), 3600);
+                let access_token = AccessToken::new(access_token_value, session.clone(), Duration::minutes(5));
                 let access_token = self.access_token_storage.store_token(access_token_sig.to_string().as_str(), access_token).await?;
 
                 let refresh_token_value = secure::generate_token(32).unwrap();
                 let refresh_token_sig = secure::generate_signature(refresh_token_value.to_string().as_str());
-                let refresh_token = RefreshToken::new(refresh_token_value, session.clone(), 3600);
+                let refresh_token = RefreshToken::new(refresh_token_value, session.clone(), Duration::days(1));
                 let refresh_token = self.refresh_token_storage.store_token(refresh_token_sig.to_string().as_str(), refresh_token).await?;
 
                 self.authorization_code_storage.revoke_code(code_sig.to_string().as_str()).await?;
 
-                TokenResponse {
+                Ok(TokenResponse {
                     access_token: access_token.to_string(),
                     token_type: TokenType::Bearer,
-                    expires_in: access_token.expires_in().clone(),
+                    expires_in: access_token.expires_in(),
                     refresh_token: Some(refresh_token.to_string()),
                     scope: session.scope().clone(),
                     extra: HashMap::new(),
-                }
+                })
             }
-        };
-
-        Ok(res)
+            TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))
+        }
     }
 }

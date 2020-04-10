@@ -1,15 +1,11 @@
+use chrono::{DateTime, Duration, Utc};
+use chrono::serde::ts_seconds;
 use serde::{Deserialize, Serialize};
 
 use crate::couchdb::guid::Guid;
-
-
-
-
 use crate::oauth::session::Session;
-use crate::secure::SecureSecret;
-use chrono::{DateTime, Utc, Duration};
-use chrono::serde::ts_seconds;
 use crate::oauth::token::{AccessToken, RefreshToken};
+use crate::secure::SecureSecret;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccessTokenEntity {
@@ -52,9 +48,7 @@ impl AccessTokenEntity {
     }
 
     pub fn to_token(&self, token: SecureSecret) -> AccessToken {
-        let session = self.session.clone();
-        let expires_in = self.expires_in().num_seconds() as u64;
-        AccessToken::new(token, session, expires_in)
+        AccessToken::new(token, self.session.clone(), self.expires_in())
     }
 
     pub fn to_empty_token(&self) -> AccessToken {
@@ -103,9 +97,7 @@ impl RefreshTokenEntity {
     }
 
     pub fn to_token(&self, token: SecureSecret) -> RefreshToken {
-        let session = self.session.clone();
-        let expires_in = self.expires_in().num_seconds() as u64;
-        RefreshToken::new(token, session, expires_in)
+        RefreshToken::new(token, self.session.clone(), self.expires_in())
     }
 
     pub fn to_empty_token(&self) -> RefreshToken {

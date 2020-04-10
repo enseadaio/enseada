@@ -1,4 +1,4 @@
-use actix_web::{HttpRequest, HttpResponse, HttpMessage};
+use actix_web::{HttpRequest, HttpResponse};
 
 use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError};
 use actix_web::web::{FormConfig, QueryConfig};

@@ -1,23 +1,28 @@
-use crate::oauth::scope::Scope;
-use crate::secure::SecureSecret;
-use crate::oauth::session::Session;
+use std::ops::Add;
 
-pub trait Token: ToString {
+use chrono::{DateTime, Duration, Utc};
+
+use crate::oauth::Expirable;
+use crate::oauth::scope::Scope;
+use crate::oauth::session::Session;
+use crate::secure::SecureSecret;
+
+pub trait Token: ToString + Expirable {
     fn token(&self) -> SecureSecret;
 }
 
 pub struct AccessToken {
     token_rep: Option<SecureSecret>,
-    expires_in: u64,
     session: Session,
+    expiration: DateTime<Utc>,
 }
 
 impl AccessToken {
-    pub fn new(token: SecureSecret, session: Session, expires_in: u64) -> AccessToken {
+    pub fn new(token: SecureSecret, session: Session, expires_in: Duration) -> AccessToken {
         AccessToken {
             token_rep: Some(token),
             session,
-            expires_in,
+            expiration: Utc::now().add(expires_in),
         }
     }
 
@@ -27,10 +32,6 @@ impl AccessToken {
 
     pub fn session(&self) -> &Session {
         &self.session
-    }
-
-    pub fn expires_in(&self) -> &u64 {
-        &self.expires_in
     }
 }
 
@@ -46,18 +47,32 @@ impl ToString for AccessToken {
     }
 }
 
+impl Expirable for AccessToken {
+    fn expiration(&self) -> &DateTime<Utc> {
+        &self.expiration
+    }
+
+    fn expires_in(&self) -> i64 {
+        self.expiration.signed_duration_since(Utc::now()).num_seconds()
+    }
+
+    fn is_expired(&self) -> bool {
+        self.expiration.lt(&Utc::now())
+    }
+}
+
 pub struct RefreshToken {
     token_rep: Option<SecureSecret>,
     session: Session,
-    expires_in: u64,
+    expiration: DateTime<Utc>,
 }
 
 impl RefreshToken {
-    pub fn new(token: SecureSecret, session: Session, expires_in: u64) -> RefreshToken {
+    pub fn new(token: SecureSecret, session: Session, expires_in: Duration) -> RefreshToken {
         RefreshToken {
             token_rep: Some(token),
             session,
-            expires_in,
+            expiration: Utc::now().add(expires_in),
         }
     }
     pub fn scope(&self) -> &Scope {
@@ -66,10 +81,6 @@ impl RefreshToken {
 
     pub fn session(&self) -> &Session {
         &self.session
-    }
-
-    pub fn expires_in(&self) -> &u64 {
-        &self.expires_in
     }
 }
 
@@ -82,5 +93,19 @@ impl Token for RefreshToken {
 impl ToString for RefreshToken {
     fn to_string(&self) -> String {
         self.token().to_string()
+    }
+}
+
+impl Expirable for RefreshToken {
+    fn expiration(&self) -> &DateTime<Utc> {
+        &self.expiration
+    }
+
+    fn expires_in(&self) -> i64 {
+        self.expiration.signed_duration_since(Utc::now()).num_seconds()
+    }
+
+    fn is_expired(&self) -> bool {
+        self.expiration.lt(&Utc::now())
     }
 }
