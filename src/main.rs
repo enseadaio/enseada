@@ -3,7 +3,7 @@ extern crate lazy_static;
 
 mod config;
 mod couchdb;
-mod errors;
+mod error;
 mod handlers;
 mod logger;
 mod oauth;
@@ -12,6 +12,7 @@ mod routes;
 mod secure;
 mod server;
 mod templates;
+mod user;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

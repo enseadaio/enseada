@@ -1,7 +1,7 @@
 use actix_files as fs;
 use actix_web::{web, FromRequest};
 
-use crate::handlers::{health, oauth, ui};
+use crate::handlers::{health, oauth, ui, user};
 use crate::oauth::request::{TokenRequest, AuthorizationRequest};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
@@ -16,5 +16,8 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             .route("/authorize", web::get().to(oauth::login_form))
             .route("/authorize", web::post().to(oauth::login))
             .route("/token", web::post().to(oauth::token)))
+        .service(web::scope("/api")
+            .service(web::scope("/users")
+                .route("/register", web::post().to(user::register))))
     ;
 }

@@ -5,7 +5,7 @@ use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
 use futures::TryFutureExt;
 use url::Url;
 
-use crate::errors::ApiError;
+use crate::error::ApiError;
 use crate::oauth::RequestHandler;
 use crate::oauth::scope::Scope;
 use crate::oauth::error::{ErrorKind, Error as OAuthError};
@@ -16,7 +16,7 @@ use crate::oauth::response::TokenType::Bearer;
 use crate::oauth::persistence::CouchStorage;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
-use crate::couchdb::{db, Couch};
+use crate::couchdb::{self, db, Couch};
 use std::collections::HashMap;
 
 
@@ -25,7 +25,7 @@ pub mod error;
 type ConcreteOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
 
 pub fn add_oauth_handler(app: &mut ServiceConfig) {
-    let couch = Couch::from_global_config();
+    let couch = &couchdb::SINGLETON;
     let db = couch.database(db::name::OAUTH, true);
     let storage = Arc::new(CouchStorage::new(Arc::new(db)));
     let handler = OAuthHandler::new(

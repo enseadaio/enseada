@@ -8,12 +8,19 @@ use std::sync::Arc;
 
 pub mod client;
 pub mod db;
-pub mod errors;
+pub mod error;
 mod migrate;
 pub mod responses;
 pub mod status;
 pub mod guid;
 pub use migrate::migrate;
+use crate::couchdb::error::Error;
+
+lazy_static! {
+    pub static ref SINGLETON: Couch = Couch::from_global_config();
+}
+
+type Result<T> = std::result::Result<T, Error>;
 
 pub struct Couch {
     client: Arc<Client>,
@@ -39,6 +46,5 @@ impl Couch {
 }
 
 pub fn add_couch_client(app: &mut web::ServiceConfig) {
-    let couch = Couch::from_global_config();
-    app.data(couch);
+    app.data(&SINGLETON);
 }

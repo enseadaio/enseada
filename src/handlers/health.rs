@@ -3,11 +3,11 @@ use serde::{Serialize, Deserialize};
 
 use crate::couchdb;
 use crate::couchdb::status::Status;
-use crate::errors::ApiError;
-use crate::errors::ApiError::ServiceUnavailable;
+use crate::error::ApiError;
+use crate::error::ApiError::ServiceUnavailable;
 use crate::responses;
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Serialize, PartialEq)]
 pub struct HealthResponse {
     pub status: String,
 }

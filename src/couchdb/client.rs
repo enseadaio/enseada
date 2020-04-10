@@ -69,7 +69,7 @@ impl Client {
             Ok(_res) => Ok(true),
             Err(err) => match err.status() {
                 Some(StatusCode::NOT_FOUND) => Ok(false),
-                Some(_) | None => Err(err),
+                _ => Err(err),
             },
         }
     }

@@ -1,23 +1,26 @@
+use std::convert::TryInto;
+use std::ops::Add;
+use std::sync::Arc;
+
+use chrono::{DateTime, Duration, Utc};
+use futures::FutureExt;
+use reqwest::StatusCode;
+
 use async_trait::async_trait;
 
-use crate::oauth::storage::{ClientStorage, TokenStorage, AuthorizationCodeStorage};
-use crate::oauth::Result;
-use crate::oauth::token::{AccessToken, RefreshToken, Token};
+use crate::couchdb;
+use crate::couchdb::db::Database;
+use crate::couchdb::responses::FindResponse;
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
-use crate::oauth::persistence::client::ClientEntity;
-use std::sync::Arc;
-use crate::couchdb::db::Database;
-use reqwest::StatusCode;
-use crate::oauth::persistence::entity::auth_code::AuthorizationCodeEntity;
 use crate::oauth::error::{Error, ErrorKind};
-use futures::FutureExt;
-use crate::secure::SecureSecret;
-use crate::couchdb::responses::FindResponse;
+use crate::oauth::persistence::client::ClientEntity;
+use crate::oauth::persistence::entity::auth_code::AuthorizationCodeEntity;
 use crate::oauth::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
-use chrono::{DateTime, Utc, Duration};
-use std::ops::Add;
-use std::convert::TryInto;
+use crate::oauth::Result;
+use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
+use crate::oauth::token::{AccessToken, RefreshToken, Token};
+use crate::secure::SecureSecret;
 
 pub struct CouchStorage {
     db: Arc<Database>
@@ -42,10 +45,10 @@ impl ClientStorage for CouchStorage {
         let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
             Ok(client) => client,
             Err(err) => {
-                if !err.is_status() || err.status().unwrap() != StatusCode::NOT_FOUND {
-                    log::error!("Error fetching client from database: {}", err);
+                if let couchdb::error::Error::NotFound(s) = err {
+                    return None;
                 }
-
+                log::error!("Error fetching client from database: {}", err);
                 return None;
             }
         };
@@ -65,19 +68,19 @@ impl TokenStorage<AccessToken> for CouchStorage {
     async fn store_token(&self, sig: &str, token: AccessToken) -> Result<AccessToken> {
         let expiration = Utc::now().add(Duration::seconds(token.expires_in().clone() as i64));
         let entity = AccessTokenEntity::new(String::from(sig), token.session().clone(), expiration);
-        self.db.put::<&AccessTokenEntity, serde_json::Value>(&entity.id().to_string(), &entity).await
-            .map_err(map_reqwest_err)?;
+        self.db.put(&entity.id().to_string(), &entity).await
+            .map_err(map_couch_err)?;
         Ok(entity.to_token(token.token()))
     }
 
     async fn revoke_token(&self, sig: &str) -> Result<()> {
         let guid = AccessTokenEntity::build_guid(String::from(sig));
         let token: Option<AccessTokenEntity> = self.db.get(&guid.to_string()).await
-            .map_err(map_reqwest_err)?;
+            .map_err(map_couch_err)?;
         match token {
             Some(token) => {
                 self.db.delete(token.id().to_string().as_str(), token.rev().unwrap().as_str()).await
-                    .map_err(map_reqwest_err)
+                    .map_err(map_couch_err)
             }
             None => Err(Error::new(ErrorKind::InvalidRequest, "invalid access token".to_string()))
         }
@@ -95,19 +98,19 @@ impl TokenStorage<RefreshToken> for CouchStorage {
     async fn store_token(&self, sig: &str, token: RefreshToken) -> Result<RefreshToken> {
         let expiration = Utc::now().add(Duration::seconds(token.expires_in().clone() as i64));
         let entity = RefreshTokenEntity::new(String::from(sig), token.session().clone(), expiration);
-        self.db.put::<&RefreshTokenEntity, serde_json::Value>(&entity.id().to_string(), &entity).await
-            .map_err(map_reqwest_err)?;
+        self.db.put(&entity.id().to_string(), &entity).await
+            .map_err(map_couch_err)?;
         Ok(entity.to_token(token.token()))
     }
 
     async fn revoke_token(&self, sig: &str) -> Result<()> {
         let guid = RefreshTokenEntity::build_guid(String::from(sig));
         let token: Option<RefreshTokenEntity> = self.db.get(&guid.to_string()).await
-            .map_err(map_reqwest_err)?;
+            .map_err(map_couch_err)?;
         match token {
             Some(token) => {
                 self.db.delete(token.id().to_string().as_str(), token.rev().unwrap().as_str()).await
-                    .map_err(map_reqwest_err)
+                    .map_err(map_couch_err)
             }
             None => Err(Error::new(ErrorKind::InvalidRequest, "invalid refresh token".to_string()))
         }
@@ -125,25 +128,25 @@ impl AuthorizationCodeStorage for CouchStorage {
     async fn store_code(&self, sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
         let exp = Utc::now().add(Duration::seconds(code.expires_in().clone() as i64));
         let entity = AuthorizationCodeEntity::new(String::from(sig), code.session().clone(), exp);
-        self.db.put::<&AuthorizationCodeEntity, serde_json::Value>(&entity.id().to_string(), &entity).await
-            .map_err(map_reqwest_err)?;
+        self.db.put(&entity.id().to_string(), &entity).await
+            .map_err(map_couch_err)?;
         Ok(code)
     }
 
     async fn revoke_code(&self, sig: &str) -> Result<()> {
         let guid = AuthorizationCodeEntity::build_guid(String::from(sig));
         let code: Option<AuthorizationCodeEntity> = self.db.get(&guid.to_string()).await
-            .map_err(map_reqwest_err)?;
+            .map_err(map_couch_err)?;
         match code {
             Some(code) => {
                 self.db.delete(code.id().to_string().as_str(), code.rev().unwrap().as_str()).await
-                    .map_err(map_reqwest_err)
-            },
+                    .map_err(map_couch_err)
+            }
             None => Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string()))
         }
     }
 }
 
-fn map_reqwest_err(err: reqwest::Error) -> Error {
+fn map_couch_err(err: couchdb::error::Error) -> Error {
     Error::new(ErrorKind::ServerError, err.to_string())
 }

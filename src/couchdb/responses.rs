@@ -42,6 +42,13 @@ pub struct Ok {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+pub struct PutResponse {
+    pub ok: bool,
+    pub id: String,
+    pub rev: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct FindResponse<T> {
     pub docs: Vec<T>,
     pub bookmark: String,

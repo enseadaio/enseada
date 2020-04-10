@@ -10,6 +10,7 @@ use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 
 use crate::config::CONFIG;
 use crate::couchdb::add_couch_client;
+use crate::handlers::user::add_user_service;
 use crate::routes::routes;
 
 pub async fn run() -> io::Result<()> {
@@ -22,6 +23,7 @@ pub async fn run() -> io::Result<()> {
             .wrap(Logger::default())
             .wrap(default_headers())
             .configure(add_couch_client)
+            .configure(add_user_service)
             .configure(routes)
     });
 

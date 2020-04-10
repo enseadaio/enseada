@@ -1,14 +1,19 @@
+use std::sync::Arc;
+
+use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use crate::couchdb::client::Client;
 use crate::couchdb::responses;
-use std::sync::Arc;
-use serde::Serialize;
-use reqwest::StatusCode;
-use crate::couchdb::responses::FindResponse;
+use crate::couchdb::responses::{FindResponse, PutResponse};
+use crate::couchdb::Result;
+use crate::couchdb::error::Error;
+use std::borrow::Cow;
 
 pub mod name {
     pub const OAUTH: &'static str = "oauth";
+    pub const USERS: &'static str = "users";
 }
 
 pub struct Database {
@@ -26,47 +31,59 @@ impl Database {
         return &self.name;
     }
 
-    pub async fn get_self(&self) -> reqwest::Result<responses::DBInfo> {
+    pub async fn get_self(&self) -> Result<responses::DBInfo> {
         log::debug!("getting info for database {}", self.name);
         self.client.get(self.name.as_str()).await
+            .map_err(Error::from)
     }
 
-    pub async fn create_self(&self) -> reqwest::Result<bool> {
+    pub async fn create_self(&self) -> Result<bool> {
         log::debug!("creating database {}", &self.name);
-        self.client
+        let res: responses::Ok = self.client
             .put(self.name.as_str(), None::<bool>, Some(&[("partitioned", &self.partitioned)]))
-            .await
-            .map(|responses::Ok { ok }| ok)
+            .await?;
+        Ok(res.ok)
     }
 
-    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> reqwest::Result<R> {
+    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<R> {
         let path = format!("{}/{}", &self.name, id);
         log::debug!("getting {} from couch", &path);
         self.client.get(path.as_str()).await
+            .map_err(|err| match err.status() {
+                Some(StatusCode::NOT_FOUND) => Error::NotFound(format!("document {} not found in database {}", &id, &self.name)),
+                _ => Error::from(err)
+            })
     }
 
-    pub async fn put<T: Serialize, R: DeserializeOwned>(&self, id: &str, entity: T) -> reqwest::Result<R> {
-        let path = format!("{}/{}", &self.name, id);
+    pub async fn put<T: Serialize>(&self, id: &str, entity: T) -> Result<PutResponse> {
+        let path = format!("{}/{}", &self.name, &id);
         log::debug!("putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
         self.client.put(path.as_str(), Some(entity), None::<usize>).await
+            .map_err(|err| match err.status() {
+                Some(StatusCode::CONFLICT) => Error::Conflict(format!("document {} already exists in database {}", &id, &self.name)),
+                _ => Error::from(err)
+            })
     }
 
-    pub async fn find<R: DeserializeOwned>(&self, selector: serde_json::Value) -> reqwest::Result<FindResponse<R>> {
+    pub async fn find<R: DeserializeOwned>(&self, selector: serde_json::Value) -> Result<FindResponse<R>> {
         let path = format!("{}/_find", &self.name);
         let body = serde_json::json!({
             "selector": selector,
         });
 
         self.client.post(path.as_str(), Some(body), None::<bool>).await
+            .map_err(Error::from)
     }
 
-    pub async fn delete(&self, id: &str, rev: &str) -> reqwest::Result<()> {
+    pub async fn delete(&self, id: &str, rev: &str) -> Result<()> {
         let path = format!("{}/{}", &self.name, id);
-        self.client.delete(path.as_str(), Some(&[("rev", rev)])).await
+        self.client.delete(path.as_str(), Some(&[("rev", rev)])).await?;
+        Ok(())
     }
 
-    pub async fn exists(&self, id: &str) -> reqwest::Result<bool> {
+    pub async fn exists(&self, id: &str) -> Result<bool> {
         let path = format!("{}/{}", &self.name, id);
-        self.client.exists(path.as_str()).await
+        let res = self.client.exists(path.as_str()).await?;
+        Ok(res)
     }
 }
