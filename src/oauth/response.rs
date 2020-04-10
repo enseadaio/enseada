@@ -7,6 +7,8 @@ use crate::oauth::Result;
 use crate::oauth::scope::Scope;
 use crate::oauth::request::AuthorizationRequest;
 use crate::oauth::code::AuthorizationCode;
+use std::collections::HashMap;
+use serde_json::Value;
 
 #[derive(Debug, Serialize)]
 pub struct AuthorizationResponse {
@@ -32,6 +34,8 @@ pub struct TokenResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub refresh_token: Option<String>,
     pub scope: Scope,
+    #[serde(flatten)]
+    pub extra: HashMap<String, Value>,
 }
 
 #[derive(Serialize)]

@@ -4,8 +4,6 @@ use crate::couchdb::error::Error as CouchError;
 use crate::error::Error;
 use crate::secure;
 use crate::couchdb::db::Database;
-use std::sync::Arc;
-use reqwest::StatusCode;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct User {
@@ -71,5 +69,19 @@ impl UserService {
         let mut user = user;
         user.set_rev(res.rev);
         Ok(user)
+    }
+
+    pub async fn authenticate_user(&self, username: String, password: String) -> Result<User, Error> {
+        log::debug!("Authenticating user {}", &username);
+        let user = match self.find_user(username).await? {
+            Some(user) => user,
+            None => return Err(Error::from("authentication failed")),
+        };
+
+        if secure::verify_password(&user.password_hash, &password)? {
+            Ok(user)
+        } else {
+            Err(Error::from("authentication failed"))
+        }
     }
 }

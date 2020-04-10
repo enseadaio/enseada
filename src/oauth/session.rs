@@ -5,6 +5,7 @@ use crate::oauth::scope::Scope;
 pub struct Session {
     client_id: String,
     scope: Scope,
+    user_id: Option<String>,
 }
 
 impl Session {
@@ -27,6 +28,15 @@ impl Session {
 
     pub fn set_scope(&mut self, scope: Scope) -> &mut Self {
         self.scope = scope;
+        self
+    }
+
+    pub fn user_id(&self) -> &Option<String> {
+        &self.user_id
+    }
+
+    pub fn set_user_id(&mut self, user_id: String) -> &mut Self {
+        self.user_id = Some(user_id);
         self
     }
 }

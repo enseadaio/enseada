@@ -28,6 +28,12 @@ impl std::error::Error for Error {
     }
 }
 
+impl From<&str> for Error {
+    fn from(message: &str) -> Self {
+        Error::from(message.to_string())
+    }
+}
+
 impl From<String> for Error {
     fn from(message: String) -> Self {
         Error { message, source: None }

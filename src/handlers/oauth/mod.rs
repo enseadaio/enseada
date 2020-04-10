@@ -1,24 +1,26 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use actix_web::{HttpResponse, Responder, ResponseError};
 use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
 use futures::TryFutureExt;
+use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::error::ApiError;
-use crate::oauth::RequestHandler;
-use crate::oauth::scope::Scope;
-use crate::oauth::error::{ErrorKind, Error as OAuthError};
+use crate::couchdb::{self, Couch, db};
+use crate::error::{ApiError, Error};
+use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::oauth::handler::OAuthHandler;
+use crate::oauth::persistence::CouchStorage;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
+use crate::oauth::RequestHandler;
 use crate::oauth::response::TokenResponse;
 use crate::oauth::response::TokenType::Bearer;
-use crate::oauth::persistence::CouchStorage;
+use crate::oauth::scope::Scope;
+use crate::oauth::session::Session;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
-use crate::couchdb::{self, db, Couch};
-use std::collections::HashMap;
-
+use crate::user::{User, UserService};
 
 pub mod error;
 
@@ -57,18 +59,44 @@ pub async fn login_form(handler: Data<ConcreteOAuthHandler>, query: Query<Author
         state,
     }
 }
+#[derive(Debug, Deserialize)]
+pub struct LoginFormBody {
+    pub username: String,
+    pub password: String,
+    #[serde(flatten)]
+    pub auth_request: AuthorizationRequest,
+}
 
-pub async fn login(handler: Data<ConcreteOAuthHandler>, form: Form<AuthorizationRequest>) -> HttpResponse {
-    let auth = form.into_inner();
-    let validate = handler.validate(&auth);
-    let handle = validate.and_then(|_| handler.handle(&auth)).await;
+pub async fn login(handler: Data<ConcreteOAuthHandler>, users: Data<UserService>, form: Form<LoginFormBody>) -> HttpResponse {
+    let form = form.into_inner();
+    let auth = form.auth_request;
     let redirect_uri = auth.redirect_uri.clone();
     let mut url = Url::parse(&redirect_uri).unwrap();
+
+    let validate = handler.validate(&auth).await;
+    if let Err(err) = validate {
+        return redirect_to_client(&mut url, err)
+    }
+
+    let user = match users.authenticate_user(form.username, form.password).await {
+        Ok(user) => user,
+        Err(err) => {
+            log::debug!("Authentication failed");
+            return ApiError::from(err).error_response()
+        },
+    };
+
+    log::debug!("Authentication successful");
+
+    let session = &mut Session::empty();
+    session.set_user_id(user.id().to_string());
+
+    let handle = handler.handle(&auth, session).await;
     match handle {
-        Ok(res) => redirect_back(&mut url, res),
+        Ok(res) => redirect_to_client(&mut url, res),
         Err(err) => match err.kind() {
             ErrorKind::InvalidRedirectUri => HttpResponse::BadRequest().body(err.to_string()),
-            _ => redirect_back(&mut url, err),
+            _ => redirect_to_client(&mut url, err),
         }
     }
 }
@@ -77,8 +105,9 @@ pub async fn token(handler: Data<ConcreteOAuthHandler>, form: Form<TokenRequest>
     let req = form.into_inner();
     log::debug!("received token request {:?}", &req);
 
+    let session = &mut Session::empty();
     let validate = handler.validate(&req);
-    let res: TokenResponse = validate.and_then(|_| handler.handle(&req)).await?;
+    let res: TokenResponse = validate.and_then(|_| handler.handle(&req, session)).await?;
     Ok(Json(res))
 
     // Uncomment to debug
@@ -92,7 +121,7 @@ pub async fn token(handler: Data<ConcreteOAuthHandler>, form: Form<TokenRequest>
     //     }))
     }
 
-pub fn redirect_back<T: serde::ser::Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {
+pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {
     let option = serde_urlencoded::to_string(data).ok();
     let query = option.as_deref();
     redirect_uri.set_query(query);

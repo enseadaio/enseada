@@ -32,13 +32,13 @@ impl Database {
     }
 
     pub async fn get_self(&self) -> Result<responses::DBInfo> {
-        log::debug!("getting info for database {}", self.name);
+        log::debug!("Getting info for database {}", self.name);
         self.client.get(self.name.as_str()).await
             .map_err(Error::from)
     }
 
     pub async fn create_self(&self) -> Result<bool> {
-        log::debug!("creating database {}", &self.name);
+        log::debug!("Creating database {}", &self.name);
         let res: responses::Ok = self.client
             .put(self.name.as_str(), None::<bool>, Some(&[("partitioned", &self.partitioned)]))
             .await?;
@@ -47,7 +47,7 @@ impl Database {
 
     pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<R> {
         let path = format!("{}/{}", &self.name, id);
-        log::debug!("getting {} from couch", &path);
+        log::debug!("Getting {} from couch", &path);
         self.client.get(path.as_str()).await
             .map_err(|err| match err.status() {
                 Some(StatusCode::NOT_FOUND) => Error::NotFound(format!("document {} not found in database {}", &id, &self.name)),
@@ -57,7 +57,7 @@ impl Database {
 
     pub async fn put<T: Serialize>(&self, id: &str, entity: T) -> Result<PutResponse> {
         let path = format!("{}/{}", &self.name, &id);
-        log::debug!("putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
+        log::debug!("Putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
         self.client.put(path.as_str(), Some(entity), None::<usize>).await
             .map_err(|err| match err.status() {
                 Some(StatusCode::CONFLICT) => Error::Conflict(format!("document {} already exists in database {}", &id, &self.name)),
@@ -71,18 +71,22 @@ impl Database {
             "selector": selector,
         });
 
+        log::debug!("Finding from {} with query {}", &self.name, &body);
+
         self.client.post(path.as_str(), Some(body), None::<bool>).await
             .map_err(Error::from)
     }
 
     pub async fn delete(&self, id: &str, rev: &str) -> Result<()> {
         let path = format!("{}/{}", &self.name, id);
+        log::debug!("Deleting {} from couch", &path);
         self.client.delete(path.as_str(), Some(&[("rev", rev)])).await?;
         Ok(())
     }
 
     pub async fn exists(&self, id: &str) -> Result<bool> {
         let path = format!("{}/{}", &self.name, id);
+        log::debug!("Checking {} existence from couch", &path);
         let res = self.client.exists(path.as_str()).await?;
         Ok(res)
     }

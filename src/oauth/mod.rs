@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
-use crate::oauth::error::{Error};
+use crate::oauth::error::Error;
+use crate::oauth::session::Session;
 
 pub mod client;
 pub mod code;
@@ -20,5 +21,5 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[async_trait]
 pub trait RequestHandler<T, R> {
     async fn validate(&self, req: &T) -> Result<()>;
-    async fn handle(&self, req: &T) -> Result<R>;
+    async fn handle(&self, req: &T, session: &mut Session) -> Result<R>;
 }

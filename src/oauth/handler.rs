@@ -16,6 +16,7 @@ use crate::secure::SecureSecret;
 use crate::oauth::request::TokenRequest::AuthorizationCode;
 use crate::oauth::session::Session;
 use std::ops::Deref;
+use std::collections::HashMap;
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
     where
@@ -88,16 +89,13 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
         self.validate_client(&req.client_id, None, &req.redirect_uri, &req.scope).await
     }
 
-    async fn handle(&self, req: &AuthorizationRequest) -> Result<AuthorizationResponse> {
+    async fn handle(&self, req: &AuthorizationRequest, session: &mut Session) -> Result<AuthorizationResponse> {
         log::info!("Handling new authorization request");
-        let session = &mut Session::empty();
-        let session = session
-            .set_client_id(req.client_id.clone())
-            .set_scope(req.scope.clone())
-            .clone();
+        session.set_client_id(req.client_id.clone())
+            .set_scope(req.scope.clone());
 
         let secret = secure::generate_token(16).unwrap();
-        let code = code::AuthorizationCode::new(secret, session, 300);
+        let code = code::AuthorizationCode::new(secret, session.clone(), 300);
         let code_sig = secure::generate_signature(code.to_string().as_str());
         log::debug!("Storing token with signature {}", code_sig);
         let code = self.authorization_code_storage.store_code(code_sig.to_string().as_str(), code).await?;
@@ -122,7 +120,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                 code, redirect_uri, client_id,
             } => {
                 // TODO(matteo): if client_id is None, get from Basic Auth
-                let client_id= &client_id.clone().unwrap_or(String::from("example"));
+                let client_id = &client_id.clone().unwrap_or(String::from("example"));
 
                 let code_sig = secure::generate_signature(code.as_str());
                 log::debug!("Received auth code with sig {}", &code_sig);
@@ -149,7 +147,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
         Ok(())
     }
 
-    async fn handle(&self, req: &TokenRequest) -> Result<TokenResponse> {
+    async fn handle(&self, req: &TokenRequest, _session: &mut Session) -> Result<TokenResponse> {
         let res = match req {
             TokenRequest::AuthorizationCode {
                 code, redirect_uri, client_id
@@ -181,6 +179,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                     expires_in: access_token.expires_in().clone(),
                     refresh_token: Some(refresh_token.to_string()),
                     scope: session.scope().clone(),
+                    extra: HashMap::new(),
                 }
             }
         };

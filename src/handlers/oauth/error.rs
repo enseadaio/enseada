@@ -4,7 +4,7 @@ use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError}
 use actix_web::web::{FormConfig, QueryConfig, Form};
 use url::Url;
 
-use crate::handlers::oauth::redirect_back;
+use crate::handlers::oauth::redirect_to_client;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use std::str::FromStr;
 
@@ -30,7 +30,7 @@ fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
                     .unwrap_or_else(Vec::new)
                     .into_iter().find(|(k, _)| { k == "redirect_uri" })
                     .and_then(|(_, uri)| Url::from_str(uri.as_str()).ok()){
-                    Some(mut redirect_uri) => redirect_back(&mut redirect_uri, err),
+                    Some(mut redirect_uri) => redirect_to_client(&mut redirect_uri, err),
                     None => HttpResponse::BadRequest().body("invalid redirect_uri parameter")
                 }
             }
