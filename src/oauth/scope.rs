@@ -9,10 +9,8 @@ use crate::oauth::error::{Error, ErrorKind};
 pub struct Scope(HashSet<String>);
 
 impl Scope {
-    /**
-    Returns the intersecting scope, or an InvalidScope error
-    if no intersection is found
-    */
+    /// Returns the intersecting scope, or an InvalidScope error
+    /// if no intersection is found
     pub fn matches(&self, other: &Scope) -> Result<Scope> {
         let intersection: HashSet<String> = self.0.intersection(&other.0)
             .map(String::clone)
@@ -22,6 +20,11 @@ impl Scope {
         } else {
             Ok(Scope::from(intersection))
         }
+    }
+
+    /// Returns true if the scope is a superset of another, i.e., self contains at least all the values in other.
+    pub fn is_superset(&self, other: &Scope) -> bool {
+        self.0.is_superset(&other.0)
     }
 }
 
@@ -106,5 +109,21 @@ mod test {
         let i = a.matches(&b).unwrap_err();
         assert_eq!(i.kind(), &ErrorKind::InvalidScope);
         assert_eq!(i.to_string(), "\"invalid_scope\": invalid scopes");
+    }
+
+    #[test]
+    fn it_checks_a_subset() {
+        let a = Scope::from("profile email");
+        let b = Scope::from("profile");
+
+        assert!(a.is_superset(&b))
+    }
+
+    #[test]
+    fn it_does_not_check_an_invalid_subset() {
+        let a = Scope::from("profile email");
+        let b = Scope::from("test");
+
+        assert!(!a.is_superset(&b))
     }
 }

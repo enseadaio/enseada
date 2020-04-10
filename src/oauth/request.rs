@@ -51,6 +51,13 @@ pub enum TokenRequest {
         code: String,
         redirect_uri: String,
         client_id: Option<String>,
+        client_secret: Option<String>,
+    },
+    RefreshToken {
+        refresh_token: String,
+        scope: Option<Scope>,
+        client_id: Option<String>,
+        client_secret: Option<String>,
     },
     #[serde(other)]
     Unknown,
