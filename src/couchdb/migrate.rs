@@ -1,30 +1,37 @@
-
+use std::collections::HashSet;
 use std::io::{Error, ErrorKind};
+use std::iter::FromIterator;
 
+use url::Url;
 
-
-
+use crate::config::{CONFIG, Configuration};
 use crate::couchdb;
-use crate::couchdb::Result;
 use crate::couchdb::Couch;
 use crate::couchdb::db::{self, Database};
+use crate::couchdb::Result;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
-
+use crate::oauth::scope::Scope;
 
 pub async fn migrate() -> std::io::Result<()> {
     let couch = &couchdb::SINGLETON;
-    run(couch).await.map_err(|err| Error::new(ErrorKind::Other, err.to_string()))
+    run(couch, &CONFIG).await.map_err(|err| Error::new(ErrorKind::Other, err.to_string()))
 }
 
-async fn run(couch: &Couch) -> Result<()> {
+async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     log::info!("Running CouchDB migrations");
 
     let oauth_db = couch.database(db::name::OAUTH, true);
     create_db_if_not_exist(&oauth_db).await?;
 
-    let oauth_db = couch.database(db::name::USERS, true);
-    create_db_if_not_exist(&oauth_db).await?;
+    let users_db = couch.database(db::name::USERS, true);
+    create_db_if_not_exist(&users_db).await?;
+
+    let public_host = cfg.public_host();
+    create_oauth_client(&oauth_db, Client::public(
+        "enseada".to_string(),
+        Scope::from("profile"),
+        HashSet::from_iter(vec![public_host.join("/ui/auth/callback").unwrap()]))).await?;
 
     log::info!("Migrations completed");
     Ok(())

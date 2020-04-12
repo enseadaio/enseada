@@ -1,23 +1,40 @@
+use std::collections::HashMap;
+use std::convert::TryFrom;
+use std::sync::Arc;
+
+use actix_web_httpauth::headers::authorization::Basic;
+use chrono::Duration;
+use url::Url;
+
 use async_trait::async_trait;
 
-use crate::oauth::{RequestHandler, Result, Expirable};
+use crate::oauth::{Expirable, Result};
+use crate::oauth::client::{Client, ClientKind};
 use crate::oauth::code;
-use crate::oauth::scope::Scope;
+use crate::oauth::error::{Error, ErrorKind};
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
-use crate::oauth::error::{ErrorKind, Error};
 use crate::oauth::response::{AuthorizationResponse, TokenResponse, TokenType};
-use crate::oauth::storage::{ClientStorage, TokenStorage, AuthorizationCodeStorage};
+use crate::oauth::scope::Scope;
+use crate::oauth::session::Session;
+use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::oauth::token::{AccessToken, RefreshToken, Token};
-
-use std::sync::Arc;
-use url::Url;
 use crate::secure;
 
+/// Represent HTTP basic authentication as (client_id, client_secret)
+#[derive(Debug)]
+pub struct BasicAuth(String, Option<String>);
 
-use crate::oauth::session::Session;
+impl BasicAuth {
+    pub fn new(username: String, password: Option<String>) -> Self {
+        BasicAuth(username, password)
+    }
+}
 
-use std::collections::HashMap;
-use chrono::Duration;
+#[async_trait]
+pub trait RequestHandler<T, R> {
+    async fn validate(&self, req: &T, client_auth: Option<&BasicAuth>) -> Result<()>;
+    async fn handle(&self, req: &T, session: &mut Session) -> Result<R>;
+}
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
     where
@@ -59,16 +76,17 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
         }
     }
 
-    async fn validate_client(&self, client_id: &String, _client_secret: &Option<String>, redirect_uri: &Option<String>, scope: &Scope) -> Result<()> {
+    async fn validate_client(&self, client_id: &String, redirect_uri: Option<&String>, scope: &Scope) -> Result<Client> {
+        log::debug!("Validating client '{}'", client_id);
         let client_id = client_id.as_str();
         let client = self.client_storage.get_client(client_id).await
-            .ok_or_else(|| Error::new(ErrorKind::InvalidClient, format!("client id '{}' is invalid", &client_id)))?;
+            .ok_or_else(|| Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()))?;
 
-        // TODO(matteo): if client is confidential, verify client_secret
-
+        log::debug!("Validating request scopes");
         scope.matches(client.allowed_scopes())?;
 
         if let Some(redirect_uri) = redirect_uri {
+            log::debug!("Validating redirect_uri");
             let uri = Url::parse(&redirect_uri).map_err(|err| Error::new(ErrorKind::InvalidRedirectUri, err.to_string()))?;
 
             if !client.allowed_redirect_uris().contains(&uri) {
@@ -76,7 +94,33 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
             }
         }
 
-        Ok(())
+        log::debug!("Client validation successful");
+        Ok(client)
+    }
+
+    async fn authenticate_client(&self, client: &Client, client_secret: Option<&String>) -> Result<()> {
+        log::debug!("Checking client authentication");
+        match client.kind() {
+            ClientKind::Public => {
+                log::debug!("Client is of kind 'public', no authentication needed");
+                Ok(())
+            },
+            ClientKind::Confidential { secret } => {
+                log::debug!("Client is of kind 'confidential', validating secret");
+                match client_secret {
+                    Some(client_secret) => {
+                        if secure::verify_password(secret, client_secret)? {
+                            log::debug!("Client authentication successful");
+                            Ok(())
+                        } else {
+                            log::debug!("Client authentication failed");
+                            Err(Error::new(ErrorKind::InvalidClient, "invalid client credentials".to_string()))
+                        }
+                    },
+                    None => Err(Error::new(ErrorKind::InvalidClient, "invalid client credentials".to_string())),
+                }
+            }
+        }
     }
 
     async fn generate_token_set(&self, session: &Session) -> Result<TokenResponse> {
@@ -109,8 +153,9 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
         RTS: TokenStorage<RefreshToken>,
         ACS: AuthorizationCodeStorage
 {
-    async fn validate(&self, req: &AuthorizationRequest) -> Result<()> {
-        self.validate_client(&req.client_id, &None, &Some(req.redirect_uri.clone()), &req.scope).await
+    async fn validate(&self, req: &AuthorizationRequest, _client_auth: Option<&BasicAuth>) -> Result<()> {
+        self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope).await?;
+        Ok(())
     }
 
     async fn handle(&self, req: &AuthorizationRequest, session: &mut Session) -> Result<AuthorizationResponse> {
@@ -138,13 +183,19 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
         RTS: TokenStorage<RefreshToken>,
         ACS: AuthorizationCodeStorage
 {
-    async fn validate(&self, req: &TokenRequest) -> Result<()> {
+    async fn validate(&self, req: &TokenRequest, client_auth: Option<&BasicAuth>) -> Result<()> {
+        let auth_client_id = client_auth.map(|BasicAuth(client_id, _client_secret)| client_id);
+        let auth_client_secret = client_auth.and_then(|BasicAuth(_client_id, client_secret)| client_secret.as_ref());
         match req {
             TokenRequest::AuthorizationCode {
                 code, redirect_uri, client_id, client_secret,
             } => {
-                // TODO(matteo): if client_id is None, get from Basic Auth
-                let client_id = client_id.clone().unwrap_or("".to_string());
+                log::debug!("Validating AuthorizationCode token request");
+                let client_id = client_id.as_ref().or(auth_client_id);
+                let client_id = match client_id {
+                    Some(client_id) => client_id,
+                    None => return Err(Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string())),
+                };
 
                 let code_sig = secure::generate_signature(code.as_str());
                 log::debug!("Received auth code with sig {}", &code_sig);
@@ -155,20 +206,26 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                 };
 
                 if code.is_expired() {
+                    log::warn!("Authorization code is expired");
                     return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string()));
                 }
 
                 let session = code.session();
 
-                if session.client_id() != &client_id {
+                if session.client_id() != client_id {
                     return Err(Error::new(ErrorKind::InvalidClient, format!("invalid client '{}'", client_id)));
                 }
 
-                self.validate_client(&client_id, client_secret, &Some(redirect_uri.clone()), session.scope()).await?;
+                let client = self.validate_client(&client_id, Some(redirect_uri), session.scope()).await?;
+                self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret)).await?;
                 Ok(())
             }
             TokenRequest::RefreshToken { refresh_token, scope, client_id, client_secret } => {
-                let client_id = client_id.clone().unwrap_or("".to_string()); // TODO(matteo): read from Basic auth
+                let client_id = client_id.as_ref().or(auth_client_id);
+                let client_id = match client_id {
+                    Some(client_id) => client_id,
+                    None => return Err(Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string())),
+                };
                 let refresh_token_sig = secure::generate_signature(refresh_token);
                 let refresh_token_sig = &refresh_token_sig.to_string();
                 let refresh_token = match self.refresh_token_storage.get_token(refresh_token_sig).await {
@@ -181,7 +238,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                 }
 
                 let mut session = refresh_token.session().clone();
-                if session.client_id() != &client_id {
+                if session.client_id() != client_id {
                     return Err(Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()));
                 }
 
@@ -194,8 +251,8 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                     session.set_scope(other.clone());
                 }
 
-                self.validate_client(&client_id, client_secret, &None, session.scope()).await?;
-
+                let client = self.validate_client(&client_id, None, session.scope()).await?;
+                self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret)).await?;
                 Ok(())
             }
             TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))

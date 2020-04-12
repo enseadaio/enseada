@@ -1,9 +1,7 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
+use actix_web::{HttpResponse, ResponseError};
 use serde::Serialize;
-use actix_web::{ResponseError, HttpResponse};
-
-
 
 #[derive(Serialize, Debug)]
 pub struct Error {
@@ -39,6 +37,12 @@ impl Display for Error {
 }
 
 impl std::error::Error for Error {}
+
+impl From<String> for Error {
+    fn from(message: String) -> Self {
+        Error::new(ErrorKind::ServerError, message)
+    }
+}
 
 impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {

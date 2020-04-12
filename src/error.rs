@@ -1,13 +1,16 @@
-use serde::{Serialize, Deserialize};
+use std::fmt;
+
 use actix_web::{
     error::{BlockingError, ResponseError},
-    http::{StatusCode},
+    http::StatusCode,
     HttpResponse,
-    Error as HttpError,
+    Error as HttpError
 };
 use derive_more::Display;
-use std::fmt;
+use serde::{Deserialize, Serialize};
 use serde::export::Formatter;
+use url::ParseError;
+
 use crate::couchdb;
 use crate::couchdb::error::Error as CouchError;
 
@@ -144,5 +147,11 @@ impl From<CouchError> for ApiError {
 impl From<HttpError> for ApiError {
     fn from(err: HttpError) -> Self {
         ApiError::InternalServerError(err.to_string())
+    }
+}
+
+impl From<url::ParseError> for ApiError {
+    fn from(err: ParseError) -> Self {
+        ApiError::BadRequest(err.to_string())
     }
 }

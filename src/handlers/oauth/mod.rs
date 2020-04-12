@@ -1,25 +1,29 @@
+use std::borrow::Cow;
+use std::ops::Deref;
 use std::sync::Arc;
 
-use actix_web::{HttpResponse, Responder, HttpRequest, Error};
-use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
 use actix_session::Session as HttpSession;
+use actix_web::{Error, HttpRequest, HttpResponse, Responder};
+use actix_web::body::Body;
+use actix_web::http::header;
+use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
+use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use futures::TryFutureExt;
+use reqwest::header::HeaderValue;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::couchdb::{self, db};
 use crate::error::ApiError;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
-use crate::oauth::handler::OAuthHandler;
+use crate::oauth::handler::{BasicAuth, OAuthHandler, RequestHandler};
 use crate::oauth::persistence::CouchStorage;
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
-use crate::oauth::RequestHandler;
 use crate::oauth::response::TokenResponse;
 use crate::oauth::session::Session;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
 use crate::user::UserService;
-use actix_web::body::Body;
 
 pub mod error;
 
@@ -43,9 +47,12 @@ pub async fn login_form(
     users: Data<UserService>,
     query: Query<AuthorizationRequest>,
     http_session: HttpSession,
+    req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
     let auth = query.into_inner();
-    if let Err(err) = handler.validate(&auth).await {
+    if let Err(err) = handler.validate(&auth, client_auth).await {
         log::error!("{}", err);
     }
 
@@ -57,7 +64,7 @@ pub async fn login_form(
                 auth_request: auth,
                 username: String::from(""),
                 password: String::from(""),
-            }), http_session).await
+            }), http_session, req).await;
         }
 
         log::warn!("User {} from session cookie cannot be found in database", username);
@@ -90,13 +97,16 @@ pub async fn login(
     users: Data<UserService>,
     form: Form<LoginFormBody>,
     http_session: HttpSession,
+    req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
     let form = form.into_inner();
     let auth = form.auth_request;
     let redirect_uri = auth.redirect_uri.clone();
-    let mut url = Url::parse(&redirect_uri).unwrap();
+    let mut url = Url::parse(&redirect_uri)?;
 
-    let validate = handler.validate(&auth).await;
+    let validate = handler.validate(&auth, client_auth).await;
     if let Err(err) = validate {
         return Ok(redirect_to_client(&mut url, err));
     }
@@ -131,24 +141,20 @@ pub async fn login(
     }
 }
 
-pub async fn token(handler: Data<ConcreteOAuthHandler>, form: Form<TokenRequest>) -> Result<Json<TokenResponse>, OAuthError> {
+pub async fn token(
+    handler: Data<ConcreteOAuthHandler>,
+    form: Form<TokenRequest>,
+    req: HttpRequest,
+) -> Result<Json<TokenResponse>, OAuthError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
     let req = form.into_inner();
     log::debug!("received token request {:?}", &req);
 
     let session = &mut Session::empty();
-    let validate = handler.validate(&req);
+    let validate = handler.validate(&req, client_auth);
     let res: TokenResponse = validate.and_then(|_| handler.handle(&req, session)).await?;
     Ok(Json(res))
-
-    // Uncomment to debug
-    //     log::info!("received token request {:?}", &form);
-    //     Ok(Json(TokenResponse {
-    //         access_token: "access_token".to_string(),
-    //         token_type: Bearer,
-    //         expires_in: 3600,
-    //         refresh_token: None,
-    //         scope: Scope::from(vec!["profile", "email"]),
-    //     }))
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {
@@ -157,4 +163,15 @@ pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> Http
     redirect_uri.set_query(query);
     log::debug!("redirecting to {}", &redirect_uri);
     responses::redirect_to(redirect_uri.to_string())
+}
+
+fn get_basic_auth(req: &HttpRequest) -> Option<BasicAuth> {
+    req.headers()
+        .get(header::AUTHORIZATION)
+        .map(Basic::parse)
+        .and_then(Result::<Basic, ParseError>::ok)
+        .map(|basic| BasicAuth::new(
+            basic.user_id().to_string(),
+            basic.password().map(ToString::to_string),
+        ))
 }

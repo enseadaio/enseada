@@ -1,13 +1,14 @@
-use serde::{Deserialize, Serialize};
-use crate::oauth::client::Client;
-use crate::couchdb::guid::Guid;
-use crate::oauth::scope::Scope;
-use crate::oauth::client::ClientKind as ExtClientKind;
-use url::Url;
-use std::convert::TryInto;
-use crate::oauth::error::Error;
 use std::collections::HashSet;
+use std::convert::TryInto;
 
+use serde::{Deserialize, Serialize};
+use url::Url;
+
+use crate::couchdb::guid::Guid;
+use crate::oauth::client::Client;
+use crate::oauth::client::ClientKind as ExtClientKind;
+use crate::oauth::error::Error;
+use crate::oauth::scope::Scope;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -82,7 +83,7 @@ impl TryInto<Client> for ClientEntity {
             ClientKind::Public => Client::public(client_id, scopes, allowed_redirect_uris),
             ClientKind::Confidential => {
                 let secret = self.client_secret_hash.unwrap();
-                Client::confidential(client_id, secret, scopes, allowed_redirect_uris)?
+                Client::confidential_with_hash(client_id, secret, scopes, allowed_redirect_uris)
             },
         };
         Ok(client)
