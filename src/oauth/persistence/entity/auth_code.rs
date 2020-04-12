@@ -23,11 +23,11 @@ pub struct AuthorizationCodeEntity {
 }
 
 impl AuthorizationCodeEntity {
-    pub fn build_guid(id: String) -> Guid {
+    pub fn build_guid(id: &str) -> Guid {
         Guid::from(format!("code:{}", id))
     }
     pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AuthorizationCodeEntity {
-        let id = Self::build_guid(sig);
+        let id = Self::build_guid(&sig);
         AuthorizationCodeEntity { id, rev: None::<String>, session, expiration, }
     }
 

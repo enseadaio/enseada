@@ -22,7 +22,7 @@ pub struct SecureSecret(Vec<u8>);
 
 impl SecureSecret {
     pub fn new(bytes: Vec<u8>) -> SecureSecret {
-        return SecureSecret(bytes);
+        SecureSecret(bytes)
     }
 
     pub fn empty() -> SecureSecret {
@@ -85,7 +85,7 @@ mod test {
         let r = hash_password(pwd);
         assert!(r.is_ok());
         let hash = r.unwrap();
-        let r = verify_password(hash.to_string().as_str(), pwd);
+        let r = verify_password(hash.as_str(), pwd);
         assert!(r.is_ok());
         assert!(r.unwrap());
     }

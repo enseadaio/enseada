@@ -12,8 +12,8 @@ use crate::couchdb::error::Error;
 
 
 pub mod name {
-    pub const OAUTH: &'static str = "oauth";
-    pub const USERS: &'static str = "users";
+    pub const OAUTH: &str = "oauth";
+    pub const USERS: &str = "users";
 }
 
 pub struct Database {
@@ -28,7 +28,7 @@ impl Database {
     }
 
     pub fn name(&self) -> &String {
-        return &self.name;
+        &self.name
     }
 
     pub async fn get_self(&self) -> Result<responses::DBInfo> {

@@ -1,15 +1,11 @@
-use std::borrow::Cow;
-use std::ops::Deref;
 use std::sync::Arc;
 
 use actix_session::Session as HttpSession;
-use actix_web::{Error, HttpRequest, HttpResponse, Responder};
-use actix_web::body::Body;
+use actix_web::{HttpRequest, HttpResponse};
 use actix_web::http::header;
 use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
 use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use futures::TryFutureExt;
-use reqwest::header::HeaderValue;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -37,7 +33,7 @@ pub fn add_oauth_handler(app: &mut ServiceConfig) {
         storage.clone(),
         storage.clone(),
         storage.clone(),
-        storage.clone(),
+        storage,
     );
     app.data::<ConcreteOAuthHandler>(handler);
 }
@@ -59,7 +55,7 @@ pub async fn login_form(
     log::debug!("Reading user session from cookie {:?}", http_session.get::<String>("user_id")?);
 
     if let Some(username) = http_session.get::<String>("user_id")? {
-        if let Some(user) = users.find_user(&username).await? {
+        if let Some(_user) = users.find_user(&username).await? {
             return login(handler, users, Form(LoginFormBody {
                 auth_request: auth,
                 username: String::from(""),

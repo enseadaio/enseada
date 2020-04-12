@@ -40,7 +40,7 @@ pub struct ClientEntity {
 }
 
 impl ClientEntity {
-    pub fn build_guid(client_id: &String) -> Guid {
+    pub fn build_guid(client_id: &str) -> Guid {
         Guid::from(format!("client:{}", client_id))
     }
 

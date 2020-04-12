@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::io::{Error, ErrorKind};
 use std::iter::FromIterator;
 
-use url::Url;
+
 
 use crate::config::{CONFIG, Configuration};
 use crate::couchdb;
@@ -39,7 +39,7 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
 
 async fn create_db_if_not_exist(db: &Database) -> Result<bool> {
     log::debug!("Creating database {}", db.name());
-    if let Ok(_) = db.get_self().await {
+    if db.get_self().await.is_ok() {
         log::debug!("Database {} already exists. Skipping", db.name());
         return Ok(true);
     }

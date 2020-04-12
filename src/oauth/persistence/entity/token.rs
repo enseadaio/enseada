@@ -19,11 +19,11 @@ pub struct AccessTokenEntity {
 }
 
 impl AccessTokenEntity {
-    pub fn build_guid(id: String) -> Guid {
+    pub fn build_guid(id: &str) -> Guid {
         Guid::from(format!("access_token:{}", id))
     }
     pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AccessTokenEntity {
-        let id = Self::build_guid(sig);
+        let id = Self::build_guid(&sig);
         AccessTokenEntity { id, rev: None::<String>, session, expiration, }
     }
 
@@ -68,11 +68,11 @@ pub struct RefreshTokenEntity {
 }
 
 impl RefreshTokenEntity {
-    pub fn build_guid(id: String) -> Guid {
+    pub fn build_guid(id: &str) -> Guid {
         Guid::from(format!("refresh_token:{}", id))
     }
     pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> RefreshTokenEntity {
-        let id = Self::build_guid(sig);
+        let id = Self::build_guid(&sig);
         RefreshTokenEntity { id, rev: None::<String>, session, expiration, }
     }
 

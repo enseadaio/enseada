@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::convert::TryFrom;
+
 use std::sync::Arc;
 
-use actix_web_httpauth::headers::authorization::Basic;
+
 use chrono::Duration;
 use url::Url;
 
@@ -17,7 +17,7 @@ use crate::oauth::response::{AuthorizationResponse, TokenResponse, TokenType};
 use crate::oauth::scope::Scope;
 use crate::oauth::session::Session;
 use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
-use crate::oauth::token::{AccessToken, RefreshToken, Token};
+use crate::oauth::token::{AccessToken, RefreshToken};
 use crate::secure;
 
 /// Represent HTTP basic authentication as (client_id, client_secret)
@@ -76,9 +76,8 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
         }
     }
 
-    async fn validate_client(&self, client_id: &String, redirect_uri: Option<&String>, scope: &Scope) -> Result<Client> {
+    async fn validate_client(&self, client_id: &str, redirect_uri: Option<&String>, scope: &Scope) -> Result<Client> {
         log::debug!("Validating client '{}'", client_id);
-        let client_id = client_id.as_str();
         let client = self.client_storage.get_client(client_id).await
             .ok_or_else(|| Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()))?;
 
@@ -262,7 +261,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
     async fn handle(&self, req: &TokenRequest, _session: &mut Session) -> Result<TokenResponse> {
         match req {
             TokenRequest::AuthorizationCode {
-                code, redirect_uri: _, client_id: _, client_secret: _
+                code, ..
             } => {
                 let code_sig = secure::generate_signature(code.as_str());
                 let code = self.authorization_code_storage.get_code(code_sig.to_string().as_str()).await;
@@ -279,7 +278,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
 
                 Ok(res)
             }
-            TokenRequest::RefreshToken { refresh_token, scope, client_id, client_secret } => {
+            TokenRequest::RefreshToken { refresh_token, .. } => {
                 let refresh_token_sig = secure::generate_signature(refresh_token);
                 let refresh_token_sig = &refresh_token_sig.to_string();
                 let refresh_token = match self.refresh_token_storage.get_token(refresh_token_sig).await {

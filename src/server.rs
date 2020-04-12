@@ -71,7 +71,7 @@ fn get_rsa_key(key: &mut File) -> PrivateKey {
     let rsa = rsa_private_keys(rsa_buf).unwrap();
     key.seek(SeekFrom::Start(0)).unwrap();
     let pkcs8 = pkcs8_private_keys(pkcs_buf).unwrap();
-    rsa.first().or(pkcs8.first())
+    rsa.first().or_else(|| pkcs8.first())
         .expect("key format not supported. must be either RSA or PKCS8-encoded.")
         .clone()
 }

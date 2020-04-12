@@ -45,7 +45,7 @@ impl From<Vec<String>> for Scope {
 
 impl From<Vec<&str>> for Scope {
     fn from(vec: Vec<&str>) -> Self {
-        Scope(vec.iter().map(|s| s.to_string()).collect())
+        Scope(vec.iter().map(|s| (*s).to_string()).collect())
     }
 }
 
@@ -83,7 +83,7 @@ impl<'de> Deserialize<'de> for Scope {
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, <D as Deserializer<'de>>::Error> where
         D: Deserializer<'de> {
         let scope = String::deserialize(deserializer)?;
-        Ok(Scope(scope.split(" ").map(|s| s.to_string()).collect()))
+        Ok(Scope(scope.split(' ').map(|s| s.to_string()).collect()))
     }
 }
 

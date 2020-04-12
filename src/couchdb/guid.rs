@@ -21,16 +21,16 @@ impl Guid {
 
 impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let partition = self.partition().map(|s| format!("{}:", s.clone()))
-            .unwrap_or("".to_string());
+        let partition = self.partition().map(|s| format!("{}:", s))
+            .unwrap_or_else(|| "".to_string());
         write!(f, "{}{}", partition, &self.id)
     }
 }
 
 impl From<String> for Guid {
     fn from(s: String) -> Self {
-        if s.contains(":") {
-            let p: Vec<&str> = s.splitn(2, ":").collect();
+        if s.contains(':') {
+            let p: Vec<&str> = s.splitn(2, ':').collect();
             let partition = p.get(0)
                 .take()
                 .cloned()
