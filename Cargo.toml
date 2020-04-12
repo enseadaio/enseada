@@ -10,24 +10,44 @@ name = "enseada-server"
 path = "src/main.rs"
 
 [dependencies]
+# Actix
 actix = "0.9"
 actix-web = { version = "2.0", features = ["default", "rustls"] }
 actix-rt = "1.0"
 actix-files = "0.2"
 actix-tls = { version = "1.0.0", features = ["rustls"] }
-serde = "1.0"
-serde_derive = "1.0"
+actix-session = "0.3.0"
+actix-web-httpauth = "0.4.1"
+yarte = { version = "0.7", features = ["with-actix-web"]  }
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-log = "0.4"
-config = "0.9"
-dotenv = "0.15"
+serde_urlencoded = "0.6.1"
+
+# Async
+async-trait = "0.1.30"
+chrono = { version = "0.4.11", features = ["serde"] }
+futures = "0.3.4"
+
+# Security
 rustls = "0.16"
-reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
-url = "2.1"
+ring = "0.16"
+rust-argon2 = "0.8.2"
+
+# Macros
+derive_more = "0.99"
 derivative = "1.0.3"
 lazy_static = "1.4"
-derive_more = "0.99"
-yarte = { version = "0.7", features = ["with-actix-web"]  }
+
+# Miscellaneous
+config = "0.9"
+dotenv = "0.15"
+hex = "0.4"
+log = "0.4"
+reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
+url = { version = "2.1", features = ["serde"] }
+uuid = { version = "0.8", features = ["v4"] }
 
 [dependencies.log4rs]
 version = "0.10"
@@ -41,18 +61,6 @@ features = [
 "pattern_encoder",
 "threshold_filter"
 ]
-
-[dependencies.oxide-auth-actix]
-# We use this until this PR is merged, which updates ring to 0.16, which we need.
-# https://github.com/HeroicKatora/oxide-auth/pull/73
-git = "https://github.com/gzp-crey/oxide-auth"
-rev = "7d67d8db70dfc9bf8c4d8ed550d22bf070132039"
-
-[dependencies.oxide-auth]
-# We use this until this PR is merged, which updates ring to 0.16, which we need.
-# https://github.com/HeroicKatora/oxide-auth/pull/73
-git = "https://github.com/gzp-crey/oxide-auth"
-rev = "7d67d8db70dfc9bf8c4d8ed550d22bf070132039"
 
 [build-dependencies]
 yarte = { version = "0.7", features = ["with-actix-web"]  }

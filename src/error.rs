@@ -1,12 +1,61 @@
+use std::fmt;
+
 use actix_web::{
     error::{BlockingError, ResponseError},
     http::StatusCode,
     HttpResponse,
+    Error as HttpError
 };
-
 use derive_more::Display;
+use serde::{Deserialize, Serialize};
+use serde::export::Formatter;
+use url::ParseError;
 
-#[derive(Debug, Display, PartialEq)]
+use crate::couchdb;
+use crate::couchdb::error::Error as CouchError;
+
+#[derive(Debug)]
+pub struct Error {
+    message: String,
+    source: Option<Box<dyn std::error::Error>>,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.message.fmt(f)
+    }
+}
+
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.source.as_ref().map(|e| &**e as _)
+    }
+}
+
+impl From<&str> for Error {
+    fn from(message: &str) -> Self {
+        Error::from(message.to_string())
+    }
+}
+
+impl From<String> for Error {
+    fn from(message: String) -> Self {
+        Error { message, source: None }
+    }
+}
+
+impl From<couchdb::error::Error> for Error {
+    fn from(err: couchdb::error::Error) -> Self {
+        Error { message: err.to_string(), source: Some(Box::new(err)) }
+    }
+}
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        Error { message: err.to_string(), source: Some(Box::new(err))}
+    }
+}
+
+#[derive(Debug, Display, PartialEq, Eq)]
 #[allow(dead_code)]
 pub enum ApiError {
     BadRequest(String),
@@ -76,5 +125,33 @@ impl From<BlockingError<ApiError>> for ApiError {
             BlockingError::Error(api_error) => api_error,
             BlockingError::Canceled => ApiError::BlockingError("Thread blocking error".into()),
         }
+    }
+}
+
+impl From<Error> for ApiError {
+    fn from(err: Error) -> Self {
+        ApiError::InternalServerError(err.to_string())
+    }
+}
+
+impl From<CouchError> for ApiError {
+    fn from(err: CouchError) -> Self {
+        match err {
+            CouchError::Generic(err) => ApiError::InternalServerError(err),
+            CouchError::NotFound(err) => ApiError::NotFound(err),
+            CouchError::Conflict(err) => ApiError::Conflict(err),
+        }
+    }
+}
+
+impl From<HttpError> for ApiError {
+    fn from(err: HttpError) -> Self {
+        ApiError::InternalServerError(err.to_string())
+    }
+}
+
+impl From<url::ParseError> for ApiError {
+    fn from(err: ParseError) -> Self {
+        ApiError::BadRequest(err.to_string())
     }
 }

@@ -1,5 +1,5 @@
-use std::any::Any;
-use std::iter::Map;
+use serde::{Serialize, Deserialize};
+
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DBInfo {
@@ -39,4 +39,18 @@ pub struct DBProps {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Ok {
     pub ok: bool,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PutResponse {
+    pub ok: bool,
+    pub id: String,
+    pub rev: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct FindResponse<T> {
+    pub docs: Vec<T>,
+    pub bookmark: String,
+    pub warning: Option<String>,
 }

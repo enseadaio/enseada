@@ -1,31 +1,45 @@
+use io::BufReader;
+use std::fs::File;
+use std::io;
+use std::io::{Seek, SeekFrom};
+
 use actix_web::{App, HttpServer};
-use actix_web::middleware::{Logger, DefaultHeaders};
+use actix_web::middleware::{DefaultHeaders, Logger};
+use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
+use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 
 use crate::config::CONFIG;
 use crate::couchdb::add_couch_client;
+use crate::handlers::user::add_user_service;
 use crate::routes::routes;
-use rustls::{ServerConfig, NoClientAuth, PrivateKey, Certificate};
-use rustls::internal::pemfile::{certs, rsa_private_keys, pkcs8_private_keys};
-use std::fs::File;
-use std::io;
-use io::BufReader;
-use std::io::{ErrorKind, Read, BufRead, SeekFrom, Seek};
+use url::Url;
+use actix_session::CookieSession;
+use actix_web::cookie::SameSite;
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());
-    let public_host = CONFIG.public_host();
+    let public_host: &Url = CONFIG.public_host();
+    let secret_key = CONFIG.secret_key();
     let tls = CONFIG.tls();
 
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .wrap(CookieSession::private(secret_key.as_bytes())
+                .domain(public_host.domain().expect("public_host.domain()"))
+                .name("enseada_session")
+                .path("/")
+                .secure(tls.enabled())
+                .http_only(true)
+                .same_site(SameSite::Strict))
             .wrap(default_headers())
             .configure(add_couch_client)
+            .configure(add_user_service)
             .configure(routes)
     });
 
-    let server = if let Some(public_host) = public_host {
-        server.server_hostname(public_host)
+    let server = if let Some(host) = public_host.host() {
+        server.server_hostname(host.to_string())
     } else {
         server
     };
@@ -37,11 +51,12 @@ pub async fn run() -> io::Result<()> {
         let certs = get_certs(cert_f);
         let key = get_rsa_key(key_f);
         config.set_single_cert(certs, key).unwrap();
-        server.bind_rustls(address, config)
+        server.bind_rustls(&address, config)
     } else {
-        server.bind(address)
+        server.bind(&address)
     }?;
 
+    log::info!("Server started listening on {}", &address);
     server.run().await
 }
 
@@ -56,15 +71,17 @@ fn get_rsa_key(key: &mut File) -> PrivateKey {
     let rsa = rsa_private_keys(rsa_buf).unwrap();
     key.seek(SeekFrom::Start(0)).unwrap();
     let pkcs8 = pkcs8_private_keys(pkcs_buf).unwrap();
-    rsa.first().or(pkcs8.first())
+    rsa.first().or_else(|| pkcs8.first())
         .expect("key format not supported. must be either RSA or PKCS8-encoded.")
         .clone()
 }
 
 fn default_headers() -> DefaultHeaders{
-    let h = DefaultHeaders::new();
+    let h = DefaultHeaders::new()
+        .header("Server", "Enseada");
+
     if CONFIG.tls().enabled() {
-        h.header("Strict-Transport-Security", "max-age=31536000")
+        h.header("Strict-Transport-Security", "max-age=31536000;includeSubDomains")
     } else {
         h
     }
