@@ -1,8 +1,8 @@
 use actix_files as fs;
-use actix_web::{web, FromRequest};
+use actix_web::{FromRequest, web};
 
-use crate::handlers::{health, oauth, ui, user};
-use crate::oauth::request::{TokenRequest, AuthorizationRequest};
+use crate::http::handler::{health, oauth, ui, user};
+use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(fs::Files::new("/static", "./dist").show_files_listing())

@@ -22,6 +22,7 @@ use crate::templates::oauth::LoginForm;
 use crate::user::UserService;
 
 pub mod error;
+pub mod middleware;
 
 type ConcreteOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
 
