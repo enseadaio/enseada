@@ -13,6 +13,8 @@ externalDocs:
   description: Find out more about Enseada
   url: https://enseada.io
 tags:
+  - name: users
+    description: User management endpoints
   - name: maven
     description: Maven registry endpoints
   - name: docker
@@ -20,6 +22,45 @@ tags:
   - name: monitoring
     description: Monitoring and observability endpoints
 paths:
+  /api/v1/users/me:
+    get:
+      tags:
+        - users
+      summary: Fetches information about the currently authenticated user
+      operationId: user::me
+      security:
+        - oauth:
+            - profile
+      responses:
+        200:
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+  /api/v1/users/register:
+    post:
+      tags:
+        - users
+      summary: Register a new user
+      operationId: user::register
+      security:
+        - oauth:
+            - users:manage
+      requestBody:
+        required: true
+        description: New user login information
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationForm'
+      responses:
+        200:
+          description: New user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
   /health:
     get:
       tags:
@@ -41,6 +82,23 @@ paths:
                 $ref: '#/components/schemas/APIError'
 components:
   schemas:
+    MeResponse:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+    UserRegistrationForm:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
     HealthResponse:
       type: object
       required:
@@ -68,3 +126,5 @@ components:
           tokenUrl: /oauth/token
           scopes:
             profile: access user profile information
+            users:read: read-only access to registered users
+            users:manage: read-write access to registered users

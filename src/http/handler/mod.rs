@@ -1,4 +1,4 @@
-use crate::error::ApiError;
+use crate::http::error::ApiError;
 
 pub mod health;
 pub mod oauth;

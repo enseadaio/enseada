@@ -13,6 +13,7 @@ use url::Url;
 
 use crate::config::CONFIG;
 use crate::couchdb::add_couch_client;
+use crate::http::handler::oauth;
 use crate::http::handler::user::add_user_service;
 use crate::routes::routes;
 
@@ -35,6 +36,7 @@ pub async fn run() -> io::Result<()> {
             .wrap(default_headers())
             .configure(add_couch_client)
             .configure(add_user_service)
+            .configure(oauth::add_oauth_handler)
             .configure(routes)
     });
 

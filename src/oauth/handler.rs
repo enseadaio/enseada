@@ -1,7 +1,5 @@
 use std::collections::HashMap;
-
 use std::sync::Arc;
-
 
 use chrono::Duration;
 use url::Url;
@@ -17,7 +15,7 @@ use crate::oauth::response::{AuthorizationResponse, TokenResponse, TokenType};
 use crate::oauth::scope::Scope;
 use crate::oauth::session::Session;
 use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
-use crate::oauth::token::{AccessToken, RefreshToken};
+use crate::oauth::token::{AccessToken, RefreshToken, Token};
 use crate::secure;
 
 /// Represent HTTP basic authentication as (client_id, client_secret)
@@ -32,8 +30,14 @@ impl BasicAuth {
 
 #[async_trait]
 pub trait RequestHandler<T, R> {
-    async fn validate(&self, req: &T, client_auth: Option<&BasicAuth>) -> Result<()>;
+    async fn validate(&self, req: &T, client_auth: Option<&BasicAuth>) -> Result<Client>;
     async fn handle(&self, req: &T, session: &mut Session) -> Result<R>;
+}
+
+#[async_trait]
+pub trait TokenIntrospectionHandler<T: Token> {
+    async fn get_token(&self, token: &str) -> Result<T>;
+    async fn revoke_token(&self, token: &str) -> Result<()>;
 }
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
@@ -82,7 +86,9 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
             .ok_or_else(|| Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()))?;
 
         log::debug!("Validating request scopes");
-        scope.matches(client.allowed_scopes())?;
+        if !client.allowed_scopes().is_superset(scope) {
+            return Err(Error::new(ErrorKind::InvalidScope, "invalid scopes".to_string()))
+        }
 
         if let Some(redirect_uri) = redirect_uri {
             log::debug!("Validating redirect_uri");
@@ -103,7 +109,7 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
             ClientKind::Public => {
                 log::debug!("Client is of kind 'public', no authentication needed");
                 Ok(())
-            },
+            }
             ClientKind::Confidential { secret } => {
                 log::debug!("Client is of kind 'confidential', validating secret");
                 match client_secret {
@@ -115,7 +121,7 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
                             log::debug!("Client authentication failed");
                             Err(Error::new(ErrorKind::InvalidClient, "invalid client credentials".to_string()))
                         }
-                    },
+                    }
                     None => Err(Error::new(ErrorKind::InvalidClient, "invalid client credentials".to_string())),
                 }
             }
@@ -152,15 +158,13 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
         RTS: TokenStorage<RefreshToken>,
         ACS: AuthorizationCodeStorage
 {
-    async fn validate(&self, req: &AuthorizationRequest, _client_auth: Option<&BasicAuth>) -> Result<()> {
-        self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope).await?;
-        Ok(())
+    async fn validate(&self, req: &AuthorizationRequest, _client_auth: Option<&BasicAuth>) -> Result<Client> {
+        self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope).await
     }
 
     async fn handle(&self, req: &AuthorizationRequest, session: &mut Session) -> Result<AuthorizationResponse> {
         log::info!("Handling new authorization request");
-        session.set_client_id(req.client_id.clone())
-            .set_scope(req.scope.clone());
+        session.set_scope(req.scope.clone());
 
         let secret = secure::generate_token(16).unwrap();
         let code = code::AuthorizationCode::new(secret, session.clone(), Duration::minutes(5));
@@ -182,7 +186,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
         RTS: TokenStorage<RefreshToken>,
         ACS: AuthorizationCodeStorage
 {
-    async fn validate(&self, req: &TokenRequest, client_auth: Option<&BasicAuth>) -> Result<()> {
+    async fn validate(&self, req: &TokenRequest, client_auth: Option<&BasicAuth>) -> Result<Client> {
         let auth_client_id = client_auth.map(|BasicAuth(client_id, _client_secret)| client_id);
         let auth_client_secret = client_auth.and_then(|BasicAuth(_client_id, client_secret)| client_secret.as_ref());
         match req {
@@ -217,7 +221,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
 
                 let client = self.validate_client(&client_id, Some(redirect_uri), session.scope()).await?;
                 self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret)).await?;
-                Ok(())
+                Ok(client)
             }
             TokenRequest::RefreshToken { refresh_token, scope, client_id, client_secret } => {
                 let client_id = client_id.as_ref().or(auth_client_id);
@@ -252,7 +256,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
 
                 let client = self.validate_client(&client_id, None, session.scope()).await?;
                 self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret)).await?;
-                Ok(())
+                Ok(client)
             }
             TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))
         }
@@ -299,5 +303,49 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
             }
             TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))
         }
+    }
+}
+
+#[async_trait]
+impl<CS, ATS, RTS, ACS> TokenIntrospectionHandler<AccessToken> for OAuthHandler<CS, ATS, RTS, ACS>
+    where
+        CS: ClientStorage,
+        ATS: TokenStorage<AccessToken>,
+        RTS: TokenStorage<RefreshToken>,
+        ACS: AuthorizationCodeStorage
+{
+    async fn get_token(&self, token: &str) -> Result<AccessToken> {
+        let sig = secure::generate_signature(token);
+        let token = self.access_token_storage.get_token(sig.to_string().as_str()).await
+            .ok_or_else(|| Error::new(ErrorKind::InvalidRequest, "access token not found".to_string()))?;
+
+        Ok(token)
+    }
+
+    async fn revoke_token(&self, token: &str) -> Result<()> {
+        let sig = secure::generate_signature(token);
+        self.access_token_storage.revoke_token(sig.to_string().as_str()).await
+    }
+}
+
+#[async_trait]
+impl<CS, ATS, RTS, ACS> TokenIntrospectionHandler<RefreshToken> for OAuthHandler<CS, ATS, RTS, ACS>
+    where
+        CS: ClientStorage,
+        ATS: TokenStorage<AccessToken>,
+        RTS: TokenStorage<RefreshToken>,
+        ACS: AuthorizationCodeStorage
+{
+    async fn get_token(&self, token: &str) -> Result<RefreshToken> {
+        let sig = secure::generate_signature(token);
+        let token = self.refresh_token_storage.get_token(sig.to_string().as_str()).await
+            .ok_or_else(|| Error::new(ErrorKind::InvalidRequest, "refresh token not found".to_string()))?;
+
+        Ok(token)
+    }
+
+    async fn revoke_token(&self, token: &str) -> Result<()> {
+        let sig = secure::generate_signature(token);
+        self.refresh_token_storage.revoke_token(sig.to_string().as_str()).await
     }
 }

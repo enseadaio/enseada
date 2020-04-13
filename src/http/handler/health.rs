@@ -3,8 +3,8 @@ use serde::Serialize;
 
 use crate::couchdb;
 use crate::couchdb::status::Status;
-use crate::error::ApiError;
-use crate::error::ApiError::ServiceUnavailable;
+use crate::http::error::ApiError;
+use crate::http::error::ApiError::ServiceUnavailable;
 use crate::responses;
 
 #[derive(Debug, Serialize, PartialEq)]

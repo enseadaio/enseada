@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::couchdb;
 use crate::couchdb::db;
-use crate::error::ApiError;
+use crate::http::error::ApiError;
+use crate::http::extractor::{scope::Scope, user::CurrentUser};
 use crate::http::handler::ApiResult;
 use crate::responses;
 use crate::user::{User, UserService};
@@ -20,9 +21,18 @@ pub struct MeResponse {
     pub username: String,
 }
 
-pub async fn me(service: Data<UserService>) -> ApiResult<Json<MeResponse>> {
-    log::info!("Getting myself");
-    Ok(Json(MeResponse { username: String::from("random") }))
+impl From<User> for MeResponse {
+    fn from(user: User) -> Self {
+        MeResponse { username: user.username().clone() }
+    }
+}
+
+pub async fn me(
+    user: CurrentUser,
+    scope: Scope,
+) -> ApiResult<Json<MeResponse>> {
+    Scope::from("profile").matches(&scope)?;
+    Ok(Json(user.into()))
 }
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -36,7 +46,12 @@ pub struct RegistrationForm {
     pub password: String,
 }
 
-pub async fn register(service: Data<UserService>, data: Form<RegistrationForm>) -> Result<Json<UserResponse>, ApiError> {
+pub async fn register(
+    service: Data<UserService>,
+    data: Form<RegistrationForm>,
+    scope: Scope,
+) -> Result<Json<UserResponse>, ApiError> {
+    Scope::from("users:manage").matches(&scope)?;
     let user = User::new(data.username.clone(), data.password.clone())?;
     let user = service.save_user(user).await?;
     responses::ok(UserResponse { username: user.username().clone() })

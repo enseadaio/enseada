@@ -2,7 +2,7 @@ use actix_web::http::header;
 use actix_web::HttpResponse;
 use actix_web::web::Json;
 
-use crate::error::ApiError;
+use crate::http::error::ApiError;
 
 pub fn ok<T>(data: T) -> Result<Json<T>, ApiError> {
     Ok(Json(data))
