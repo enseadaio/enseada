@@ -1,8 +1,8 @@
 use actix_files as fs;
-use actix_web::{web, FromRequest};
+use actix_web::{FromRequest, web};
 
-use crate::handlers::{health, oauth, ui, user};
-use crate::oauth::request::{TokenRequest, AuthorizationRequest};
+use crate::http::handler::{health, oauth, ui, user};
+use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(fs::Files::new("/static", "./dist").show_files_listing())
@@ -10,14 +10,19 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         .service(web::scope("/ui")
             .route("", web::get().to(ui::index)))
         .service(web::scope("/oauth")
-            .configure(oauth::add_oauth_handler)
             .app_data(web::Query::<AuthorizationRequest>::configure(oauth::error::handle_query_errors))
             .app_data(web::Form::<TokenRequest>::configure(oauth::error::handle_form_errors))
             .route("/authorize", web::get().to(oauth::login_form))
             .route("/authorize", web::post().to(oauth::login))
-            .route("/token", web::post().to(oauth::token)))
+            .route("/token", web::post().to(oauth::token))
+            .route("/introspect", web::post().to(oauth::introspect))
+            .route("/revoke", web::post().to(oauth::revoke)))
         .service(web::scope("/api")
-            .service(web::scope("/users")
-                .route("/register", web::post().to(user::register))))
+            .service(web::scope("/v1")
+                .service(web::scope("/users")
+                    .route("/me", web::get().to(user::me))
+                    .route("/register", web::post().to(user::register)))))
     ;
 }
+
+

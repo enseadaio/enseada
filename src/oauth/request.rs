@@ -3,6 +3,7 @@ use std::fmt::{self, Debug, Formatter};
 use serde::{Deserialize, Serialize};
 
 use crate::oauth::scope::Scope;
+use crate::oauth::token::TokenTypeHint;
 
 #[derive(Debug, Deserialize)]
 pub struct AuthorizationRequest {
@@ -63,3 +64,14 @@ pub enum TokenRequest {
     Unknown,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct IntrospectionRequest {
+    pub token: String,
+    pub token_type_hint: Option<TokenTypeHint>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RevocationRequest {
+    pub token: String,
+    pub token_type_hint: Option<TokenTypeHint>,
+}

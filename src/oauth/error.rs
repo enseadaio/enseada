@@ -28,6 +28,10 @@ impl Error {
         self.error_uri = Some(url.to_string());
         self
     }
+
+    pub fn description(&self) -> &str {
+        &self.error_description
+    }
 }
 
 impl Display for Error {

@@ -3,8 +3,9 @@ use chrono::serde::ts_seconds;
 use serde::{Deserialize, Serialize};
 
 use crate::couchdb::guid::Guid;
+use crate::oauth::Expirable;
 use crate::oauth::session::Session;
-use crate::oauth::token::{AccessToken, RefreshToken};
+use crate::oauth::token::{AccessToken, RefreshToken, Token};
 use crate::secure::SecureSecret;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -24,7 +25,11 @@ impl AccessTokenEntity {
     }
     pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AccessTokenEntity {
         let id = Self::build_guid(&sig);
-        AccessTokenEntity { id, rev: None::<String>, session, expiration, }
+        AccessTokenEntity { id, rev: None::<String>, session, expiration }
+    }
+
+    pub fn from_token(sig: String, token: &AccessToken) -> Self {
+        Self::new(sig, token.session().clone(), *token.expiration())
     }
 
     pub fn id(&self) -> &Guid {
@@ -65,16 +70,34 @@ pub struct RefreshTokenEntity {
     session: Session,
     #[serde(with = "ts_seconds")]
     expiration: DateTime<Utc>,
+    related_access_token_signature: String,
 }
 
 impl RefreshTokenEntity {
     pub fn build_guid(id: &str) -> Guid {
         Guid::from(format!("refresh_token:{}", id))
     }
-    pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> RefreshTokenEntity {
+
+    pub fn new(sig: String, session: Session, expiration: DateTime<Utc>, related_access_token_signature: String) -> RefreshTokenEntity {
         let id = Self::build_guid(&sig);
-        RefreshTokenEntity { id, rev: None::<String>, session, expiration, }
+        RefreshTokenEntity {
+            id,
+            rev: None,
+            session,
+            expiration,
+            related_access_token_signature,
+        }
     }
+
+    pub fn from_token(sig: String, token: &RefreshToken) -> Self {
+        Self::new(
+            sig,
+            token.session().clone(),
+            *token.expiration(),
+            token.related_access_token_signature().to_string(),
+        )
+    }
+
 
     pub fn id(&self) -> &Guid {
         &self.id
@@ -97,7 +120,7 @@ impl RefreshTokenEntity {
     }
 
     pub fn to_token(&self, token: SecureSecret) -> RefreshToken {
-        RefreshToken::new(token, self.session.clone(), self.expires_in())
+        RefreshToken::new(token, self.session.clone(), self.expires_in(), self.related_access_token_signature.clone())
     }
 
     pub fn to_empty_token(&self) -> RefreshToken {

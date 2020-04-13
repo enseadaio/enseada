@@ -1,17 +1,23 @@
-use serde::{Serialize, Deserialize, Deserializer, Serializer};
-use std::vec::Vec;
 use std::collections::HashSet;
+use std::vec::Vec;
 
-use crate::oauth::Result;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
 use crate::oauth::error::{Error, ErrorKind};
+use crate::oauth::Result;
 
 #[derive(Clone, Default, Debug)]
 pub struct Scope(HashSet<String>);
 
 impl Scope {
     /// Returns the intersecting scope, or an InvalidScope error
-    /// if no intersection is found
+    /// if no intersection is found.
+    /// A full scope always matches everything
     pub fn matches(&self, other: &Scope) -> Result<Scope> {
+        if self.is_full_scope() {
+            return Ok(other.clone())
+        }
+
         let intersection: HashSet<String> = self.0.intersection(&other.0)
             .map(String::clone)
             .collect();
@@ -24,7 +30,16 @@ impl Scope {
 
     /// Returns true if the scope is a superset of another, i.e., self contains at least all the values in other.
     pub fn is_superset(&self, other: &Scope) -> bool {
-        self.0.is_superset(&other.0)
+        self.is_full_scope() || self.0.is_superset(&other.0)
+    }
+
+    pub fn is_subset(&self, other: &Scope) -> bool {
+        other.is_full_scope() || self.0.is_subset(&other.0)
+    }
+
+    /// Returns true if the scope is '*', meaning it matches every possible scope
+    pub fn is_full_scope(&self) -> bool {
+        self.0.contains("*")
     }
 }
 
@@ -65,9 +80,10 @@ impl From<&str> for Scope {
 
 impl ToString for Scope {
     fn to_string(&self) -> String {
-        let vec: Vec<String> = self.0.iter()
+        let mut vec: Vec<String> = self.0.iter()
             .map(String::clone)
             .collect();
+        vec.sort();
         vec.join(" ")
     }
 }
@@ -89,8 +105,8 @@ impl<'de> Deserialize<'de> for Scope {
 
 #[cfg(test)]
 mod test {
-    use super::super::error::ErrorKind;
     use super::Scope;
+    use super::super::error::ErrorKind;
 
     #[test]
     fn it_matches_a_similar_scope() {
@@ -109,6 +125,19 @@ mod test {
         let i = a.matches(&b).unwrap_err();
         assert_eq!(i.kind(), &ErrorKind::InvalidScope);
         assert_eq!(i.to_string(), "\"invalid_scope\": invalid scopes");
+    }
+
+    #[test]
+    fn a_full_scope_always_matches_everything() {
+        let a = Scope::from("*");
+        let b = Scope::from("everything should match");
+        assert!(a.is_full_scope());
+        assert!(!b.is_full_scope());
+
+        let i = a.matches(&b).unwrap();
+        assert_eq!(i.to_string(), "everything match should");
+        assert!(a.is_superset(&b));
+        assert!(b.is_subset(&a));
     }
 
     #[test]

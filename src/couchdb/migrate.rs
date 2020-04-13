@@ -2,8 +2,6 @@ use std::collections::HashSet;
 use std::io::{Error, ErrorKind};
 use std::iter::FromIterator;
 
-
-
 use crate::config::{CONFIG, Configuration};
 use crate::couchdb;
 use crate::couchdb::Couch;
@@ -30,7 +28,7 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     let public_host = cfg.public_host();
     create_oauth_client(&oauth_db, Client::public(
         "enseada".to_string(),
-        Scope::from("profile"),
+        Scope::from("*"),
         HashSet::from_iter(vec![public_host.join("/ui/auth/callback").unwrap()]))).await?;
 
     log::info!("Migrations completed");

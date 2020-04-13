@@ -3,18 +3,19 @@ use std::fs::File;
 use std::io;
 use std::io::{Seek, SeekFrom};
 
+use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
+use actix_web::cookie::SameSite;
 use actix_web::middleware::{DefaultHeaders, Logger};
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
+use url::Url;
 
 use crate::config::CONFIG;
 use crate::couchdb::add_couch_client;
-use crate::handlers::user::add_user_service;
+use crate::http::handler::oauth;
+use crate::http::handler::user::add_user_service;
 use crate::routes::routes;
-use url::Url;
-use actix_session::CookieSession;
-use actix_web::cookie::SameSite;
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());
@@ -35,6 +36,7 @@ pub async fn run() -> io::Result<()> {
             .wrap(default_headers())
             .configure(add_couch_client)
             .configure(add_user_service)
+            .configure(oauth::add_oauth_handler)
             .configure(routes)
     });
 

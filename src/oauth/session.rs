@@ -1,4 +1,5 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+
 use crate::oauth::scope::Scope;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -9,17 +10,15 @@ pub struct Session {
 }
 
 impl Session {
-    pub fn empty() -> Session {
-        Default::default()
+    pub fn for_client(client_id: String) -> Session {
+        Session {
+            client_id,
+            ..Default::default()
+        }
     }
 
     pub fn client_id(&self) -> &String {
         &self.client_id
-    }
-
-    pub fn set_client_id(&mut self, client_id: String) -> &mut Self {
-        self.client_id = client_id;
-        self
     }
 
     pub fn scope(&self) -> &Scope {

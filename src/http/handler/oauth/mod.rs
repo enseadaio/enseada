@@ -10,12 +10,12 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::couchdb::{self, db};
-use crate::error::ApiError;
+use crate::http::error::ApiError;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::oauth::handler::{BasicAuth, OAuthHandler, RequestHandler};
 use crate::oauth::persistence::CouchStorage;
-use crate::oauth::request::{AuthorizationRequest, TokenRequest};
-use crate::oauth::response::TokenResponse;
+use crate::oauth::request::{AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest};
+use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use crate::oauth::session::Session;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
@@ -23,7 +23,7 @@ use crate::user::UserService;
 
 pub mod error;
 
-type ConcreteOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
+pub type ConcreteOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
 
 pub fn add_oauth_handler(app: &mut ServiceConfig) {
     let couch = &couchdb::SINGLETON;
@@ -103,13 +103,14 @@ pub async fn login(
     let mut url = Url::parse(&redirect_uri)?;
 
     let validate = handler.validate(&auth, client_auth).await;
-    if let Err(err) = validate {
-        return Ok(redirect_to_client(&mut url, err));
-    }
+    let client = match validate {
+        Ok(client) => client,
+        Err(err) => return Ok(redirect_to_client(&mut url, err)),
+    };
 
     let user = match http_session.get::<String>("user_id")? {
         Some(username) => users.find_user(&username).await?,
-        None => users.authenticate_user(form.username, form.password).await.ok(),
+        None => users.authenticate_user(&form.username, &form.password).await.ok(),
     };
 
     let user = match user {
@@ -124,7 +125,7 @@ pub async fn login(
 
     let user_id = user.id();
     http_session.set("user_id", user_id.id())?;
-    let session = &mut Session::empty();
+    let session = &mut Session::for_client(client.client_id().clone());
     session.set_user_id(user_id.to_string());
 
     let handle = handler.handle(&auth, session).await;
@@ -145,12 +146,44 @@ pub async fn token(
     let client_auth = get_basic_auth(&req);
     let client_auth = client_auth.as_ref();
     let req = form.into_inner();
-    log::debug!("received token request {:?}", &req);
+    log::debug!("received token request");
 
-    let session = &mut Session::empty();
-    let validate = handler.validate(&req, client_auth);
-    let res: TokenResponse = validate.and_then(|_| handler.handle(&req, session)).await?;
+    let client = handler.validate(&req, client_auth).await?;
+    let session = &mut Session::for_client(client.client_id().clone());
+    let res = handler.handle(&req, session).await?;
     Ok(Json(res))
+}
+
+pub async fn introspect(
+    handler: Data<ConcreteOAuthHandler>,
+    form: Form<IntrospectionRequest>,
+    req: HttpRequest,
+) -> Result<Json<IntrospectionResponse>, OAuthError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
+    let req = form.into_inner();
+    log::debug!("received introspection request");
+
+    let client = handler.validate(&req, client_auth).await?;
+    let session = &mut Session::for_client(client.client_id().clone());
+    let res = handler.handle(&req, session).await?;
+    Ok(Json(res))
+}
+
+pub async fn revoke(
+    handler: Data<ConcreteOAuthHandler>,
+    form: Form<RevocationRequest>,
+    req: HttpRequest,
+) -> Result<Json<RevocationResponse>, OAuthError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
+    let req = form.into_inner();
+    log::debug!("received revocation request");
+
+    let client = handler.validate(&req, client_auth).await?;
+    let session = &mut Session::for_client(client.client_id().clone());
+    let res = handler.handle(&req, session).await?;
+    Ok(Json((res)))
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {

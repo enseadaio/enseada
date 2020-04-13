@@ -1,14 +1,26 @@
 use std::ops::Add;
 
 use chrono::{DateTime, Duration, Utc};
+use serde::{Deserialize, Serialize};
 
 use crate::oauth::Expirable;
 use crate::oauth::scope::Scope;
 use crate::oauth::session::Session;
 use crate::secure::SecureSecret;
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TokenTypeHint {
+    AccessToken,
+    RefreshToken,
+    #[serde(other)]
+    Unknown,
+}
+
 pub trait Token: ToString + Expirable {
     fn token(&self) -> SecureSecret;
+    fn session(&self) -> &Session;
+    fn type_hint(&self) -> TokenTypeHint;
 }
 
 pub struct AccessToken {
@@ -29,15 +41,19 @@ impl AccessToken {
     pub fn scope(&self) -> &Scope {
         &self.session.scope()
     }
-
-    pub fn session(&self) -> &Session {
-        &self.session
-    }
 }
 
 impl Token for AccessToken {
     fn token(&self) -> SecureSecret {
         self.token_rep.clone().unwrap_or_else(SecureSecret::empty)
+    }
+
+    fn session(&self) -> &Session {
+        &self.session
+    }
+
+    fn type_hint(&self) -> TokenTypeHint {
+        TokenTypeHint::AccessToken
     }
 }
 
@@ -65,28 +81,38 @@ pub struct RefreshToken {
     token_rep: Option<SecureSecret>,
     session: Session,
     expiration: DateTime<Utc>,
+    related_access_token_signature: String,
 }
 
 impl RefreshToken {
-    pub fn new(token: SecureSecret, session: Session, expires_in: Duration) -> RefreshToken {
+    pub fn new(token: SecureSecret, session: Session, expires_in: Duration, related_access_token_signature: String) -> RefreshToken {
         RefreshToken {
             token_rep: Some(token),
             session,
             expiration: Utc::now().add(expires_in),
+            related_access_token_signature,
         }
     }
     pub fn scope(&self) -> &Scope {
         &self.session.scope()
     }
 
-    pub fn session(&self) -> &Session {
-        &self.session
+    pub fn related_access_token_signature(&self) -> &str {
+        &self.related_access_token_signature
     }
 }
 
 impl Token for RefreshToken {
     fn token(&self) -> SecureSecret {
         self.token_rep.clone().unwrap_or_else(SecureSecret::empty)
+    }
+
+    fn session(&self) -> &Session {
+        &self.session
+    }
+
+    fn type_hint(&self) -> TokenTypeHint {
+        TokenTypeHint::RefreshToken
     }
 }
 

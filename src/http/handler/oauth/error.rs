@@ -1,12 +1,12 @@
-use actix_web::{HttpRequest, HttpResponse};
+use std::str::FromStr;
 
-use actix_web::error::{InternalError, Error, UrlencodedError, QueryPayloadError};
+use actix_web::{HttpRequest, HttpResponse};
+use actix_web::error::{Error, InternalError, QueryPayloadError, UrlencodedError};
 use actix_web::web::{FormConfig, QueryConfig};
 use url::Url;
 
-use crate::handlers::oauth::redirect_to_client;
+use crate::http::handler::oauth::redirect_to_client;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
-use std::str::FromStr;
 
 pub fn handle_query_errors(cfg: QueryConfig) -> QueryConfig {
     cfg.error_handler(handle_query_error)
