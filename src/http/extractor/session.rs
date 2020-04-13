@@ -18,7 +18,7 @@ use crate::http::handler::oauth::ConcreteOAuthHandler;
 use crate::oauth::Expirable;
 use crate::oauth::handler::TokenIntrospectionHandler;
 use crate::oauth::session::Session;
-use crate::oauth::token::AccessToken;
+use crate::oauth::token::{AccessToken, Token};
 
 pub type TokenSession = Session;
 

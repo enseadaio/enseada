@@ -14,8 +14,8 @@ use crate::http::error::ApiError;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::oauth::handler::{BasicAuth, OAuthHandler, RequestHandler};
 use crate::oauth::persistence::CouchStorage;
-use crate::oauth::request::{AuthorizationRequest, TokenRequest};
-use crate::oauth::response::TokenResponse;
+use crate::oauth::request::{AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest};
+use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use crate::oauth::session::Session;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
@@ -146,12 +146,44 @@ pub async fn token(
     let client_auth = get_basic_auth(&req);
     let client_auth = client_auth.as_ref();
     let req = form.into_inner();
-    log::debug!("received token request {:?}", &req);
+    log::debug!("received token request");
 
     let client = handler.validate(&req, client_auth).await?;
     let session = &mut Session::for_client(client.client_id().clone());
-    let res: TokenResponse = handler.handle(&req, session).await?;
+    let res = handler.handle(&req, session).await?;
     Ok(Json(res))
+}
+
+pub async fn introspect(
+    handler: Data<ConcreteOAuthHandler>,
+    form: Form<IntrospectionRequest>,
+    req: HttpRequest,
+) -> Result<Json<IntrospectionResponse>, OAuthError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
+    let req = form.into_inner();
+    log::debug!("received introspection request");
+
+    let client = handler.validate(&req, client_auth).await?;
+    let session = &mut Session::for_client(client.client_id().clone());
+    let res = handler.handle(&req, session).await?;
+    Ok(Json(res))
+}
+
+pub async fn revoke(
+    handler: Data<ConcreteOAuthHandler>,
+    form: Form<RevocationRequest>,
+    req: HttpRequest,
+) -> Result<Json<RevocationResponse>, OAuthError> {
+    let client_auth = get_basic_auth(&req);
+    let client_auth = client_auth.as_ref();
+    let req = form.into_inner();
+    log::debug!("received revocation request");
+
+    let client = handler.validate(&req, client_auth).await?;
+    let session = &mut Session::for_client(client.client_id().clone());
+    let res = handler.handle(&req, session).await?;
+    Ok(Json((res)))
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {

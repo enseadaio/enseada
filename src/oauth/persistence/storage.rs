@@ -1,8 +1,5 @@
 use std::convert::TryInto;
-
 use std::sync::Arc;
-
-
 
 use async_trait::async_trait;
 
@@ -62,7 +59,7 @@ impl TokenStorage<AccessToken> for CouchStorage {
     }
 
     async fn store_token(&self, sig: &str, token: AccessToken) -> Result<AccessToken> {
-        let entity = AccessTokenEntity::new(String::from(sig), token.session().clone(), *token.expiration());
+        let entity = AccessTokenEntity::from_token(sig.to_string(), &token);
         self.db.put(&entity.id().to_string(), &entity).await
             .map_err(map_couch_err)?;
         Ok(entity.to_token(token.token()))
@@ -91,7 +88,7 @@ impl TokenStorage<RefreshToken> for CouchStorage {
     }
 
     async fn store_token(&self, sig: &str, token: RefreshToken) -> Result<RefreshToken> {
-        let entity = RefreshTokenEntity::new(String::from(sig), token.session().clone(), *token.expiration());
+        let entity = RefreshTokenEntity::from_token(sig.to_string(), &token);
         self.db.put(&entity.id().to_string(), &entity).await
             .map_err(map_couch_err)?;
         Ok(entity.to_token(token.token()))
