@@ -1,0 +1,10 @@
+# ApiError
+type: object
+required:
+  - errors
+properties:
+  errors:
+    type: array
+    items:
+      type: string
+    example: ['an error has occurred']

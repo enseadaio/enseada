@@ -23,7 +23,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .name("open_api_spec")
                     .route(web::get().to(api_docs::open_api)))
                 .route("", web::get().to(api_docs::redoc)))
-            .service(web::scope("/v1")
+            .service(web::scope("/v1beta1")
                 .service(web::scope("/users")
                     .route("/me", web::get().to(user::me))
                     .route("/register", web::post().to(user::register)))))

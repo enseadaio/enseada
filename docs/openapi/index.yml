@@ -17,14 +17,14 @@ externalDocs:
   description: Find out more about Enseada
   url: https://enseada.io
 tags:
-  - name: users
-    description: User management endpoints
   - name: docker
     description: Docker V2 registry endpoints
   - name: monitoring
     description: Monitoring and observability endpoints
+  - name: users
+    description: User management endpoints
 paths:
-  /api/v1/users/me:
+  /api/v1beta1/users/me:
     get:
       tags:
         - users
@@ -39,14 +39,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MeResponse'
+                $ref: '#/components/schemas/User'
         401:
           description: Authentication failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIError'
-  /api/v1/users/register:
+  /api/v1beta1/users/register:
     post:
       tags:
         - users
@@ -68,7 +68,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MeResponse'
+                $ref: '#/components/schemas/User'
         401:
           description: Authentication failed
           content:
@@ -102,41 +102,7 @@ paths:
                 $ref: '#/components/schemas/APIError'
 components:
   schemas:
-    MeResponse:
-      type: object
-      required:
-        - username
-      properties:
-        username:
-          type: string
-    UserRegistrationForm:
-      type: object
-      required:
-        - username
-        - password
-      properties:
-        username:
-          type: string
-        password:
-          type: string
-    HealthResponse:
-      type: object
-      required:
-        - status
-      properties:
-        status:
-          type: string
-          enum: ['ok']
-    APIError:
-      type: object
-      required:
-        - errors
-      properties:
-        errors:
-          type: array
-          items:
-            type: string
-          example: ['an error has occurred']
+    $ref: './schemas/_index.yml'
   securitySchemes:
     oauth:
       type: oauth2

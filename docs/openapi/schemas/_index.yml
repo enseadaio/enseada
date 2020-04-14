@@ -1,0 +1,8 @@
+User:
+  $ref: './users/User.yml'
+UserRegistrationForm:
+  $ref: './users/UserRegistrationForm.yml'
+HealthResponse:
+  $ref: './HealthResponse.yml'
+APIError:
+  $ref: './ApiError.yml'
