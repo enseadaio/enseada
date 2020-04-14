@@ -10,6 +10,6 @@ pub struct Index<'a> {
 
 #[derive(Template)]
 #[template(path = "redoc.hbs", err = "redoc error message")]
-pub struct ReDoc<'a> {
-    pub spec_url: &'a str,
+pub struct ReDoc {
+    pub spec_url: String,
 }
