@@ -2,6 +2,10 @@ openapi: 3.0.1
 info:
   title: Enseada
   description: A Cloud native multi-package registry
+  x-logo:
+    url: https://enseada.io/images/enseada-logo.png
+    backgroundColor: "#FFFFFF"
+    altText: "Enseada logo"
   contact:
     email: enseada@pm.me
     url: https://enseada.io

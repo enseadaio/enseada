@@ -7,3 +7,9 @@ pub mod oauth;
 pub struct Index<'a> {
     pub name: Option<&'a str>,
 }
+
+#[derive(Template)]
+#[template(path = "redoc.hbs", err = "redoc error message")]
+pub struct ReDoc<'a> {
+    pub spec_url: &'a str,
+}

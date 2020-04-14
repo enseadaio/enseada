@@ -1,7 +1,7 @@
 use actix_files as fs;
 use actix_web::{FromRequest, web};
 
-use crate::http::handler::{health, oauth, ui, user};
+use crate::http::handler::{health, oauth, ui, user, api_docs};
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
@@ -18,6 +18,9 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             .route("/introspect", web::post().to(oauth::introspect))
             .route("/revoke", web::post().to(oauth::revoke)))
         .service(web::scope("/api")
+            .service(web::scope("/docs")
+                .route("openapi.yml", web::get().to(api_docs::open_api))
+                .route("", web::get().to(api_docs::redoc)))
             .service(web::scope("/v1")
                 .service(web::scope("/users")
                     .route("/me", web::get().to(user::me))
