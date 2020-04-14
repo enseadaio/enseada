@@ -6,4 +6,5 @@ docker-compose.yml
 examples/
 CODEOWNERS
 docs/
+!docs/openapi.yml
 Dockerfile
