@@ -25,7 +25,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile
+      - run: |
+          npm --version || true
+          yarn --version || true
+          yarn install --frozen-lockfile
       - name: Lint code
         run: |
         #          Reenable when issues are fixed
