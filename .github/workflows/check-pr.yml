@@ -10,6 +10,9 @@ jobs:
       image: rust:1-buster
     steps:
       - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
       - uses: actions/cache@v1
         with:
           path: target/debug
@@ -18,9 +21,11 @@ jobs:
             ${{ runner.os }}-cargo-
       - name: Install Dependencies
         run: |
-          apt-get update -y && apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
+          apt-get update -y
+          apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
           rustup update
           rustup component add clippy
+          yarn install
       - name: Lint code
         run: |
 #          Reenable when issues are fixed
