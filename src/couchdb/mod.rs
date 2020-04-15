@@ -1,10 +1,14 @@
+use std::sync::Arc;
+
 use actix_web::web;
+
+pub use migrate::migrate;
 
 use crate::config::CONFIG;
 use crate::couchdb::client::Client;
 use crate::couchdb::db::Database;
+use crate::couchdb::error::Error;
 use crate::couchdb::status::Status;
-use std::sync::Arc;
 
 pub mod client;
 pub mod db;
@@ -13,9 +17,6 @@ mod migrate;
 pub mod responses;
 pub mod status;
 pub mod guid;
-pub use migrate::migrate;
-use crate::couchdb::error::Error;
-
 lazy_static! {
     pub static ref SINGLETON: Couch = Couch::from_global_config();
 }
@@ -41,7 +42,7 @@ impl Couch {
     }
 
     pub async fn status(&self) -> reqwest::Result<Status> {
-        self.client.get("/_up").await
+        self.client.get("/_up", None::<bool>).await
     }
 }
 

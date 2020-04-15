@@ -4,6 +4,7 @@ use crate::couchdb::db::Database;
 use crate::couchdb::error::Error as CouchError;
 use crate::couchdb::guid::Guid;
 use crate::error::Error;
+use crate::pagination::Page;
 use crate::secure;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -51,6 +52,11 @@ pub struct UserService {
 impl UserService {
     pub fn new(db: Database) -> UserService {
         UserService { db }
+    }
+
+    pub async fn list_users(&self, limit: usize, offset: usize) -> Result<Page<User>, Error> {
+        let page = self.db.list("user", limit, offset).await?;
+        Ok(Page::from(page))
     }
 
     pub async fn find_user(&self, username: &str) -> Result<Option<User>, Error> {

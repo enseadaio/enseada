@@ -78,7 +78,7 @@ fn get_rsa_key(key: &mut File) -> PrivateKey {
         .clone()
 }
 
-fn default_headers() -> DefaultHeaders{
+fn default_headers() -> DefaultHeaders {
     let h = DefaultHeaders::new()
         .header("Server", "Enseada");
 

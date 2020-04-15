@@ -25,6 +25,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 .route("", web::get().to(api_docs::redoc)))
             .service(web::scope("/v1beta1")
                 .service(web::scope("/users")
+                    .route("", web::get().to(user::list))
                     .route("/me", web::get().to(user::me))
                     .route("/register", web::post().to(user::register)))))
     ;
