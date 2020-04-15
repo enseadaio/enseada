@@ -1,5 +1,4 @@
-use serde::{Serialize, Deserialize};
-
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DBInfo {
@@ -53,4 +52,24 @@ pub struct FindResponse<T> {
     pub docs: Vec<T>,
     pub bookmark: String,
     pub warning: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct RowsResponse<T: Clone> {
+    pub offset: usize,
+    pub rows: Vec<RawDocResponse<T>>,
+    pub total_rows: usize,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct RawDocResponse<T: Clone> {
+    pub id: String,
+    pub key: String,
+    pub value: RawDocValue,
+    pub doc: T,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct RawDocValue {
+    pub rev: String,
 }

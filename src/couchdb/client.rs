@@ -30,15 +30,15 @@ impl Client {
         }
     }
 
-    pub async fn get<T: DeserializeOwned>(&self, path: &str) -> reqwest::Result<T> {
-        self.request(Method::GET, path, None::<bool>, None::<bool>).await
+    pub async fn get<Q: Serialize, T: DeserializeOwned>(&self, path: &str, query: Option<Q>) -> reqwest::Result<T> {
+        self.request(Method::GET, path, None::<bool>, query).await
     }
 
     pub async fn put<B: Serialize, Q: Serialize, R: DeserializeOwned>(
         &self,
         path: &str,
         body: Option<B>,
-        query: Option<Q>
+        query: Option<Q>,
     ) -> reqwest::Result<R> {
         self.request(Method::PUT, path, body, query).await
     }

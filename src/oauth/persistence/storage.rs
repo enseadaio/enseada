@@ -1,6 +1,8 @@
 use std::convert::TryInto;
 use std::sync::Arc;
 
+use http::StatusCode;
+
 use async_trait::async_trait;
 
 use crate::couchdb;
@@ -38,7 +40,7 @@ impl ClientStorage for CouchStorage {
         let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
             Ok(client) => client,
             Err(err) => {
-                if let couchdb::error::Error::NotFound(_s) = err {
+                if let StatusCode::NOT_FOUND = err.status() {
                     return None;
                 }
                 log::error!("Error fetching client from database: {}", err);

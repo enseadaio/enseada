@@ -19,6 +19,7 @@ impl FromRequest for CurrentUser {
     type Config = ();
 
     fn from_request(req: &HttpRequest, payload: &mut Payload<PayloadStream>) -> Self::Future {
+        log::debug!("Extracting current user from request");
         let service_fut = Data::<UserService>::from_request(req, payload);
         let session_fut = TokenSession::from_request(req, payload);
         Box::pin(async move {
@@ -32,7 +33,10 @@ impl FromRequest for CurrentUser {
             let guid = Guid::from(username.clone());
             let user = service.find_user(guid.id()).await?;
             match user {
-                Some(user) => Ok(user),
+                Some(user) => {
+                    log::debug!("Found user {}", user.id());
+                    Ok(user)
+                },
                 None => Err(ApiError::Unauthorized("unauthorized".to_string())),
             }
         })

@@ -1,9 +1,11 @@
+use http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use crate::couchdb::db::Database;
 use crate::couchdb::error::Error as CouchError;
 use crate::couchdb::guid::Guid;
 use crate::error::Error;
+use crate::pagination::Page;
 use crate::secure;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -53,23 +55,37 @@ impl UserService {
         UserService { db }
     }
 
+    pub async fn list_users(&self, limit: usize, offset: usize) -> Result<Page<User>, Error> {
+        let page = self.db.list("user", limit, offset).await?;
+        Ok(Page::from(page))
+    }
+
     pub async fn find_user(&self, username: &str) -> Result<Option<User>, Error> {
         let guid = User::build_guid(username).to_string();
         match self.db.get(guid.as_str()).await {
             Ok(user) => Ok(Some(user)),
-            Err(err) => match err {
-                CouchError::NotFound(_) => Ok(None),
+            Err(err) => match err.status() {
+                StatusCode::NOT_FOUND => Ok(None),
                 _ => Err(Error::from(err)),
             },
         }
     }
 
-    pub async fn save_user(&self, user: User) -> Result<User, CouchError> {
+    pub async fn save_user(&self, user: User) -> Result<User, Error> {
         let guid = user.id().to_string();
         let res = self.db.put(guid.as_str(), &user).await?;
         let mut user = user;
         user.set_rev(res.rev);
         Ok(user)
+    }
+
+    pub async fn delete_user(&self, user: &User) -> Result<(), Error> {
+        let id = user.id().to_string();
+        let rev = match user.rev() {
+            Some(rev) => rev,
+            None => panic!("user {} is missing rev", id),
+        };
+        self.db.delete(&id, &rev).await.map_err(Error::from)
     }
 
     pub async fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error> {

@@ -9,22 +9,28 @@ jobs:
     container:
       image: rust:1-buster
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
           path: target/debug
           key: ${{ runner.os }}-cargo-${{ hashFiles(format('{0}{1}', github.workspace, '/Cargo.lock')) }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm install -g yarn
       - name: Install Dependencies
         run: |
-          apt-get update -y && apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
+          apt-get update -y
+          apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
           rustup update
           rustup component add clippy
+          yarn install --frozen-lockfile
       - name: Lint code
         run: |
-#          Reenable when issues are fixed
-#          cargo clippy --all-targets --all-features -- -D warnings
+        #          Reenable when issues are fixed
+      #          cargo clippy --all-targets --all-features -- -D warnings
       - name: Run tests
         run: |
           cargo test

@@ -4,20 +4,26 @@ use reqwest::StatusCode;
 use serde::export::Formatter;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Error {
-    Generic(String),
-    NotFound(String),
-    Conflict(String),
+pub struct Error {
+    message: String,
+    status: StatusCode,
+}
+
+impl Error {
+    pub fn status(&self) -> StatusCode {
+        self.status
+    }
+
+    pub(super) fn map_message(err: reqwest::Error, message: &str) -> Error {
+        let mut mapped = Self::from(err);
+        mapped.message = message.to_string();
+        mapped
+    }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Error::Generic(s) => s,
-            Error::NotFound(s) => s,
-            Error::Conflict(s) => s,
-        };
-        s.fmt(f)
+        self.message.fmt(f)
     }
 }
 
@@ -26,14 +32,7 @@ impl std::error::Error for Error {}
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
         let message = err.to_string();
-        if !err.is_status() {
-            return Error::Generic(message)
-        }
-
-        match err.status().unwrap() {
-            StatusCode::NOT_FOUND => Error::NotFound(message),
-            StatusCode::CONFLICT => Error::Conflict(message),
-            _ => Error::Generic(message),
-        }
+        let status = err.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+        Error { status, message }
     }
 }

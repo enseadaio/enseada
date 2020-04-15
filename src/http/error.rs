@@ -24,10 +24,11 @@ pub enum ApiError {
     ServiceUnavailable(String),
 }
 
-/// User-friendly error expiredmessages
+/// User-friendly error messages
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ErrorResponse {
-    errors: Vec<String>,
+    error: String,
+    reasons: Vec<String>,
 }
 
 impl ApiError {
@@ -38,47 +39,52 @@ impl ApiError {
 
 /// Automatically convert ApiErrors to external Response Errors
 impl ResponseError for ApiError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            ApiError::BadRequest(_) => StatusCode::BAD_REQUEST,
+            ApiError::Conflict(_) => StatusCode::CONFLICT,
+            ApiError::Forbidden(_) => StatusCode::FORBIDDEN,
+            ApiError::NotFound(_) => StatusCode::NOT_FOUND,
+            ApiError::ValidationError(_) => StatusCode::BAD_REQUEST,
+            ApiError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            ApiError::ServiceUnavailable(_) => StatusCode::SERVICE_UNAVAILABLE,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
     fn error_response(&self) -> HttpResponse {
         match self {
             ApiError::BadRequest(error) => {
-                HttpResponse::BadRequest().json::<ErrorResponse>(error.into())
+                HttpResponse::BadRequest().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), vec![error.clone()]))
             }
             ApiError::Conflict(error) => {
-                HttpResponse::Conflict().json::<ErrorResponse>(error.into())
+                HttpResponse::Conflict().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), vec![error.clone()]))
             }
             ApiError::Forbidden(error) => {
-                HttpResponse::Forbidden().json::<ErrorResponse>(error.into())
+                HttpResponse::Forbidden().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), vec![error.clone()]))
             }
             ApiError::NotFound(error) => {
-                HttpResponse::NotFound().json::<ErrorResponse>(error.into())
+                HttpResponse::NotFound().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), vec![error.clone()]))
             }
             ApiError::ValidationError(errors) => {
-                HttpResponse::UnprocessableEntity().json::<ErrorResponse>(errors.to_vec().into())
+                HttpResponse::UnprocessableEntity().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), errors.clone()))
             }
             ApiError::Unauthorized(error) => {
-                HttpResponse::Unauthorized().json::<ErrorResponse>(error.into())
+                HttpResponse::Unauthorized().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), vec![error.clone()]))
             }
             ApiError::ServiceUnavailable(error) => {
-                HttpResponse::ServiceUnavailable().json::<ErrorResponse>(error.into())
+                HttpResponse::ServiceUnavailable().json::<ErrorResponse>(ErrorResponse::new(self.status_code(), vec![error.clone()]))
             }
             _ => HttpResponse::InternalServerError().finish(),
         }
     }
 }
 
-/// Utility to make transforming a string reference into an ErrorResponse
-impl From<&String> for ErrorResponse {
-    fn from(error: &String) -> Self {
+impl ErrorResponse {
+    pub fn new(status: StatusCode, reasons: Vec<String>) -> ErrorResponse {
         ErrorResponse {
-            errors: vec![error.into()],
+            error: status.canonical_reason().unwrap_or_else(|| "Internal Server Error").to_string(),
+            reasons,
         }
-    }
-}
-
-/// Utility to make transforming a vector of strings into an ErrorResponse
-impl From<Vec<String>> for ErrorResponse {
-    fn from(errors: Vec<String>) -> Self {
-        ErrorResponse { errors }
     }
 }
 
@@ -94,16 +100,23 @@ impl From<BlockingError<ApiError>> for ApiError {
 
 impl From<Error> for ApiError {
     fn from(err: Error) -> Self {
-        ApiError::InternalServerError(err.to_string())
+        let message = err.to_string();
+        let status = err.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+        match status {
+            StatusCode::CONFLICT => ApiError::Conflict(message),
+            StatusCode::NOT_FOUND => ApiError::NotFound(message),
+            _ => ApiError::InternalServerError(message),
+        }
     }
 }
 
 impl From<CouchError> for ApiError {
     fn from(err: CouchError) -> Self {
-        match err {
-            CouchError::Generic(err) => ApiError::InternalServerError(err),
-            CouchError::NotFound(err) => ApiError::NotFound(err),
-            CouchError::Conflict(err) => ApiError::Conflict(err),
+        let message = err.to_string();
+        match err.status() {
+            StatusCode::CONFLICT => ApiError::Conflict(message),
+            StatusCode::NOT_FOUND => ApiError::NotFound(message),
+            _ => ApiError::InternalServerError(message),
         }
     }
 }

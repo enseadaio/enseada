@@ -5,11 +5,10 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::couchdb::client::Client;
-use crate::couchdb::responses;
-use crate::couchdb::responses::{FindResponse, PutResponse};
-use crate::couchdb::Result;
 use crate::couchdb::error::Error;
-
+use crate::couchdb::responses;
+use crate::couchdb::responses::{FindResponse, PutResponse, RowsResponse};
+use crate::couchdb::Result;
 
 pub mod name {
     pub const OAUTH: &str = "oauth";
@@ -24,7 +23,7 @@ pub struct Database {
 
 impl Database {
     pub(super) fn new(client: Arc<Client>, name: String, partitioned: bool) -> Database {
-        Database { client, name, partitioned, }
+        Database { client, name, partitioned }
     }
 
     pub fn name(&self) -> &String {
@@ -33,7 +32,7 @@ impl Database {
 
     pub async fn get_self(&self) -> Result<responses::DBInfo> {
         log::debug!("Getting info for database {}", self.name);
-        self.client.get(self.name.as_str()).await
+        self.client.get(self.name.as_str(), None::<bool>).await
             .map_err(Error::from)
     }
 
@@ -48,11 +47,22 @@ impl Database {
     pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<R> {
         let path = format!("{}/{}", &self.name, id);
         log::debug!("Getting {} from couch", &path);
-        self.client.get(path.as_str()).await
+        self.client.get(path.as_str(), None::<bool>).await
             .map_err(|err| match err.status() {
-                Some(StatusCode::NOT_FOUND) => Error::NotFound(format!("document {} not found in database {}", &id, &self.name)),
+                Some(StatusCode::NOT_FOUND) => Error::map_message(err, &format!("document {} not found in database {}", &id, &self.name)),
                 _ => Error::from(err)
             })
+    }
+
+    pub async fn list<R: DeserializeOwned + Clone>(&self, kind: &str, limit: usize, offset: usize) -> Result<RowsResponse<R>> {
+        let path = format!("{}/_partition/{}/_all_docs", &self.name, kind);
+        let query = Some(ListQuery {
+            include_docs: true,
+            limit,
+            skip: offset,
+        });
+        self.client.get(path.as_str(), query).await
+            .map_err(Error::from)
     }
 
     pub async fn put<T: Serialize>(&self, id: &str, entity: T) -> Result<PutResponse> {
@@ -60,7 +70,7 @@ impl Database {
         log::debug!("Putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
         self.client.put(path.as_str(), Some(entity), None::<usize>).await
             .map_err(|err| match err.status() {
-                Some(StatusCode::CONFLICT) => Error::Conflict(format!("document {} already exists in database {}", &id, &self.name)),
+                Some(StatusCode::CONFLICT) => Error::map_message(err, &format!("document {} already exists in database {}", &id, &self.name)),
                 _ => Error::from(err)
             })
     }
@@ -90,4 +100,11 @@ impl Database {
         let res = self.client.exists(path.as_str()).await?;
         Ok(res)
     }
+}
+
+#[derive(Serialize)]
+struct ListQuery {
+    pub include_docs: bool,
+    pub limit: usize,
+    pub skip: usize,
 }

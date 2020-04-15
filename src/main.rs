@@ -7,6 +7,7 @@ mod error;
 mod http;
 mod logger;
 mod oauth;
+mod pagination;
 mod responses;
 mod routes;
 mod secure;

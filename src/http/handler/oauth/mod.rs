@@ -183,7 +183,7 @@ pub async fn revoke(
     let client = handler.validate(&req, client_auth).await?;
     let session = &mut Session::for_client(client.client_id().clone());
     let res = handler.handle(&req, session).await?;
-    Ok(Json((res)))
+    Ok(Json(res))
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {

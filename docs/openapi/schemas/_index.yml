@@ -6,3 +6,5 @@ HealthResponse:
   $ref: './HealthResponse.yml'
 APIError:
   $ref: './ApiError.yml'
+PageInfo:
+  $ref: './PageInfo.yml'

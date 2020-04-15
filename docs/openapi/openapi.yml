@@ -1,0 +1,199 @@
+openapi: 3.0.1
+info:
+  title: Enseada
+  description: A Cloud native multi-package registry
+  x-logo:
+    url: https://enseada.io/images/enseada-logo.png
+    backgroundColor: "#FFFFFF"
+    altText: "Enseada logo"
+  contact:
+    email: enseada@pm.me
+    url: https://enseada.io
+  license:
+    name: MPL 2.0
+    url: https://opensource.org/licenses/MPL-2.0
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Enseada
+  url: https://enseada.io
+tags:
+  - name: docker
+    description: Docker V2 registry endpoints
+  - name: monitoring
+    description: Monitoring and observability endpoints
+  - name: users
+    description: User management endpoints
+paths:
+  /api/v1beta1/users:
+    get:
+      tags:
+        - users
+      summary: List registered users
+      operationId: user::list
+      security:
+        - oauth:
+            - users:read
+      parameters:
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        200:
+          description: List of users
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PageInfo'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/User"
+    post:
+      tags:
+        - users
+      summary: Register a new user
+      operationId: user::register
+      security:
+        - oauth:
+            - users:manage
+      requestBody:
+        required: true
+        description: New user login information
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationForm'
+      responses:
+        200:
+          description: New user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+        409:
+          description: A user with the given username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+  /api/v1beta1/users/{username}:
+    parameters:
+      - name: username
+        in: path
+        description: Username of the desired user
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - users
+      summary: Fetch a single user details
+      operationId: user::get
+      security:
+        - oauth:
+            - users:read
+      responses:
+        200:
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                minItems: 0
+                items:
+                  $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - users
+      summary: Delete a user
+      operationId: user::delete
+      security:
+        - oauth:
+            - users:manage
+      responses:
+        200:
+          description: Deleted user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+        404:
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+  /api/v1beta1/users/me:
+    get:
+      tags:
+        - users
+      summary: Fetches information about the currently authenticated user
+      operationId: user::me
+      security:
+        - oauth:
+            - profile
+      responses:
+        200:
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+  /health:
+    get:
+      tags:
+        - monitoring
+      summary: Get the server health status
+      operationId: health::get
+      responses:
+        200:
+          description: Server is active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        503:
+          description: Server is not active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+components:
+  parameters:
+    $ref: './parameters/_index.yml'
+  schemas:
+    $ref: './schemas/_index.yml'
+  securitySchemes:
+    oauth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth/authorize
+          tokenUrl: /oauth/token
+          scopes:
+            profile: access user profile information
+            users:read: read-only access to registered users
+            users:manage: read-write access to registered users
