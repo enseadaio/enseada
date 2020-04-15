@@ -10,9 +10,6 @@ jobs:
       image: rust:1-buster
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
       - uses: actions/cache@v1
         with:
           path: target/debug
@@ -25,11 +22,14 @@ jobs:
           apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
           rustup update
           rustup component add clippy
-          yarn install --frozen-lockfile
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: yarn install --frozen-lockfile
       - name: Lint code
         run: |
-#          Reenable when issues are fixed
-#          cargo clippy --all-targets --all-features -- -D warnings
+        #          Reenable when issues are fixed
+      #          cargo clippy --all-targets --all-features -- -D warnings
       - name: Run tests
         run: |
           cargo test
