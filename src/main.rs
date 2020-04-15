@@ -3,6 +3,7 @@ extern crate lazy_static;
 
 mod config;
 mod couchdb;
+mod docker;
 mod error;
 mod guid;
 mod http;
