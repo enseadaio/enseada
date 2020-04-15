@@ -1,4 +1,5 @@
-use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
+use actix_web::HttpResponse;
+use actix_web::web::{Data, Form, Json, Path, Query, ServiceConfig};
 use serde::{Deserialize, Serialize};
 
 use crate::couchdb;
@@ -53,6 +54,38 @@ pub async fn list(
 
     let page = service.list_users(limit, offset).await?.map(|user| UserResponse::from(user));
     Ok(Json(page))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UsernamePathParam {
+    username: String,
+}
+
+pub async fn get(
+    service: Data<UserService>,
+    scope: Scope,
+    path: Path<UsernamePathParam>,
+) -> ApiResult<Json<UserResponse>> {
+    Scope::from("users:read").matches(&scope)?;
+    let username = &path.username;
+    service.find_user(username).await?
+        .ok_or_else(|| ApiError::NotFound(format!("User {} not found", username)))
+        .map(UserResponse::from)
+        .map(Json)
+}
+
+pub async fn delete(
+    service: Data<UserService>,
+    scope: Scope,
+    path: Path<UsernamePathParam>,
+) -> ApiResult<HttpResponse> {
+    Scope::from("users:manage").matches(&scope)?;
+    let username = &path.username;
+    let user = service.find_user(username).await?
+        .ok_or_else(|| ApiError::NotFound(username.clone()))?;
+
+    service.delete_user(&user).await?;
+    Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn me(

@@ -19,9 +19,11 @@ impl FromRequest for Scope {
     type Config = ();
 
     fn from_request(req: &HttpRequest, payload: &mut Payload<PayloadStream>) -> Self::Future {
+        log::debug!("Extracting token scope from request");
         let session_fut = TokenSession::from_request(req, payload);
         Box::pin(async move {
             let session: Session = session_fut.await?;
+            log::debug!("Extracted session: {:?}", &session);
             Ok(session.scope().clone())
         })
     }

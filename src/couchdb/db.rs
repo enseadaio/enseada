@@ -49,7 +49,7 @@ impl Database {
         log::debug!("Getting {} from couch", &path);
         self.client.get(path.as_str(), None::<bool>).await
             .map_err(|err| match err.status() {
-                Some(StatusCode::NOT_FOUND) => Error::NotFound(format!("document {} not found in database {}", &id, &self.name)),
+                Some(StatusCode::NOT_FOUND) => Error::map_message(err, &format!("document {} not found in database {}", &id, &self.name)),
                 _ => Error::from(err)
             })
     }
@@ -70,7 +70,7 @@ impl Database {
         log::debug!("Putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
         self.client.put(path.as_str(), Some(entity), None::<usize>).await
             .map_err(|err| match err.status() {
-                Some(StatusCode::CONFLICT) => Error::Conflict(format!("document {} already exists in database {}", &id, &self.name)),
+                Some(StatusCode::CONFLICT) => Error::map_message(err, &format!("document {} already exists in database {}", &id, &self.name)),
                 _ => Error::from(err)
             })
     }

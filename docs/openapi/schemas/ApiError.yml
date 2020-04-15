@@ -1,8 +1,13 @@
 type: object
 required:
-  - errors
+  - error
+  - reasons
 properties:
-  errors:
+  error:
+    type: string
+    description: Canonical reason for the error
+    example: Error Name
+  reasons:
     type: array
     items:
       type: string

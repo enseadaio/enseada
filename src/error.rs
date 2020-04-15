@@ -1,11 +1,20 @@
 use std::fmt;
 
+use http::StatusCode;
+
 use crate::couchdb;
 
 #[derive(Debug)]
 pub struct Error {
+    status: Option<StatusCode>,
     message: String,
     source: Option<Box<dyn std::error::Error>>,
+}
+
+impl Error {
+    pub fn status(&self) -> Option<StatusCode> {
+        self.status
+    }
 }
 
 impl fmt::Display for Error {
@@ -28,18 +37,12 @@ impl From<&str> for Error {
 
 impl From<String> for Error {
     fn from(message: String) -> Self {
-        Error { message, source: None }
+        Error { message, source: None, status: None }
     }
 }
 
 impl From<couchdb::error::Error> for Error {
     fn from(err: couchdb::error::Error) -> Self {
-        Error { message: err.to_string(), source: Some(Box::new(err)) }
-    }
-}
-
-impl From<reqwest::Error> for Error {
-    fn from(err: reqwest::Error) -> Self {
-        Error { message: err.to_string(), source: Some(Box::new(err)) }
+        Error { message: err.to_string(), status: Some(err.status()), source: Some(Box::new(err)) }
     }
 }
