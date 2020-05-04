@@ -10,6 +10,7 @@ use crate::couchdb::Result;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
 use crate::oauth::scope::Scope;
+use crate::user::User;
 
 pub async fn migrate() -> std::io::Result<()> {
     let couch = &couchdb::SINGLETON;
@@ -25,11 +26,17 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     let users_db = couch.database(db::name::USERS, true);
     create_db_if_not_exist(&users_db).await?;
 
+    let rbac_db = couch.database(db::name::RBAC, true);
+    create_db_if_not_exist(&rbac_db).await?;
+
     let public_host = cfg.public_host();
     create_oauth_client(&oauth_db, Client::public(
         "enseada".to_string(),
         Scope::from("*"),
         HashSet::from_iter(vec![public_host.join("/ui/auth/callback").unwrap()]))).await?;
+
+    let root_pwd = cfg.root_password();
+    create_root_user(&users_db, root_pwd).await?;
 
     log::info!("Migrations completed");
     Ok(())
@@ -48,12 +55,24 @@ async fn create_db_if_not_exist(db: &Database) -> Result<bool> {
 async fn create_oauth_client(db: &Database, client: Client) -> Result<bool> {
     log::debug!("Creating oauth client");
     let guid = ClientEntity::build_guid(client.client_id());
-    if db.exists(guid.to_string().as_str()).await? {
-        log::debug!("Client {}, already exists. Skipping", &guid);
+    if db.exists(&guid.to_string()).await? {
+        log::debug!("Client {} already exists. Skipping", &guid);
         return Ok(true);
     }
 
     let entity = ClientEntity::from(client);
-    db.put(entity.id().to_string().as_str(), &entity).await
+    db.put(&entity.id().to_string(), &entity).await
+        .map(|res| res.ok)
+}
+
+async fn create_root_user(db: &Database, password: String) -> Result<bool> {
+    log::debug!("Creating root user");
+    let user = User::new(String::from("root"), password).unwrap();
+    if db.exists(&user.id().to_string()).await? {
+        log::debug!("Root user already exists. Skipping");
+        return Ok(true);
+    }
+
+    db.put(&user.id().to_string(), user).await
         .map(|res| res.ok)
 }

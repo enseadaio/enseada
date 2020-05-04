@@ -1,0 +1,450 @@
+openapi: 3.0.1
+info:
+  title: Enseada
+  description: A Cloud native multi-package registry
+  x-logo:
+    url: https://enseada.io/images/enseada-logo.png
+    backgroundColor: "#FFFFFF"
+    altText: Enseada logo
+  contact:
+    email: enseada@pm.me
+    url: https://enseada.io
+  license:
+    name: MPL 2.0
+    url: https://opensource.org/licenses/MPL-2.0
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Enseada
+  url: https://enseada.io
+tags:
+  - name: docker
+    description: Docker V2 registry endpoints
+  - name: monitoring
+    description: Monitoring and observability endpoints
+  - name: rbac
+    description: RBAC management endpoints
+  - name: users
+    description: User management endpoints
+paths:
+  /api/v1beta1/users:
+    get:
+      tags:
+        - users
+      summary: List registered users
+      operationId: user::list
+      x-required-permissions: users:read
+      security:
+        - oauth:
+            - users:read
+      parameters:
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/User"
+    post:
+      tags:
+        - users
+      summary: Register a new user
+      operationId: user::register
+      x-required-permissions: users:create
+      security:
+        - oauth:
+            - users:manage
+      requestBody:
+        required: true
+        description: New user login information
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistrationInfo"
+      responses:
+        "200":
+          description: New user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "409":
+          description: A user with the given username already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+  "/api/v1beta1/users/{username}":
+    parameters:
+      - name: username
+        in: path
+        description: Username of the desired user
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - users
+      summary: Fetch a single user details
+      operationId: user::get
+      x-required-permissions: users:read
+      security:
+        - oauth:
+            - users:read
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      tags:
+        - users
+      summary: Edit a user
+      operationId: user::update
+      x-required-permissions: users:update, users:disable (only to change the `enabled` status)
+      security:
+        - oauth:
+            - users:manage
+      requestBody:
+        required: true
+        description: User information to update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserEdit"
+      responses:
+        "200":
+          description: Updated user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    delete:
+      tags:
+        - users
+      summary: Delete a user
+      operationId: user::delete
+      x-required-permissions: users:delete
+      security:
+        - oauth:
+            - users:manage
+      responses:
+        "200":
+          description: Deleted user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+  "/api/v1beta1/users/{username}/roles":
+    parameters:
+      - name: username
+        in: path
+        description: Username of the desired user
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - users
+        - rbac
+      summary: Fetch a user's roles
+      operationId: rbac::get_user_roles
+      x-required-permissions: roles:read
+      security:
+        - oauth:
+            - users:read
+            - roles
+      responses:
+        "200":
+          description: User roles details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserRoles"
+  "/api/v1beta1/users/{username}/roles/{role}":
+    parameters:
+      - name: username
+        in: path
+        description: Username of the desired user
+        required: true
+        schema:
+          type: string
+      - name: role
+        in: path
+        description: Role name
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - users
+        - rbac
+      summary: Add a role to the user
+      operationId: rbac::add_user_role
+      x-required-permissions: roles:manage
+      security:
+        - oauth:
+            - users:manage
+            - roles
+      responses:
+        "200":
+          description: Updated user roles details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserRoles"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    delete:
+      tags:
+        - users
+        - rbac
+      summary: Remove a role from the user
+      operationId: rbac::remove_user_role
+      x-required-permissions: roles:manage
+      security:
+        - oauth:
+            - users:manage
+            - roles
+      responses:
+        "200":
+          description: Updated user roles details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserRoles"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+  /api/v1beta1/users/me:
+    get:
+      tags:
+        - users
+      summary: Fetches information about the currently authenticated user
+      operationId: user::me
+      security:
+        - oauth:
+            - profile
+      responses:
+        "200":
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+  /health:
+    get:
+      tags:
+        - monitoring
+      summary: Get the server health status
+      operationId: health::get
+      responses:
+        "200":
+          description: Server is active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Server is not active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+components:
+  parameters:
+    offset:
+      name: offset
+      in: query
+      description: Number of items to skip when paginating.
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    limit:
+      name: limit
+      in: query
+      description: Numbers of items to return when paginating.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+  schemas:
+    User:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+        enabled:
+          type: boolean
+          description: If false, the user is not able to authenticate
+          default: true
+    UserEdit:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: If false, the user is not able to authenticate
+    UserRegistrationInfo:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          description: Default roles for the new user
+          example:
+            - - admin
+          items:
+            type: string
+            minItems: 0
+    UserRoles:
+      type: object
+      properties:
+        username:
+          type: string
+        roles:
+          type: array
+          description: The user's role list
+          items:
+            type: string
+            minItems: 0
+      example:
+        username: root
+        roles:
+          - roles:manage
+          - users:manage
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+    APIError:
+      type: object
+      required:
+        - error
+        - reasons
+      properties:
+        error:
+          type: string
+          description: Canonical reason for the error
+          example: Error Name
+        reasons:
+          type: array
+          items:
+            type: string
+          example:
+            - an error has occurred
+    PageInfo:
+      type: object
+      description: Pagination info
+      required:
+        - count
+        - total_count
+        - offset
+      properties:
+        count:
+          type: integer
+          minimum: 0
+          description: Number of items in the current page
+        total_count:
+          type: integer
+          minimum: 0
+          description: Total number of items available
+        offset:
+          type: integer
+          minimum: 0
+          description: Offset representing the current page
+  securitySchemes:
+    oauth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth/authorize
+          tokenUrl: /oauth/token
+          scopes:
+            profile: access user profile information
+            users:read: read-only access to registered users
+            users:manage: read-write access to registered users
+            roles: read-write access to user roles

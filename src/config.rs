@@ -10,6 +10,7 @@ pub struct Configuration {
     tls: TLS,
     public: Public,
     secret: Secret,
+    root: Root,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,6 +49,10 @@ struct Secret {
     key: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct Root {
+    password: String,
+}
 
 impl Configuration {
     pub fn new() -> Result<Self, ConfigError> {
@@ -78,6 +83,11 @@ impl Configuration {
             return Err(ConfigError::Message("insecure secret key, must be at least 32 bytes".to_string()))
         }
 
+        let root_pwd = c.get_str("root.password")?;
+        if root_pwd.len() < 8 {
+            return Err(ConfigError::Message("insecure root password, must be at least 8 characters".to_string()))
+        }
+
         // Deserialize
         c.try_into()
     }
@@ -104,6 +114,10 @@ impl Configuration {
 
     pub fn secret_key(&self) -> String {
         self.secret.key.clone()
+    }
+
+    pub fn root_password(&self) -> String {
+        self.root.password.clone()
     }
 }
 

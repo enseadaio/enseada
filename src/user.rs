@@ -1,5 +1,9 @@
+use std::fmt;
+use std::fmt::Debug;
+
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
+use serde::export::Formatter;
 
 use crate::couchdb::db::Database;
 use crate::couchdb::error::Error as CouchError;
@@ -8,7 +12,7 @@ use crate::error::Error;
 use crate::pagination::Page;
 use crate::secure;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct User {
     #[serde(rename = "_id")]
     id: Guid,
@@ -46,6 +50,12 @@ impl User {
     }
 }
 
+impl Debug for User {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "User {{ id: {:?}, rev: {:?} }}", &self.id, &self.rev)
+    }
+}
+
 pub struct UserService {
     db: Database
 }
@@ -62,13 +72,7 @@ impl UserService {
 
     pub async fn find_user(&self, username: &str) -> Result<Option<User>, Error> {
         let guid = User::build_guid(username).to_string();
-        match self.db.get(guid.as_str()).await {
-            Ok(user) => Ok(Some(user)),
-            Err(err) => match err.status() {
-                StatusCode::NOT_FOUND => Ok(None),
-                _ => Err(Error::from(err)),
-            },
-        }
+        self.db.get(guid.as_str()).await.map_err(Error::from)
     }
 
     pub async fn save_user(&self, user: User) -> Result<User, Error> {

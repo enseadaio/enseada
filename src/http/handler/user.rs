@@ -1,3 +1,5 @@
+use std::sync::RwLock;
+
 use actix_web::HttpResponse;
 use actix_web::web::{Data, Form, Json, Path, Query, ServiceConfig};
 use serde::{Deserialize, Serialize};
@@ -8,6 +10,7 @@ use crate::http::error::ApiError;
 use crate::http::extractor::{scope::Scope, user::CurrentUser};
 use crate::http::handler::ApiResult;
 use crate::pagination::Page;
+use crate::rbac::Enforcer;
 use crate::responses;
 use crate::user::{User, UserService};
 
@@ -43,10 +46,14 @@ pub struct ListQuery {
 
 pub async fn list(
     service: Data<UserService>,
+    enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
+    current_user: CurrentUser,
     Query(ListQuery { limit, offset }): Query<ListQuery>,
 ) -> ApiResult<Json<Page<UserResponse>>> {
     Scope::from("users:read").matches(&scope)?;
+    let enforcer = enforcer.read().unwrap();
+    enforcer.check(current_user.id().id(), "users", "read")?;
     let limit: usize = limit.unwrap_or(20);
     let offset: usize = offset.unwrap_or(0);
 
@@ -58,7 +65,7 @@ pub async fn list(
 
 #[derive(Debug, Deserialize)]
 pub struct UsernamePathParam {
-    username: String,
+    pub username: String,
 }
 
 pub async fn get(
@@ -97,18 +104,35 @@ pub async fn me(
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-pub struct RegistrationForm {
+pub struct Registration {
     pub username: String,
     pub password: String,
+    pub roles: Option<Vec<String>>,
 }
 
 pub async fn register(
     service: Data<UserService>,
-    data: Form<RegistrationForm>,
+    data: Json<Registration>,
     scope: Scope,
+    enforcer: Data<RwLock<Enforcer>>,
+    current_user: CurrentUser,
 ) -> Result<Json<UserResponse>, ApiError> {
     Scope::from("users:manage").matches(&scope)?;
+    let enf = enforcer.read().unwrap();
+    enf.check(current_user.id().id(), "users", "create")?;
+
     let user = User::new(data.username.clone(), data.password.clone())?;
     let user = service.save_user(user).await?;
+
+    if let Some(roles) = &data.roles {
+        // We exclusively lock the enforcer to avoid having
+        // the internal model being updated for every role insert
+        // TODO: support bulk put in CouchDB to have them inserted all at once so that we don't need exclusive access
+        // let enf = enforcer.write().unwrap();
+        for role in roles {
+            enf.add_role_to_principal(user.id().id(), role).await?;
+        }
+    }
+
     responses::ok(UserResponse { username: user.username().clone() })
 }

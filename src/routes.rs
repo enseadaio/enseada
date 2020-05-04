@@ -1,7 +1,7 @@
 use actix_files as fs;
 use actix_web::{FromRequest, web};
 
-use crate::http::handler::{api_docs, health, oauth, ui, user};
+use crate::http::handler::{api_docs, health, oauth, rbac, ui, user};
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
@@ -40,7 +40,11 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .route("/me", web::get().to(user::me))
                     .service(web::resource("/{username}")
                         .route(web::get().to(user::get))
-                        .route(web::delete().to(user::delete))))))
+                        .route(web::delete().to(user::delete)))
+                    .service(web::scope("/{username}/roles")
+                        .route("", web::get().to(rbac::get_user_roles))
+                        .route("/{role}", web::put().to(rbac::add_user_role))
+                        .route("/{role}", web::delete().to(rbac::remove_user_role))))))
     ;
 }
 

@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use reqwest::StatusCode;
@@ -13,6 +14,7 @@ use crate::couchdb::Result;
 pub mod name {
     pub const OAUTH: &str = "oauth";
     pub const USERS: &str = "users";
+    pub const RBAC: &str = "rbac";
 }
 
 pub struct Database {
@@ -44,14 +46,16 @@ impl Database {
         Ok(res.ok)
     }
 
-    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<R> {
+    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {
         let path = format!("{}/{}", &self.name, id);
         log::debug!("Getting {} from couch", &path);
-        self.client.get(path.as_str(), None::<bool>).await
-            .map_err(|err| match err.status() {
-                Some(StatusCode::NOT_FOUND) => Error::map_message(err, &format!("document {} not found in database {}", &id, &self.name)),
-                _ => Error::from(err)
-            })
+        match self.client.get(path.as_str(), None::<bool>).await {
+            Ok(r) => Ok(Some(r)),
+            Err(err) => match err.status() {
+                Some(StatusCode::NOT_FOUND) => Ok(None),
+                _ => Err(Error::from(err)),
+            }
+        }
     }
 
     pub async fn list<R: DeserializeOwned + Clone>(&self, kind: &str, limit: usize, offset: usize) -> Result<RowsResponse<R>> {
@@ -65,9 +69,15 @@ impl Database {
             .map_err(Error::from)
     }
 
-    pub async fn put<T: Serialize>(&self, id: &str, entity: T) -> Result<PutResponse> {
+    pub async fn list_all<R: DeserializeOwned + Clone>(&self, kind: &str) -> Result<RowsResponse<R>> {
+        let path = format!("{}/_partition/{}/_all_docs", &self.name, kind);
+        self.client.get(path.as_str(), Some(&[("include_docs", true)])).await
+            .map_err(Error::from)
+    }
+
+    pub async fn put<T: Serialize + Debug>(&self, id: &str, entity: T) -> Result<PutResponse> {
         let path = format!("{}/{}", &self.name, &id);
-        log::debug!("Putting {} into couch: {}", &path, serde_json::to_string(&entity).unwrap());
+        log::debug!("Putting {} into couch: {:?}", &path, &entity);
         self.client.put(path.as_str(), Some(entity), None::<usize>).await
             .map_err(|err| match err.status() {
                 Some(StatusCode::CONFLICT) => Error::map_message(err, &format!("document {} already exists in database {}", &id, &self.name)),

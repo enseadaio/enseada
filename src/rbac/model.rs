@@ -6,15 +6,33 @@ pub struct Model {
 }
 
 impl Model {
+    pub fn empty() -> Self {
+        Model { principals: HashMap::new() }
+    }
+
+    pub fn set_principals(&mut self, principals: HashMap<String, Principal>) -> &mut Self {
+        self.principals = principals;
+        self
+    }
+
+    pub fn add_principal(&mut self, principal: Principal) -> &mut Self {
+        self.principals.insert(principal.name.clone(), principal);
+        self
+    }
+
     fn new(principals: Vec<Principal>) -> Self {
         let mut map = HashMap::new();
-        for principal in principals.into_iter() {
+        for principal in principals {
             map.insert(principal.name.clone(), principal);
         }
         Model { principals: map }
     }
 
     pub fn check(&self, principal: &str, object: &str, action: &str) -> EvaluationResult {
+        if principal == "root" {
+            return EvaluationResult::Granted;
+        }
+
         let target_permission = Permission { object: object.to_string(), action: action.to_string() };
         let visitor = Visitor { target_permission };
         let principal = match self.principals.get(principal) {
@@ -46,10 +64,30 @@ trait Visitable {
     fn visit(&self, visitor: &Visitor) -> EvaluationResult;
 }
 
-struct Principal {
+pub struct Principal {
     name: String,
     roles: HashMap<String, Role>,
     permissions: HashSet<Permission>,
+}
+
+impl Principal {
+    pub fn new(name: String) -> Self {
+        Principal { name, roles: HashMap::new(), permissions: HashSet::new() }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn add_role(&mut self, role: Role) -> &mut Self {
+        self.roles.insert(role.name.clone(), role);
+        self
+    }
+
+    pub fn add_permission(&mut self, permission: Permission) -> &mut Self {
+        self.permissions.insert(permission);
+        self
+    }
 }
 
 impl Visitable for Principal {
@@ -57,7 +95,7 @@ impl Visitable for Principal {
         if self.permissions.contains(&visitor.target_permission) {
             EvaluationResult::Granted
         } else {
-            for (_, role) in self.roles.iter() {
+            for role in self.roles.values() {
                 if role.visit(visitor) == EvaluationResult::Granted {
                     return EvaluationResult::Granted;
                 }
@@ -67,9 +105,25 @@ impl Visitable for Principal {
     }
 }
 
-struct Role {
+#[derive(Debug, Clone)]
+pub struct Role {
     name: String,
     permissions: HashSet<Permission>,
+}
+
+impl Role {
+    pub fn new(name: String) -> Self {
+        Role { name, permissions: HashSet::new() }
+    }
+
+    pub fn add_permission(&mut self, permission: Permission) -> &mut Self {
+        self.permissions.insert(permission);
+        self
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 impl Visitable for Role {
@@ -82,14 +136,14 @@ impl Visitable for Role {
     }
 }
 
-#[derive(PartialEq, Eq, Hash)]
-struct Permission {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Permission {
     object: String,
     action: String,
 }
 
 impl Permission {
-    fn new(object: &str, action: &str) -> Self {
+    pub fn new(object: &str, action: &str) -> Self {
         Permission { object: object.to_string(), action: action.to_string() }
     }
 }
