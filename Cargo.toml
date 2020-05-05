@@ -49,6 +49,7 @@ log = "0.4"
 reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
 url = { version = "2.1", features = ["serde"] }
 uuid = { version = "0.8", features = ["v4"] }
+base64 = "0.12.0"
 
 [dependencies.log4rs]
 version = "0.10"

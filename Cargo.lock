@@ -1043,6 +1043,7 @@ dependencies = [
  "actix-web",
  "actix-web-httpauth",
  "async-trait",
+ "base64 0.12.0",
  "chrono",
  "config",
  "derivative",

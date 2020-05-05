@@ -4,7 +4,7 @@ use std::convert::TryInto;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::couchdb::guid::Guid;
+use crate::guid::Guid;
 use crate::oauth::client::Client;
 use crate::oauth::client::ClientKind as ExtClientKind;
 use crate::oauth::error::Error;
@@ -77,7 +77,7 @@ impl TryInto<Client> for ClientEntity {
     fn try_into(self) -> Result<Client, Self::Error> {
         let guid = &self.id;
         let allowed_redirect_uris = self.allowed_redirect_uris.clone();
-        let client_id = guid.id().clone();
+        let client_id = guid.id().to_string();
         let scopes = self.allowed_scopes.clone();
         let client = match &self.kind {
             ClientKind::Public => Client::public(client_id, scopes, allowed_redirect_uris),

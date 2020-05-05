@@ -7,9 +7,9 @@ use serde::export::Formatter;
 
 use crate::couchdb::db::Database;
 use crate::couchdb::error::Error as CouchError;
-use crate::couchdb::guid::Guid;
 use crate::error::Error;
-use crate::pagination::Page;
+use crate::guid::Guid;
+use crate::pagination::{Cursor, Page};
 use crate::secure;
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -23,7 +23,7 @@ pub struct User {
 
 impl User {
     pub fn build_guid(username: &str) -> Guid {
-        Guid::from(format!("user:{}", username))
+        Guid::partitioned("user", username)
     }
 
     pub fn new(username: String, password: String) -> Result<User, Error> {
@@ -40,7 +40,7 @@ impl User {
         self.rev.clone()
     }
 
-    pub fn username(&self) -> &String {
+    pub fn username(&self) -> &str {
         self.id.id()
     }
 
@@ -65,9 +65,9 @@ impl UserService {
         UserService { db }
     }
 
-    pub async fn list_users(&self, limit: usize, offset: usize) -> Result<Page<User>, Error> {
-        let page = self.db.list("user", limit, offset).await?;
-        Ok(Page::from(page))
+    pub async fn list_users(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<User>, Error> {
+        let res = self.db.list::<User>("user", limit + 1, cursor.map(Cursor::to_string)).await?;
+        Ok(Page::from_rows_response(res, limit))
     }
 
     pub async fn find_user(&self, username: &str) -> Result<Option<User>, Error> {

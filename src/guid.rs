@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize, Serializer, Deserializer};
 use std::fmt::Display;
-use serde::export::Formatter;
 
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::export::Formatter;
 
 #[derive(Clone, Debug)]
 pub struct Guid {
@@ -10,18 +10,27 @@ pub struct Guid {
 }
 
 impl Guid {
+    pub fn simple(id: &str) -> Self {
+        Guid { partition: None, id: id.to_string() }
+    }
+
+    pub fn partitioned(partition: &str, id: &str) -> Self {
+        Guid { partition: Some(partition.to_string()), id: id.to_string() }
+    }
+
     pub fn partition(&self) -> Option<String> {
         self.partition.clone()
     }
 
-    pub fn id(&self) -> &String {
+    pub fn id(&self) -> &str {
         &self.id
     }
 }
 
 impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let partition = self.partition().map(|s| format!("{}:", s))
+        let partition = self.partition()
+            .map(|s| format!("{}:", s))
             .unwrap_or_else(|| "".to_string());
         write!(f, "{}{}", partition, &self.id)
     }
@@ -70,7 +79,7 @@ impl<'de> Deserialize<'de> for Guid {
 
 #[cfg(test)]
 mod test {
-    use crate::couchdb::guid::Guid;
+    use crate::guid::Guid;
 
     #[test]
     fn it_converts_from_string_with_partition() {

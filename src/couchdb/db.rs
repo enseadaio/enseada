@@ -7,8 +7,9 @@ use serde::Serialize;
 
 use crate::couchdb::client::Client;
 use crate::couchdb::error::Error;
+use crate::couchdb::index::JsonIndex;
 use crate::couchdb::responses;
-use crate::couchdb::responses::{FindResponse, PutResponse, RowsResponse};
+use crate::couchdb::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, PutResponse, RowsResponse};
 use crate::couchdb::Result;
 
 pub mod name {
@@ -46,6 +47,17 @@ impl Database {
         Ok(res.ok)
     }
 
+    pub async fn create_index(&self, index: JsonIndex) -> Result<bool> {
+        let path = format!("{}/_index", &self.name);
+        log::debug!("Creating index {} on database {}", &index.name(), &self.name);
+
+        let res: JsonIndexResponse = self.client.post(&path, Some(index), None::<bool>).await?;
+        match res.result {
+            JsonIndexResultStatus::Created => Ok(true),
+            JsonIndexResultStatus::Exists => Ok(false),
+        }
+    }
+
     pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {
         let path = format!("{}/{}", &self.name, id);
         log::debug!("Getting {} from couch", &path);
@@ -58,12 +70,12 @@ impl Database {
         }
     }
 
-    pub async fn list<R: DeserializeOwned + Clone>(&self, kind: &str, limit: usize, offset: usize) -> Result<RowsResponse<R>> {
+    pub async fn list<R: DeserializeOwned + Clone>(&self, kind: &str, limit: usize, start_key: Option<String>) -> Result<RowsResponse<R>> {
         let path = format!("{}/_partition/{}/_all_docs", &self.name, kind);
         let query = Some(ListQuery {
             include_docs: true,
             limit,
-            skip: offset,
+            start_key,
         });
         self.client.get(path.as_str(), query).await
             .map_err(Error::from)
@@ -85,15 +97,26 @@ impl Database {
             })
     }
 
-    pub async fn find<R: DeserializeOwned>(&self, selector: serde_json::Value) -> Result<FindResponse<R>> {
+    pub async fn find<R: DeserializeOwned>(&self, selector: serde_json::Value, limit: usize, bookmark: Option<String>) -> Result<FindResponse<R>> {
         let path = format!("{}/_find", &self.name);
+        self.do_find(&path, selector, limit, bookmark).await
+    }
+
+    pub async fn find_partitioned<R: DeserializeOwned>(&self, partition: &str, selector: serde_json::Value, limit: usize, bookmark: Option<String>) -> Result<FindResponse<R>> {
+        let path = format!("{}/_partition/{}/_find", &self.name, partition);
+        self.do_find(&path, selector, limit, bookmark).await
+    }
+
+    async fn do_find<R: DeserializeOwned>(&self, path: &str, selector: serde_json::Value, limit: usize, bookmark: Option<String>) -> Result<FindResponse<R>> {
         let body = serde_json::json!({
             "selector": selector,
+            "limit": limit,
+            "bookmark": bookmark
         });
 
         log::debug!("Finding from {} with query {}", &self.name, &body);
 
-        self.client.post(path.as_str(), Some(body), None::<bool>).await
+        self.client.post(path, Some(body), None::<bool>).await
             .map_err(Error::from)
     }
 
@@ -116,5 +139,5 @@ impl Database {
 struct ListQuery {
     pub include_docs: bool,
     pub limit: usize,
-    pub skip: usize,
+    pub start_key: Option<String>,
 }

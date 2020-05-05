@@ -6,6 +6,8 @@ use crate::config::{CONFIG, Configuration};
 use crate::couchdb;
 use crate::couchdb::Couch;
 use crate::couchdb::db::{self, Database};
+use crate::couchdb::index::JsonIndex;
+use crate::couchdb::responses::JsonIndexResponse;
 use crate::couchdb::Result;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
@@ -29,6 +31,22 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     let rbac_db = couch.database(db::name::RBAC, true);
     create_db_if_not_exist(&rbac_db).await?;
 
+    create_mango_index(&rbac_db, JsonIndex::new(
+        "rule_sub_idx",
+        Some("rbac_indexes".to_string()),
+        serde_json::json!({
+          "fields": ["sub"]
+        }),
+    )).await?;
+
+    create_mango_index(&rbac_db, JsonIndex::new(
+        "role_subject_idx",
+        Some("rbac_indexes".to_string()),
+        serde_json::json!({
+          "fields": ["subject"]
+        }),
+    )).await?;
+
     let public_host = cfg.public_host();
     create_oauth_client(&oauth_db, Client::public(
         "enseada".to_string(),
@@ -42,37 +60,49 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     Ok(())
 }
 
-async fn create_db_if_not_exist(db: &Database) -> Result<bool> {
+async fn create_db_if_not_exist(db: &Database) -> Result<()> {
     log::debug!("Creating database {}", db.name());
     if db.get_self().await.is_ok() {
         log::debug!("Database {} already exists. Skipping", db.name());
-        return Ok(true);
+        return Ok(());
     }
 
-    db.create_self().await
+    if !db.create_self().await? {
+        log::warn!("Database creation returned ok: false");
+    }
+    Ok(())
 }
 
-async fn create_oauth_client(db: &Database, client: Client) -> Result<bool> {
+async fn create_mango_index(db: &Database, index: JsonIndex) -> Result<()> {
+    let name = index.name().to_string();
+    if !db.create_index(index).await? {
+        log::debug!("Index {} already exists", name);
+    }
+
+    Ok(())
+}
+
+async fn create_oauth_client(db: &Database, client: Client) -> Result<()> {
     log::debug!("Creating oauth client");
     let guid = ClientEntity::build_guid(client.client_id());
     if db.exists(&guid.to_string()).await? {
         log::debug!("Client {} already exists. Skipping", &guid);
-        return Ok(true);
+        return Ok(());
     }
 
     let entity = ClientEntity::from(client);
     db.put(&entity.id().to_string(), &entity).await
-        .map(|res| res.ok)
+        .map(|_| ())
 }
 
-async fn create_root_user(db: &Database, password: String) -> Result<bool> {
+async fn create_root_user(db: &Database, password: String) -> Result<()> {
     log::debug!("Creating root user");
     let user = User::new(String::from("root"), password).unwrap();
     if db.exists(&user.id().to_string()).await? {
         log::debug!("Root user already exists. Skipping");
-        return Ok(true);
+        return Ok(());
     }
 
     db.put(&user.id().to_string(), user).await
-        .map(|res| res.ok)
+        .map(|_| ())
 }

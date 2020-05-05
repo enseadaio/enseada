@@ -29,7 +29,7 @@ impl Model {
     }
 
     pub fn check(&self, principal: &str, object: &str, action: &str) -> EvaluationResult {
-        if principal == "root" {
+        if principal == "user:root" {
             return EvaluationResult::Granted;
         }
 
@@ -64,6 +64,7 @@ trait Visitable {
     fn visit(&self, visitor: &Visitor) -> EvaluationResult;
 }
 
+#[derive(Debug)]
 pub struct Principal {
     name: String,
     roles: HashMap<String, Role>,

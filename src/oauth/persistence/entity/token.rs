@@ -2,7 +2,7 @@ use chrono::{DateTime, Duration, Utc};
 use chrono::serde::ts_seconds;
 use serde::{Deserialize, Serialize};
 
-use crate::couchdb::guid::Guid;
+use crate::guid::Guid;
 use crate::oauth::Expirable;
 use crate::oauth::session::Session;
 use crate::oauth::token::{AccessToken, RefreshToken, Token};

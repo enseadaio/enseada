@@ -4,6 +4,7 @@ extern crate lazy_static;
 mod config;
 mod couchdb;
 mod error;
+mod guid;
 mod http;
 mod logger;
 mod oauth;

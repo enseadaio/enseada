@@ -32,12 +32,14 @@ paths:
         - users
       summary: List registered users
       operationId: user::list
-      x-required-permissions: users:read
+      x-required-permissions:
+        - object: users
+          action: read
       security:
         - oauth:
             - users:read
       parameters:
-        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/cursor"
         - $ref: "#/components/parameters/limit"
       responses:
         "200":
@@ -60,7 +62,9 @@ paths:
         - users
       summary: Register a new user
       operationId: user::register
-      x-required-permissions: users:create
+      x-required-permissions:
+        - object: users
+          action: create
       security:
         - oauth:
             - users:manage
@@ -103,7 +107,9 @@ paths:
         - users
       summary: Fetch a single user details
       operationId: user::get
-      x-required-permissions: users:read
+      x-required-permissions:
+        - object: user:$username
+          action: read
       security:
         - oauth:
             - users:read
@@ -114,12 +120,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
     put:
       tags:
         - users
       summary: Edit a user
       operationId: user::update
-      x-required-permissions: users:update, users:disable (only to change the `enabled` status)
+      x-required-permissions:
+        - object: user:$username
+          action: update
+        - object: user:$username
+          action: disable
+          description: only required to change the `enabled` status
       security:
         - oauth:
             - users:manage
@@ -154,7 +177,9 @@ paths:
         - users
       summary: Delete a user
       operationId: user::delete
-      x-required-permissions: users:delete
+      x-required-permissions:
+        - object: user:$username
+          action: delete
       security:
         - oauth:
             - users:manage
@@ -177,21 +202,144 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/APIError"
+  "/api/v1beta1/users/{username}/permissions":
+    parameters:
+      - $ref: "#/components/parameters/cursor"
+      - $ref: "#/components/parameters/limit"
+      - $ref: "#/components/parameters/username"
+    get:
+      tags:
+        - users
+        - rbac
+      summary: Fetch a user's permissions
+      operationId: rbac::get_user_permissions
+      x-required-permissions:
+        - object: user:$username
+          action: read_permissions
+      security:
+        - oauth:
+            - users:read
+            - permissions
+      responses:
+        "200":
+          description: User permissions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/Permission"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    post:
+      tags:
+        - users
+        - rbac
+      summary: Add a permission to the user
+      operationId: rbac::add_user_permission
+      x-required-permissions:
+        - object: user:$username
+          action: manage_permissions
+      security:
+        - oauth:
+            - users:read
+            - permissions
+      requestBody:
+        description: The new permission
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permission"
+      responses:
+        "200":
+          description: The newly created permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A user with the given username doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    delete:
+      tags:
+        - users
+        - rbac
+      summary: Remove a permission to the user
+      operationId: rbac::remove_user_permission
+      x-required-permissions:
+        - object: user:$username
+          action: manage_permissions
+      security:
+        - oauth:
+            - users:read
+            - permissions
+      requestBody:
+        description: The permission to remove
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permission"
+      responses:
+        "200":
+          description: The removed permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: |
+            Either user with the given username doesn't exist,
+            or it does not have the given permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
   "/api/v1beta1/users/{username}/roles":
     parameters:
-      - name: username
-        in: path
-        description: Username of the desired user
-        required: true
-        schema:
-          type: string
+      - $ref: "#/components/parameters/username"
     get:
       tags:
         - users
         - rbac
       summary: Fetch a user's roles
       operationId: rbac::get_user_roles
-      x-required-permissions: roles:read
+      x-required-permissions:
+        - object: user:$username
+          action: read_roles
       security:
         - oauth:
             - users:read
@@ -223,7 +371,9 @@ paths:
         - rbac
       summary: Add a role to the user
       operationId: rbac::add_user_role
-      x-required-permissions: roles:manage
+      x-required-permissions:
+        - object: user:$username
+          action: manage_roles
       security:
         - oauth:
             - users:manage
@@ -253,7 +403,9 @@ paths:
         - rbac
       summary: Remove a role from the user
       operationId: rbac::remove_user_role
-      x-required-permissions: roles:manage
+      x-required-permissions:
+        - object: user:$username
+          action: manage_roles
       security:
         - oauth:
             - users:manage
@@ -320,15 +472,17 @@ paths:
                 $ref: "#/components/schemas/APIError"
 components:
   parameters:
-    offset:
-      name: offset
+    cursor:
+      name: cursor
       in: query
-      description: Number of items to skip when paginating.
+      description: |
+        Opaque cursor used for pagination.
+        Can be obtained from the `next_cursor` field in PageInfo.
       required: false
       schema:
-        type: integer
-        minimum: 0
-        default: 0
+        type: string
+        format: base64
+      example: V2h5IGFyZSB5b3UgdHJ5aW5nIHRvIGRlY29kZSBhIGN1cnNvcj8gSSB0b2xkIHlvdSBpdCB3YXMgb3BhcXVlIDopCg==
     limit:
       name: limit
       in: query
@@ -339,6 +493,13 @@ components:
         minimum: 1
         maximum: 50
         default: 20
+    username:
+      name: username
+      in: path
+      description: Username of the desired user
+      required: true
+      schema:
+        type: string
   schemas:
     User:
       type: object
@@ -391,6 +552,30 @@ components:
         roles:
           - roles:manage
           - users:manage
+    Permission:
+      type: object
+      required:
+        - object
+        - action
+      description: A permission represented in the traditional subject-object-action tuple.
+      properties:
+        subject:
+          type: string
+          format: guid
+          description: |
+            The subject that is granted the permission.
+            Can be omitted in relative paths like `/users/{username}/permissions` as it will be
+            overwritten by the relative subject itself.
+          example: user:root
+        object:
+          type: string
+          format: guid
+          description: The object this permission is granted over
+          example: docker_image:example
+        action:
+          type: string
+          description: The action that is permitted on the object
+          example: read
     HealthResponse:
       type: object
       required:
@@ -421,17 +606,19 @@ components:
       description: Pagination info
       required:
         - count
-        - total_count
-        - offset
+        - next_cursor
       properties:
         count:
           type: integer
           minimum: 0
           description: Number of items in the current page
-        total_count:
-          type: integer
-          minimum: 0
-          description: Total number of items available
+        next_cursor:
+          type: string
+          description: |
+            Opaque cursor to access the next page.
+            Can be `null` if there are no more pages
+          x-nullable: true
+          example: V2h5IGFyZSB5b3UgdHJ5aW5nIHRvIGRlY29kZSBhIGN1cnNvcj8gSSB0b2xkIHlvdSBpdCB3YXMgb3BhcXVlIDopCg==
         offset:
           type: integer
           minimum: 0

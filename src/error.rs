@@ -1,5 +1,7 @@
 use std::fmt;
+use std::string::FromUtf8Error;
 
+use base64::DecodeError;
 use http::StatusCode;
 
 use crate::couchdb;
@@ -12,8 +14,21 @@ pub struct Error {
 }
 
 impl Error {
+    pub fn new(message: &str, status: Option<StatusCode>) -> Self {
+        Error {
+            message: message.to_string(),
+            status,
+            source: None,
+        }
+    }
+
     pub fn status(&self) -> Option<StatusCode> {
         self.status
+    }
+
+    pub fn set_status(&mut self, status: StatusCode) -> &mut Self {
+        self.status = Some(status);
+        self
     }
 }
 
@@ -44,5 +59,17 @@ impl From<String> for Error {
 impl From<couchdb::error::Error> for Error {
     fn from(err: couchdb::error::Error) -> Self {
         Error { message: err.to_string(), status: Some(err.status()), source: Some(Box::new(err)) }
+    }
+}
+
+impl From<base64::DecodeError> for Error {
+    fn from(err: base64::DecodeError) -> Self {
+        Error { message: err.to_string(), status: Some(StatusCode::BAD_REQUEST), source: Some(Box::new(err)) }
+    }
+}
+
+impl From<FromUtf8Error> for Error {
+    fn from(err: FromUtf8Error) -> Self {
+        Error { message: err.to_string(), status: Some(StatusCode::BAD_REQUEST), source: Some(Box::new(err)) }
     }
 }
