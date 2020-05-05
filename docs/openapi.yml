@@ -204,10 +204,11 @@ paths:
                 $ref: "#/components/schemas/APIError"
   "/api/v1beta1/users/{username}/permissions":
     parameters:
-      - $ref: "#/components/parameters/cursor"
-      - $ref: "#/components/parameters/limit"
       - $ref: "#/components/parameters/username"
     get:
+      parameters:
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
       tags:
         - users
         - rbac
@@ -287,6 +288,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/APIError"
+        "409":
+          description: The user already has this permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
     delete:
       tags:
         - users
@@ -353,18 +360,8 @@ paths:
                 $ref: "#/components/schemas/UserRoles"
   "/api/v1beta1/users/{username}/roles/{role}":
     parameters:
-      - name: username
-        in: path
-        description: Username of the desired user
-        required: true
-        schema:
-          type: string
-      - name: role
-        in: path
-        description: Role name
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/username'
+      - $ref: '#/components/parameters/role'
     put:
       tags:
         - users
@@ -451,6 +448,136 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/APIError"
+  "/api/v1beta1/roles/{role}/permissions":
+    parameters:
+      - $ref: "#/components/parameters/role"
+    get:
+      parameters:
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      tags:
+        - rbac
+      summary: Fetch a role's permissions
+      operationId: rbac::get_role_permissions
+      x-required-permissions:
+        - object: role:$role
+          action: read_permissions
+      security:
+        - oauth:
+            - roles
+            - permissions
+      responses:
+        "200":
+          description: Role permissions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/Permission"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A role with the given name doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    post:
+      tags:
+        - rbac
+      summary: Add a permission to the role
+      operationId: rbac::add_role_permission
+      x-required-permissions:
+        - object: role:$role
+          action: manage_permissions
+      security:
+        - oauth:
+            - roles
+            - permissions
+      requestBody:
+        description: The new permission
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permission"
+      responses:
+        "200":
+          description: The newly created permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A role with the given name doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "409":
+          description: The role already has this permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    delete:
+      tags:
+        - rbac
+      summary: Remove a permission from the role
+      operationId: rbac::remove_role_permission
+      x-required-permissions:
+        - object: role:$role
+          action: manage_permissions
+      security:
+        - oauth:
+            - roles
+            - permissions
+      requestBody:
+        description: The permission to remove
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permission"
+      responses:
+        "200":
+          description: The removed permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: |
+            Either a role with the given name doesn't exist,
+            or it does not have the given permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
   /health:
     get:
       tags:
@@ -497,6 +624,13 @@ components:
       name: username
       in: path
       description: Username of the desired user
+      required: true
+      schema:
+        type: string
+    role:
+      name: role
+      in: path
+      description: Role name
       required: true
       schema:
         type: string
