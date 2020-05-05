@@ -56,15 +56,19 @@ impl Enforcer {
             let assignment = &row.doc;
 
             log::debug!("Processing role assignment {:?}", assignment);
-            if let Some(principal) = principals.get_mut(&assignment.subject.to_string()) {
-                log::debug!("Found assignment subject {:?}. Adding role to it", principal);
-                let role = roles.get(&assignment.role);
-                let role = match role {
-                    Some(role) => role.clone(),
-                    None => Role::new(assignment.role.clone()),
-                };
-                principal.add_role(role);
+            let sub = assignment.subject.to_string();
+            if !principals.contains_key(&sub) {
+                principals.insert(sub.clone(), Principal::new(sub.clone()));
             }
+
+            let principal = principals.get_mut(&sub).unwrap();
+            log::debug!("Found assignment subject {:?}. Adding role to it", principal);
+            let role = roles.get(&assignment.role);
+            let role = match role {
+                Some(role) => role.clone(),
+                None => Role::new(assignment.role.clone()),
+            };
+            principal.add_role(role);
         }
 
         model.set_principals(principals);
@@ -79,11 +83,11 @@ impl Enforcer {
             EvaluationResult::Granted => {
                 log::info!("Access Granted");
                 Ok(())
-            },
+            }
             EvaluationResult::Denied => {
-                log::warn!("Access Granted");
+                log::warn!("Access Denied");
                 Err(EvaluationError::Denied)
-            },
+            }
         }
     }
 
@@ -97,7 +101,7 @@ impl Enforcer {
                     let mut err = Error::from(format!("permission already assigned to {}", sub_name));
                     err.set_status(StatusCode::CONFLICT);
                     Err(err)
-                },
+                }
                 _ => Err(Error::from(err)),
             }
         }
@@ -137,7 +141,7 @@ impl Enforcer {
                     let mut err = Error::from(format!("role already assigned to {}", sub_name));
                     err.set_status(StatusCode::CONFLICT);
                     Err(err)
-                },
+                }
                 _ => Err(Error::from(err)),
             }
         }

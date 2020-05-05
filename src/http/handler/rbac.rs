@@ -10,7 +10,7 @@ use crate::http::handler::{ApiResult, PaginationQuery};
 use crate::http::handler::user::UsernamePathParam;
 use crate::oauth::scope::Scope;
 use crate::pagination::{Cursor, Page};
-use crate::rbac::Enforcer;
+use crate::rbac::{Enforcer, Rule};
 use crate::user::UserService;
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -107,6 +107,16 @@ pub struct Permission {
     action: String,
 }
 
+impl From<&Rule> for Permission {
+    fn from(rule: &Rule) -> Self {
+        Permission {
+            subject: Some(rule.subject().clone()),
+            object: rule.object().clone(),
+            action: rule.action().to_string(),
+        }
+    }
+}
+
 pub async fn get_user_permissions(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -130,11 +140,7 @@ pub async fn get_user_permissions(
     };
 
     let rules = enforcer.list_principal_permissions(&sub, limit, cursor.as_ref()).await?;
-    let permissions = rules.map(|rule| Permission {
-        subject: Some(rule.subject().clone()),
-        object: rule.object().clone(),
-        action: rule.action().to_string(),
-    });
+    let permissions = rules.map(|rule| Permission::from(rule));
     Ok(Json(permissions))
 }
 
@@ -206,11 +212,7 @@ pub async fn get_role_permissions(
     };
 
     let rules = enforcer.list_principal_permissions(&sub, limit, cursor.as_ref()).await?;
-    let permissions = rules.map(|rule| Permission {
-        subject: Some(rule.subject().clone()),
-        object: rule.object().clone(),
-        action: rule.action().to_string(),
-    });
+    let permissions = rules.map(|rule| Permission::from(rule));
     Ok(Json(permissions))
 }
 

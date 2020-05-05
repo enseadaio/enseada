@@ -1,6 +1,10 @@
 use std::cmp::{Eq, PartialEq};
 use std::collections::{HashMap, HashSet};
 
+use glob::Pattern;
+
+use crate::error::Error;
+
 pub struct Model {
     principals: HashMap<String, Principal>,
 }
@@ -29,11 +33,12 @@ impl Model {
     }
 
     pub fn check(&self, principal: &str, object: &str, action: &str) -> EvaluationResult {
+        log::debug!("{:?}", &self.principals);
         if principal == "user:root" {
             return EvaluationResult::Granted;
         }
 
-        let target_permission = Permission { object: object.to_string(), action: action.to_string() };
+        let target_permission = Permission::new(object, action);
         let visitor = Visitor { target_permission };
         let principal = match self.principals.get(principal) {
             Some(principal) => principal,
@@ -93,16 +98,25 @@ impl Principal {
 
 impl Visitable for Principal {
     fn visit(&self, visitor: &Visitor) -> EvaluationResult {
+        log::trace!("Visiting principal {}", &self.name);
         if self.permissions.contains(&visitor.target_permission) {
-            EvaluationResult::Granted
-        } else {
-            for role in self.roles.values() {
-                if role.visit(visitor) == EvaluationResult::Granted {
-                    return EvaluationResult::Granted;
-                }
-            }
-            EvaluationResult::Denied
+            log::trace!("Principal {} has exact matching permission", &self.name);
+            return EvaluationResult::Granted;
         }
+
+        for permission in &self.permissions {
+            if permission.matches(&visitor.target_permission) {
+                log::trace!("Principal {} has matching permission obj: {}, act: {}", &self.name, &permission.object, &permission.action);
+                return EvaluationResult::Granted;
+            }
+        }
+
+        for role in self.roles.values() {
+            if role.visit(visitor) == EvaluationResult::Granted {
+                return EvaluationResult::Granted;
+            }
+        }
+        EvaluationResult::Denied
     }
 }
 
@@ -129,11 +143,20 @@ impl Role {
 
 impl Visitable for Role {
     fn visit(&self, visitor: &Visitor) -> EvaluationResult {
+        log::trace!("Visiting role {}", &self.name);
         if self.permissions.contains(&visitor.target_permission) {
-            EvaluationResult::Granted
-        } else {
-            EvaluationResult::Denied
+            log::trace!("Role {} has exact matching permission", &self.name);
+            return EvaluationResult::Granted;
         }
+
+        for permission in &self.permissions {
+            if permission.matches(&visitor.target_permission) {
+                log::trace!("Role {} has matching permission obj: {}, act: {}", &self.name, &permission.object, &permission.action);
+                return EvaluationResult::Granted;
+            }
+        }
+
+        EvaluationResult::Denied
     }
 }
 
@@ -141,11 +164,25 @@ impl Visitable for Role {
 pub struct Permission {
     object: String,
     action: String,
+    object_pattern: Pattern,
+    action_pattern: Pattern,
 }
 
 impl Permission {
     pub fn new(object: &str, action: &str) -> Self {
-        Permission { object: object.to_string(), action: action.to_string() }
+        let object = object.to_string();
+        let action = action.to_string();
+        Permission {
+            object_pattern: Pattern::new(&object).unwrap(),
+            object,
+            action_pattern: Pattern::new(&action).unwrap(),
+            action,
+        }
+    }
+
+    fn matches(&self, other: &Permission) -> bool {
+        self.object_pattern.matches(&other.object)
+            && self.action_pattern.matches(&other.action)
     }
 }
 
@@ -158,11 +195,11 @@ mod test {
         let principal = Principal {
             name: "test".to_string(),
             roles: HashMap::new(),
-            permissions: vec![Permission::new("test", "test")].into_iter().collect(),
+            permissions: vec![Permission::new("test", "test:*")].into_iter().collect(),
         };
 
         let model = Model::new(vec![principal]);
-        let result = model.check("test", "test", "test");
+        let result = model.check("test", "test", "test:all");
         assert_eq!(result, EvaluationResult::Granted);
     }
 
@@ -170,7 +207,7 @@ mod test {
     fn it_grants_role_permissions() {
         let role = Role {
             name: "test_role".to_string(),
-            permissions: vec![Permission::new("test", "test")].into_iter().collect(),
+            permissions: vec![Permission::new("test:*", "test")].into_iter().collect(),
         };
 
         let mut roles = HashMap::new();
@@ -183,7 +220,7 @@ mod test {
         };
 
         let model = Model::new(vec![principal]);
-        let result = model.check("test", "test", "test");
+        let result = model.check("test", "test:all", "test");
         assert_eq!(result, EvaluationResult::Granted);
     }
 
@@ -224,5 +261,37 @@ mod test {
         let model = Model::new(vec![principal]);
         let result = model.check("test", "another_test", "test");
         assert_eq!(result, EvaluationResult::Denied);
+    }
+
+    #[test]
+    fn it_matches_a_matching_permission() {
+        let a = Permission::new("test:*", "test:*");
+        let b = Permission::new("test:hello", "test:world");
+
+        assert!(a.matches(&b));
+    }
+
+    #[test]
+    fn it_matches_an_identical_permission() {
+        let a = Permission::new("test:hello", "test:world");
+        let b = Permission::new("test:hello", "test:world");
+
+        assert!(a.matches(&b));
+    }
+
+    #[test]
+    fn it_does_not_match_a_non_matching_permission() {
+        let a = Permission::new("test:*", "test:*");
+        let b = Permission::new("other:hello", "other:world");
+
+        assert!(!a.matches(&b));
+    }
+
+    #[test]
+    fn it_matches_everything() {
+        let a = Permission::new("*", "*");
+        let b = Permission::new("test:hello", "test:world");
+
+        assert!(a.matches(&b));
     }
 }
