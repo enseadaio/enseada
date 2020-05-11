@@ -6,7 +6,7 @@ use actix_web::error::PayloadError;
 use actix_web::web::{Bytes, Data};
 use futures::{Future, FutureExt, Stream, TryFutureExt};
 
-use crate::couchdb::guid::Guid;
+use crate::guid::Guid;
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
 use crate::user::{User, UserService};

@@ -1,5 +1,8 @@
+use actix_web::dev::Service;
+use bytes::Bytes;
 use derivative::Derivative;
-use reqwest::{Client as HttpClient, Method, StatusCode};
+use futures::TryFutureExt;
+use reqwest::{Client as HttpClient, Method, RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use url::{ParseError, Url};
@@ -47,7 +50,7 @@ impl Client {
         &self,
         path: &str,
         body: Option<B>,
-        query: Option<Q>
+        query: Option<Q>,
     ) -> reqwest::Result<R> {
         self.request(Method::POST, path, body, query).await
     }
@@ -74,6 +77,17 @@ impl Client {
         }
     }
 
+    pub async fn stream<Q: Serialize>(&self, path: &str, query: Option<Q>) -> reqwest::Result<impl futures::Stream<Item=reqwest::Result<Bytes>>> {
+        let req = self.build_req(Method::GET, path);
+        let req = if let Some(query) = query {
+            req.query::<Q>(&query)
+        } else {
+            req
+        };
+        let res = req.send().await?.error_for_status()?;
+        Ok(res.bytes_stream())
+    }
+
     pub(crate) fn build_url(&self, path: &str) -> Result<Url, ParseError> {
         self.base_url.join(path)
     }
@@ -83,12 +97,9 @@ impl Client {
         method: Method,
         path: &str,
         body: Option<B>,
-        query: Option<Q>
+        query: Option<Q>,
     ) -> reqwest::Result<R> {
-        let req = self
-            .client
-            .request(method, self.build_url(path).unwrap())
-            .basic_auth(&self.username, self.password.as_ref());
+        let req = self.build_req(method, path);
         let req = if let Some(body) = body {
             req.json::<B>(&body)
         } else {
@@ -102,5 +113,16 @@ impl Client {
         };
 
         req.send().await?.error_for_status()?.json().await
+    }
+
+    fn build_req(
+        &self,
+        method: Method,
+        path: &str,
+    ) -> RequestBuilder {
+        self
+            .client
+            .request(method, self.build_url(path).unwrap())
+            .basic_auth(&self.username, self.password.as_ref())
     }
 }

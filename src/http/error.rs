@@ -8,6 +8,7 @@ use url::ParseError;
 use crate::couchdb::error::Error as CouchError;
 use crate::error::Error;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
+use crate::rbac::EvaluationError;
 
 #[derive(Debug, Display, PartialEq, Eq)]
 #[allow(dead_code)]
@@ -142,6 +143,15 @@ impl From<OAuthError> for ApiError {
             ErrorKind::ServerError | ErrorKind::Unknown => ApiError::InternalServerError(message),
             ErrorKind::TemporarilyUnavailable => ApiError::ServiceUnavailable(message),
             _ => ApiError::BadRequest(message),
+        }
+    }
+}
+
+impl From<EvaluationError> for ApiError {
+    fn from(err: EvaluationError) -> Self {
+        match err {
+            EvaluationError::Denied => ApiError::Forbidden(err.to_string()),
+            EvaluationError::Other(msg) => ApiError::InternalServerError(msg),
         }
     }
 }

@@ -7,9 +7,9 @@
   "scripts": {
     "watch": "parcel watch static/js/index.js --public-url='/static'",
     "build": "parcel build static/js/index.js --public-url='/static'",
-    "docs:lint": "speccy lint docs/openapi/openapi.yml",
-    "docs:build": "speccy resolve docs/openapi/openapi.yml -o $OUT_DIR/openapi.yml",
-    "docs:serve": "speccy serve docs/openapi/openapi.yml"
+    "docs:lint": "speccy lint docs/openapi.yml",
+    "docs:build": "speccy resolve docs/openapi.yml -o $OUT_DIR/openapi.yml",
+    "docs:serve": "redoc-cli serve docs/openapi.yml --watch --options.showExtensions"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^1.0.12-4.3.0",
@@ -20,6 +20,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "bulma": "^0.8.1"
+    "bulma": "^0.8.1",
+    "redoc-cli": "^0.9.7"
   }
 }

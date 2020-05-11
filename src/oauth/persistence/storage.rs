@@ -38,11 +38,11 @@ impl ClientStorage for CouchStorage {
     async fn get_client(&self, id: &str) -> Option<Client> {
         let guid = ClientEntity::build_guid(&String::from(id));
         let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
-            Ok(client) => client,
+            Ok(client) => match client {
+                Some(client) => client,
+                None => return None,
+            },
             Err(err) => {
-                if let StatusCode::NOT_FOUND = err.status() {
-                    return None;
-                }
                 log::error!("Error fetching client from database: {}", err);
                 return None;
             }
@@ -56,7 +56,13 @@ impl ClientStorage for CouchStorage {
 impl TokenStorage<AccessToken> for CouchStorage {
     async fn get_token(&self, sig: &str) -> Option<AccessToken> {
         let guid = AccessTokenEntity::build_guid(sig);
-        let token: Option<AccessTokenEntity> = self.db.get(&guid.to_string()).await.ok();
+        let token = match self.db.get::<AccessTokenEntity>(&guid.to_string()).await {
+            Ok(token) => token,
+            Err(err) => {
+                log::error!("Error fetching access token from database: {}", err);
+                return None;
+            }
+        };
         token.map(|t| t.to_empty_token())
     }
 
@@ -85,7 +91,13 @@ impl TokenStorage<AccessToken> for CouchStorage {
 impl TokenStorage<RefreshToken> for CouchStorage {
     async fn get_token(&self, sig: &str) -> Option<RefreshToken> {
         let guid = RefreshTokenEntity::build_guid(sig);
-        let token: Option<RefreshTokenEntity> = self.db.get(&guid.to_string()).await.ok();
+        let token = match self.db.get::<RefreshTokenEntity>(&guid.to_string()).await {
+            Ok(token) => token,
+            Err(err) => {
+                log::error!("Error fetching access token from database: {}", err);
+                return None;
+            }
+        };
         token.map(|t| t.to_empty_token())
     }
 
@@ -114,7 +126,13 @@ impl TokenStorage<RefreshToken> for CouchStorage {
 impl AuthorizationCodeStorage for CouchStorage {
     async fn get_code(&self, sig: &str) -> Option<AuthorizationCode> {
         let guid = AuthorizationCodeEntity::build_guid(sig);
-        let code: Option<AuthorizationCodeEntity> = self.db.get(&guid.to_string()).await.ok();
+        let code = match self.db.get::<AuthorizationCodeEntity>(&guid.to_string()).await {
+            Ok(token) => token,
+            Err(err) => {
+                log::error!("Error fetching access token from database: {}", err);
+                return None;
+            }
+        };
         code.map(|code| code.to_empty_code())
     }
 

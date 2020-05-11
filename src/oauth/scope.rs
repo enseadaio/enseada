@@ -22,9 +22,23 @@ impl Scope {
             .map(String::clone)
             .collect();
         if intersection.is_empty() {
-            Err(Error::new(ErrorKind::InvalidScope, "invalid scopes".to_string()))
+            Err(Error::new(ErrorKind::InvalidScope, "invalid scope".to_string()))
         } else {
             Ok(Scope::from(intersection))
+        }
+    }
+
+    /// Checks if the scope is a subset of the other scope
+    /// A full scope always matches everything
+    pub fn matches_exactly(&self, other: &Scope) -> Result<()> {
+        if self.is_full_scope() {
+            return Ok(())
+        }
+
+        if self.is_subset(other) {
+            Ok(())
+        } else {
+            Err(Error::new(ErrorKind::InvalidScope, "invalid scope".to_string()))
         }
     }
 
@@ -124,7 +138,7 @@ mod test {
 
         let i = a.matches(&b).unwrap_err();
         assert_eq!(i.kind(), &ErrorKind::InvalidScope);
-        assert_eq!(i.to_string(), "\"invalid_scope\": invalid scopes");
+        assert_eq!(i.to_string(), "\"invalid_scope\": invalid scope");
     }
 
     #[test]

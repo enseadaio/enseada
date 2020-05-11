@@ -2,19 +2,24 @@ use io::BufReader;
 use std::fs::File;
 use std::io;
 use std::io::{Seek, SeekFrom};
+use std::sync::Arc;
 
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use actix_web::cookie::SameSite;
 use actix_web::middleware::{DefaultHeaders, Logger};
+use actix_web::web::Data;
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
+use tokio::sync::RwLock;
 use url::Url;
 
 use crate::config::CONFIG;
-use crate::couchdb::add_couch_client;
+use crate::couchdb::{self, add_couch_client};
 use crate::http::handler::oauth;
 use crate::http::handler::user::add_user_service;
+use crate::rbac::Enforcer;
+use crate::rbac::watcher::Watcher;
 use crate::routes::routes;
 
 pub async fn run() -> io::Result<()> {
@@ -22,6 +27,13 @@ pub async fn run() -> io::Result<()> {
     let public_host: &Url = CONFIG.public_host();
     let secret_key = CONFIG.secret_key();
     let tls = CONFIG.tls();
+
+    let rbac_db = Arc::new(couchdb::SINGLETON.database(couchdb::db::name::RBAC, true));
+    let mut enforcer = Enforcer::new(rbac_db.clone());
+    enforcer.load_rules().await.expect("enforcer.load_rules()");
+    let enforcer = Data::new(RwLock::new(enforcer));
+    let watcher = Watcher::new(rbac_db.clone(), enforcer.clone().into_inner());
+    watcher.start().expect("watcher.start()");
 
     let server = HttpServer::new(move || {
         App::new()
@@ -34,6 +46,7 @@ pub async fn run() -> io::Result<()> {
                 .http_only(true)
                 .same_site(SameSite::Strict))
             .wrap(default_headers())
+            .app_data(enforcer.clone())
             .configure(add_couch_client)
             .configure(add_user_service)
             .configure(oauth::add_oauth_handler)
@@ -59,7 +72,10 @@ pub async fn run() -> io::Result<()> {
     }?;
 
     log::info!("Server started listening on {}", &address);
-    server.run().await
+    server.run().await?;
+    watcher.stop();
+
+    Ok(())
 }
 
 fn get_certs(cert: &File) -> Vec<Certificate> {

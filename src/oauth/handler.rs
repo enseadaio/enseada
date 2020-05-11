@@ -288,7 +288,7 @@ impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHan
                 let refresh_token_sig = &refresh_token_sig.to_string();
                 let refresh_token = match self.refresh_token_storage.get_token(refresh_token_sig).await {
                     Some(token) => token,
-                    None => return Err(Error::new(ErrorKind::InvalidRequest, "invalid refresh token".to_string()))
+                    None => return Err(Error::new(ErrorKind::InvalidGrant, "invalid refresh token".to_string()))
                 };
 
                 if refresh_token.is_expired() {

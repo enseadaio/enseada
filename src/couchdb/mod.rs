@@ -11,12 +11,14 @@ use crate::couchdb::error::Error;
 use crate::couchdb::status::Status;
 
 pub mod client;
+pub mod changes;
 pub mod db;
 pub mod error;
+pub mod index;
 mod migrate;
 pub mod responses;
 pub mod status;
-pub mod guid;
+
 lazy_static! {
     pub static ref SINGLETON: Couch = Couch::from_global_config();
 }

@@ -73,3 +73,17 @@ pub struct RawDocResponse<T: Clone> {
 pub struct RawDocValue {
     pub rev: String,
 }
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum JsonIndexResultStatus {
+    Created,
+    Exists,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct JsonIndexResponse {
+    pub result: JsonIndexResultStatus,
+    pub id: String,
+    pub name: String,
+}
