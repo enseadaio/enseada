@@ -17,7 +17,7 @@ use url::Url;
 use crate::config::CONFIG;
 use crate::couchdb::{self, add_couch_client};
 use crate::docker;
-use crate::http::guard::Subdomain;
+use crate::http::guard::subdomain;
 use crate::http::handler::oauth;
 use crate::http::handler::user::add_user_service;
 use crate::rbac::Enforcer;

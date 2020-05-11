@@ -8,12 +8,15 @@ pub struct SubdomainGuard(String);
 
 impl Guard for SubdomainGuard {
     fn check(&self, req: &RequestHead) -> bool {
+        log::debug!("Guard checking for subdomain {}", &self.0);
         let uri = req.headers
             .get(header::HOST)
             .and_then(|host_value| host_value.to_str().ok())
             .or_else(|| req.uri.host())
             .map(|host: &str| Uri::from_str(host).ok())
             .and_then(|host_success| host_success);
+
+        log::debug!("Checking URI {:?}", &uri);
 
         let req_host_uri = if let Some(uri) = uri {
             uri
@@ -22,12 +25,20 @@ impl Guard for SubdomainGuard {
         };
 
         match req_host_uri.host() {
-            Some(uri_host) => uri_host.starts_with(&self.0),
+            Some(uri_host) => {
+                let matches = uri_host.starts_with(&self.0);
+                log::debug!("URI {} starts with {}: {}", &uri_host, &self.0, matches);
+                matches
+            },
             None => false
         }
     }
 }
 
-pub fn Subdomain<H: AsRef<str>>(prefix: H) -> SubdomainGuard {
-    SubdomainGuard(prefix.as_ref().to_string())
+pub fn subdomain<H: AsRef<str>>(prefix: H) -> SubdomainGuard {
+    let mut prefix = prefix.as_ref().to_string();
+    if !prefix.ends_with('.') {
+        prefix.push('.');
+    }
+    SubdomainGuard(prefix)
 }
