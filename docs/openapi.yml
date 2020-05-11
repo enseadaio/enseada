@@ -698,7 +698,7 @@ components:
           type: string
           format: guid
           description: |
-            The subject that is granted the permission.
+            The subject the permission is granted to.
             Can be omitted in relative paths like `/users/{username}/permissions` as it will be
             overwritten by the relative subject itself.
           example: user:root
