@@ -1,0 +1,18 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - redoc-cli > styled-components > @babel/traverse > lodash:
+        patched: '2020-05-11T14:12:45.853Z'
+    - redoc-cli > styled-components > babel-plugin-styled-components > lodash:
+        patched: '2020-05-11T14:12:45.853Z'
+    - redoc-cli > styled-components > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-05-11T14:12:45.853Z'
+    - redoc-cli > styled-components > babel-plugin-styled-components > @babel/helper-annotate-as-pure > @babel/types > lodash:
+        patched: '2020-05-11T14:12:45.853Z'
+    - redoc-cli > styled-components > @babel/traverse > @babel/generator > @babel/types > lodash:
+        patched: '2020-05-11T14:12:45.853Z'
+    - redoc-cli > styled-components > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-05-11T14:12:45.853Z'
