@@ -30,6 +30,7 @@ serde_urlencoded = "0.6.1"
 async-trait = "0.1.30"
 chrono = { version = "0.4.11", features = ["serde"] }
 futures = "0.3.4"
+tokio = { version = "0.2.20", features = ["sync"] }
 
 # Security
 rustls = "0.16"
@@ -46,11 +47,12 @@ config = "0.9"
 dotenv = "0.15"
 hex = "0.4"
 log = "0.4"
-reqwest = { version = "0.10", features = ["json", "rustls-tls"] }
+reqwest = { version = "0.10", features = ["json", "rustls-tls", "stream"] }
 url = { version = "2.1", features = ["serde"] }
 uuid = { version = "0.8", features = ["v4"] }
 base64 = "0.12.0"
 glob="0.3.0"
+bytes = "0.5.4"
 
 [dependencies.log4rs]
 version = "0.10"

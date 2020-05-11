@@ -1,7 +1,10 @@
 use std::cmp::{Eq, PartialEq};
 use std::collections::{HashMap, HashSet};
+use std::fmt;
+use std::fmt::Display;
 
 use glob::Pattern;
+use serde::export::Formatter;
 
 use crate::error::Error;
 
@@ -73,12 +76,12 @@ trait Visitable {
 pub struct Principal {
     name: String,
     roles: HashMap<String, Role>,
-    permissions: HashSet<Permission>,
+    permissions: HashMap<String, Permission>,
 }
 
 impl Principal {
     pub fn new(name: String) -> Self {
-        Principal { name, roles: HashMap::new(), permissions: HashSet::new() }
+        Principal { name, roles: HashMap::new(), permissions: HashMap::new() }
     }
 
     pub fn name(&self) -> &str {
@@ -91,25 +94,35 @@ impl Principal {
     }
 
     pub fn add_permission(&mut self, permission: Permission) -> &mut Self {
-        self.permissions.insert(permission);
+        self.permissions.insert(permission.to_string(), permission);
         self
+    }
+
+    pub fn permissions(&self) -> HashSet<&Permission> {
+        self.permissions.values().collect()
     }
 }
 
 impl Visitable for Principal {
     fn visit(&self, visitor: &Visitor) -> EvaluationResult {
         log::trace!("Visiting principal {}", &self.name);
-        if self.permissions.contains(&visitor.target_permission) {
+        let target_permission = &visitor.target_permission;
+        let permissions = self.permissions();
+        if permissions.contains(target_permission) {
             log::trace!("Principal {} has exact matching permission", &self.name);
             return EvaluationResult::Granted;
         }
 
-        for permission in &self.permissions {
-            if permission.matches(&visitor.target_permission) {
+        for permission in permissions {
+            log::trace!("Checking if permission '{}' matches target '{}'", permission, target_permission);
+            if permission.matches(target_permission) {
                 log::trace!("Principal {} has matching permission obj: {}, act: {}", &self.name, &permission.object, &permission.action);
                 return EvaluationResult::Granted;
             }
+            log::trace!("Permission doesn't match target. Continuing");
         }
+
+        log::trace!("No permissions found for target. Checking roles");
 
         for role in self.roles.values() {
             if role.visit(visitor) == EvaluationResult::Granted {
@@ -123,39 +136,49 @@ impl Visitable for Principal {
 #[derive(Debug, Clone)]
 pub struct Role {
     name: String,
-    permissions: HashSet<Permission>,
+    permissions: HashMap<String, Permission>,
 }
 
 impl Role {
     pub fn new(name: String) -> Self {
-        Role { name, permissions: HashSet::new() }
+        Role { name, permissions: HashMap::new() }
     }
 
     pub fn add_permission(&mut self, permission: Permission) -> &mut Self {
-        self.permissions.insert(permission);
+        self.permissions.insert(permission.to_string(), permission);
         self
     }
 
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn permissions(&self) -> HashSet<&Permission> {
+        self.permissions.values().collect()
+    }
 }
 
 impl Visitable for Role {
     fn visit(&self, visitor: &Visitor) -> EvaluationResult {
         log::trace!("Visiting role {}", &self.name);
-        if self.permissions.contains(&visitor.target_permission) {
+        log::trace!("{:?}", &self.permissions);
+        let target_permission = &visitor.target_permission;
+        let permissions = self.permissions();
+        if permissions.contains(target_permission) {
             log::trace!("Role {} has exact matching permission", &self.name);
             return EvaluationResult::Granted;
         }
 
-        for permission in &self.permissions {
-            if permission.matches(&visitor.target_permission) {
+        for permission in permissions {
+            log::trace!("Checking if permission '{}' matches target '{}'", permission, target_permission);
+            if permission.matches(target_permission) {
                 log::trace!("Role {} has matching permission obj: {}, act: {}", &self.name, &permission.object, &permission.action);
                 return EvaluationResult::Granted;
             }
+            log::trace!("Permission doesn't match target. Continuing.");
         }
 
+        log::trace!("No permissions found for target. Checking roles");
         EvaluationResult::Denied
     }
 }
@@ -186,17 +209,20 @@ impl Permission {
     }
 }
 
+impl Display for Permission {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}", &self.object, &self.action)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn it_grants_direct_permissions() {
-        let principal = Principal {
-            name: "test".to_string(),
-            roles: HashMap::new(),
-            permissions: vec![Permission::new("test", "test:*")].into_iter().collect(),
-        };
+        let mut principal = Principal::new("test".to_string());
+        principal.add_permission(Permission::new("test", "test:*"));
 
         let model = Model::new(vec![principal]);
         let result = model.check("test", "test", "test:all");
@@ -205,19 +231,11 @@ mod test {
 
     #[test]
     fn it_grants_role_permissions() {
-        let role = Role {
-            name: "test_role".to_string(),
-            permissions: vec![Permission::new("test:*", "test")].into_iter().collect(),
-        };
+        let mut role = Role::new("test_role".to_string());
+        role.add_permission(Permission::new("test:*", "test"));
 
-        let mut roles = HashMap::new();
-        roles.insert(role.name.clone(), role);
-
-        let principal = Principal {
-            name: "test".to_string(),
-            roles,
-            permissions: HashSet::new(),
-        };
+        let mut principal = Principal::new("test".to_string());
+        principal.add_role(role);
 
         let model = Model::new(vec![principal]);
         let result = model.check("test", "test:all", "test");
@@ -226,11 +244,8 @@ mod test {
 
     #[test]
     fn it_doesnt_grant_missing_permissions() {
-        let principal = Principal {
-            name: "test".to_string(),
-            roles: HashMap::new(),
-            permissions: vec![Permission::new("test", "test")].into_iter().collect(),
-        };
+        let mut principal = Principal::new("test".to_string());
+        principal.add_permission(Permission::new("test", "test"));
 
         let model = Model::new(vec![principal]);
         let result = model.check("test", "test", "another_test");
@@ -239,11 +254,8 @@ mod test {
 
     #[test]
     fn it_doesnt_grant_permissions_to_missing_principal() {
-        let principal = Principal {
-            name: "test".to_string(),
-            roles: HashMap::new(),
-            permissions: vec![Permission::new("test", "test")].into_iter().collect(),
-        };
+        let mut principal = Principal::new("test".to_string());
+        principal.add_permission(Permission::new("test", "test"));
 
         let model = Model::new(vec![principal]);
         let result = model.check("another_test", "test", "test");
@@ -252,11 +264,8 @@ mod test {
 
     #[test]
     fn it_doesnt_grant_permissions_to_missing_object() {
-        let principal = Principal {
-            name: "test".to_string(),
-            roles: HashMap::new(),
-            permissions: vec![Permission::new("test", "test")].into_iter().collect(),
-        };
+        let mut principal = Principal::new("test".to_string());
+        principal.add_permission(Permission::new("test", "test"));
 
         let model = Model::new(vec![principal]);
         let result = model.check("test", "another_test", "test");

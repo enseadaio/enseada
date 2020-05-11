@@ -1,7 +1,6 @@
-use std::sync::RwLock;
-
 use actix_web::web::{Data, Json, Path, Query};
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 
 use crate::guid::Guid;
 use crate::http::error::ApiError;
@@ -28,7 +27,7 @@ pub async fn get_user_roles(
 ) -> ApiResult<Json<RoleResponse>> {
     Scope::from(vec!["users:read", "roles"]).matches_exactly(&scope)?;
     let username = &path.username;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = Guid::partitioned("user", username);
     enforcer.check(current_user.id(), &sub, "read_roles")?;
 
@@ -57,7 +56,7 @@ pub async fn add_user_role(
     path: Path<UserRolesPathParams>,
 ) -> ApiResult<Json<RoleResponse>> {
     Scope::from(vec!["users:manage", "roles"]).matches_exactly(&scope)?;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let username = &path.username;
     let sub = Guid::partitioned("user", username);
     enforcer.check(current_user.id(), &sub, "manage_roles")?;
@@ -82,7 +81,7 @@ pub async fn remove_user_role(
     path: Path<UserRolesPathParams>,
 ) -> ApiResult<Json<RoleResponse>> {
     Scope::from(vec!["users:manage", "roles"]).matches_exactly(&scope)?;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let username = &path.username;
     let sub = &Guid::partitioned("user", username);
     enforcer.check(current_user.id(), sub, "manage_roles")?;
@@ -126,7 +125,7 @@ pub async fn get_user_permissions(
 ) -> ApiResult<Json<Page<Permission>>> {
     Scope::from(vec!["users:read", "permissions"]).matches_exactly(&scope)?;
     let username = &path.username;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = &Guid::partitioned("user", username);
     enforcer.check(current_user.id(), sub, "read_permissions")?;
 
@@ -153,7 +152,7 @@ pub async fn add_user_permission(
 ) -> ApiResult<Json<Permission>> {
     Scope::from(vec!["users:read", "permissions"]).matches_exactly(&scope)?;
     let username = &path.username;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = Guid::partitioned("user", username);
     enforcer.check(current_user.id(), &sub, "manage_permissions")?;
 
@@ -173,7 +172,7 @@ pub async fn remove_user_permission(
 ) -> ApiResult<Json<Permission>> {
     Scope::from(vec!["users:read", "permissions"]).matches_exactly(&scope)?;
     let username = &path.username;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = &Guid::partitioned("user", username);
     enforcer.check(current_user.id(), sub, "manage_permissions")?;
 
@@ -198,7 +197,7 @@ pub async fn get_role_permissions(
 ) -> ApiResult<Json<Page<Permission>>> {
     Scope::from(vec!["roles", "permissions"]).matches_exactly(&scope)?;
     let role = &path.role;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = &Guid::partitioned("role", role);
     enforcer.check(current_user.id(), sub, "read_permissions")?;
 
@@ -225,7 +224,7 @@ pub async fn add_role_permission(
 ) -> ApiResult<Json<Permission>> {
     Scope::from(vec!["roles", "permissions"]).matches_exactly(&scope)?;
     let role = &path.role;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = Guid::partitioned("role", role);
     enforcer.check(current_user.id(), &sub, "manage_permissions")?;
 
@@ -245,7 +244,7 @@ pub async fn remove_role_permission(
 ) -> ApiResult<Json<Permission>> {
     Scope::from(vec!["roles", "permissions"]).matches_exactly(&scope)?;
     let role = &path.role;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     let sub = &Guid::partitioned("role", role);
     enforcer.check(current_user.id(), sub, "manage_permissions")?;
 

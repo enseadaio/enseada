@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Display;
+use std::sync::Arc;
 
 use http::StatusCode;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -14,15 +15,19 @@ use crate::pagination::{Cursor, Page};
 use crate::rbac::model::{EvaluationResult, Model, Permission, Principal, Role};
 
 mod model;
+pub mod watcher;
 
 pub struct Enforcer {
-    db: Database,
+    db: Arc<Database>,
     model: Model,
 }
 
 impl Enforcer {
-    pub fn new(db: Database) -> Self {
-        Enforcer { db, model: Model::empty() }
+    pub fn new(db: Arc<Database>) -> Self {
+        Enforcer {
+            db,
+            model: Model::empty(),
+        }
     }
 
     pub async fn load_rules(&mut self) -> Result<(), Error> {
@@ -37,16 +42,22 @@ impl Enforcer {
             let rule = &row.doc;
             log::debug!("Processing rule {:?}", rule);
             let permission = Permission::new(&rule.obj.to_string(), &rule.act);
+            let sub = rule.sub.id().to_string();
             if rule.sub.partition() == Some("role".to_string()) {
                 log::debug!("Rule has a role subject. Adding permission to it");
-                let mut role = Role::new(rule.sub.id().to_string());
+                if !roles.contains_key(&sub) {
+                    roles.insert(sub.clone(), Role::new(sub.clone()));
+                }
+                let role = roles.get_mut(&sub).unwrap();
                 role.add_permission(permission);
-                roles.insert(role.name().to_string(), role);
             } else {
                 log::debug!("Rule has a principal subject. Adding permission to it");
-                let mut principal = Principal::new(rule.sub.to_string());
+                if !principals.contains_key(&sub) {
+                    principals.insert(sub.clone(), Principal::new(sub.clone()));
+                }
+
+                let principal = principals.get_mut(&sub).unwrap();
                 principal.add_permission(permission);
-                principals.insert(principal.name().to_string(), principal);
             }
         }
 
@@ -72,6 +83,7 @@ impl Enforcer {
         }
 
         model.set_principals(principals);
+        log::debug!("Finished loading rules");
         Ok(())
     }
 

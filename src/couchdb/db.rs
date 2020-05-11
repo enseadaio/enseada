@@ -1,10 +1,15 @@
 use std::fmt::Debug;
+use std::io::{BufRead, BufReader, Cursor};
+use std::str::from_utf8;
 use std::sync::Arc;
 
+use bytes::Bytes;
+use futures::{stream, StreamExt};
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use crate::couchdb::changes::ChangeEvent;
 use crate::couchdb::client::Client;
 use crate::couchdb::error::Error;
 use crate::couchdb::index::JsonIndex;
@@ -18,6 +23,7 @@ pub mod name {
     pub const RBAC: &str = "rbac";
 }
 
+#[derive(Clone)]
 pub struct Database {
     client: Arc<Client>,
     name: String,
@@ -132,6 +138,34 @@ impl Database {
         log::debug!("Checking {} existence from couch", &path);
         let res = self.client.exists(path.as_str()).await?;
         Ok(res)
+    }
+
+    pub async fn changes(&self) -> Result<impl futures::Stream<Item=ChangeEvent>> {
+        let path = format!("{}/_changes", &self.name);
+        let query = Some(&[("feed", "continuous"), ("since", "now")]);
+        let stream = self.client.stream(&path, query).await?;
+        let stream = stream.map(|res: reqwest::Result<Bytes>| {
+            let bytes = res.unwrap();
+            let payload = from_utf8(bytes.as_ref()).unwrap();
+            let cursor = Cursor::new(payload);
+            let events: Vec<ChangeEvent> = cursor.lines().filter_map(|line| {
+                match line {
+                    Ok(line) => if line.is_empty() {
+                        None
+                    } else {
+                        log::debug!("Processing event: {}", &line);
+                        let event: ChangeEvent = serde_json::from_str(&line).unwrap();
+                        Some(event)
+                    },
+                    Err(err) => {
+                        log::error!("{}", err.to_string());
+                        None
+                    }
+                }
+            }).collect();
+            stream::iter(events)
+        }).flatten();
+        Ok(stream)
     }
 }
 

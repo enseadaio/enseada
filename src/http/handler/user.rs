@@ -1,8 +1,7 @@
-use std::sync::RwLock;
-
 use actix_web::HttpResponse;
 use actix_web::web::{Data, Form, Json, Path, Query, ServiceConfig};
 use serde::{Deserialize, Serialize};
+use tokio::sync::RwLock;
 
 use crate::couchdb;
 use crate::couchdb::db;
@@ -47,7 +46,7 @@ pub async fn list(
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<UserResponse>>> {
     Scope::from("users:read").matches(&scope)?;
-    let enforcer = enforcer.read().unwrap();
+    let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &Guid::simple("users"), "read")?;
     let limit = list.limit();
     let cursor = list.cursor();
@@ -77,7 +76,7 @@ pub async fn get(
 ) -> ApiResult<Json<UserResponse>> {
     Scope::from("users:read").matches(&scope)?;
     let username = &path.username;
-    let enforcer = enforcer.write().unwrap();
+    let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &User::build_guid(username), "read")?;
     service.find_user(username).await?
         .ok_or_else(|| ApiError::NotFound(format!("User {} not found", username)))
@@ -122,7 +121,7 @@ pub async fn register(
     current_user: CurrentUser,
 ) -> Result<Json<UserResponse>, ApiError> {
     Scope::from("users:manage").matches(&scope)?;
-    let enf = enforcer.read().unwrap();
+    let enf = enforcer.read().await;
     enf.check(current_user.id(), &Guid::simple("users"), "create")?;
 
     let user = User::new(data.username.clone(), data.password.clone())?;

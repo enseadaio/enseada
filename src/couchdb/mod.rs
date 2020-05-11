@@ -11,6 +11,7 @@ use crate::couchdb::error::Error;
 use crate::couchdb::status::Status;
 
 pub mod client;
+pub mod changes;
 pub mod db;
 pub mod error;
 pub mod index;
