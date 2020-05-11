@@ -167,17 +167,18 @@ impl Enforcer {
         Ok(())
     }
 
-    pub async fn get_principal_roles(&self, sub: &Guid) -> Result<Vec<String>, Error> {
-        // TODO: paginate
+    pub async fn list_principal_roles(&self, sub: &Guid, limit: usize, cursor: Option<&Cursor>) -> Result<Page<String>, Error> {
         let response = self.db.find_partitioned::<RoleAssignment>("role", serde_json::json!({
             "subject": sub.to_string()
-        }), 25, None).await?;
+        }), limit, cursor.map(Cursor::to_string)).await?;
 
-        if let Some(warning) = response.warning {
+        if let Some(warning) = &response.warning {
             log::warn!("{}", warning);
         }
 
-        Ok(response.docs.iter().map(|role| role.role.clone()).collect())
+        let page = Page::from_find_response(response, limit)
+            .map(|assignment| assignment.role.clone());
+        Ok(page)
     }
 }
 

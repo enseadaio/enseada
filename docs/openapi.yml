@@ -357,7 +357,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserRoles"
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/Role"
   "/api/v1beta1/users/{username}/roles/{role}":
     parameters:
       - $ref: '#/components/parameters/username'
@@ -377,11 +386,11 @@ paths:
             - roles
       responses:
         "200":
-          description: Updated user roles details
+          description: Updated user role
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserRoles"
+                $ref: "#/components/schemas/Role"
         "401":
           description: Authentication failed
           content:
@@ -409,11 +418,11 @@ paths:
             - roles
       responses:
         "200":
-          description: Updated user roles details
+          description: Delete user role
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserRoles"
+                $ref: "#/components/schemas/Role"
         "401":
           description: Authentication failed
           content:
@@ -670,22 +679,14 @@ components:
           items:
             type: string
             minItems: 0
-    UserRoles:
+    Role:
       type: object
       properties:
-        username:
+        role:
           type: string
-        roles:
-          type: array
-          description: The user's role list
-          items:
-            type: string
-            minItems: 0
+          description: The user's role
       example:
-        username: root
-        roles:
-          - roles:manage
-          - users:manage
+        role: users:manage
     Permission:
       type: object
       required:
@@ -769,3 +770,4 @@ components:
             users:read: read-only access to registered users
             users:manage: read-write access to registered users
             roles: read-write access to user roles
+            permissions: read-write access to user permissions
