@@ -19,8 +19,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
       - uses: actions/setup-node@v1
-          with:
-            node-version: 12.x
+        with:
+          node-version: 12.x
       - run: npm install -g yarn
       - name: Install Dependencies
         run: |
