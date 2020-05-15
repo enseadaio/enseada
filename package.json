@@ -6,10 +6,11 @@
   "license": "MPL-2.0",
   "scripts": {
     "watch": "parcel watch static/js/index.js --public-url='/static'",
-    "build": "parcel build static/js/index.js --public-url='/static'",
+    "build": "parcel build static/js/index.js --public-url='/static' --no-content-hash",
     "docs:lint": "speccy lint docs/openapi.yml",
     "docs:build": "speccy resolve docs/openapi.yml -o $OUT_DIR/openapi.yml",
     "docs:serve": "redoc-cli serve docs/openapi.yml --watch --options.showExtensions",
+    "clean": "rimraf dist",
     "snyk-protect": "snyk protect",
     "prepare": "yarn run snyk-protect"
   },
@@ -17,6 +18,7 @@
     "@openapitools/openapi-generator-cli": "^1.0.12-4.3.0",
     "del-cli": "^3.0.0",
     "parcel-bundler": "^1.12.4",
+    "rimraf": "^3.0.2",
     "sass": "^1.26.3",
     "speccy": "^0.11.0",
     "typescript": "^3.8.3"

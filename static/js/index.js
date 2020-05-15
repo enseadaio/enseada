@@ -1,7 +1,7 @@
-import '../scss/styles.scss';
+import '../scss/styles.scss'
 
-function hello(name) {
-  console.log(`Hello ${name || 'Enseada'}`);
+if (module.hot) {
+  module.hot.dispose(function () {
+    window.location.reload()
+  })
 }
-
-hello();

@@ -1,13 +1,15 @@
 use actix_files as fs;
 use actix_web::{FromRequest, web};
 
-use crate::http::handler::{api_docs, health, oauth, rbac, ui, user};
+use crate::http::handler::{api_docs, health, home, oauth, rbac, ui, user};
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(fs::Files::new("/static", "./dist").show_files_listing())
+    cfg
+        .route("/", web::get().to(home))
+        .service(fs::Files::new("/static", "./dist"))
+        .service(fs::Files::new("/images", "./images"))
         .route("/health", web::get().to(health::get))
-
         // UI
         .service(web::scope("/ui")
             .route("", web::get().to(ui::index))

@@ -49,5 +49,5 @@ impl Couch {
 }
 
 pub fn add_couch_client(app: &mut web::ServiceConfig) {
-    app.data(&SINGLETON);
+    app.data(Couch::from_global_config());
 }

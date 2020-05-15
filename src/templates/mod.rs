@@ -1,15 +1,15 @@
-use yarte::Template;
+use askama::Template;
 
 pub mod oauth;
 
 #[derive(Template)]
-#[template(path = "index.hbs", err = "index error message")]
+#[template(path = "index.html")]
 pub struct Index<'a> {
     pub name: Option<&'a str>,
 }
 
 #[derive(Template)]
-#[template(path = "redoc.hbs", err = "redoc error message")]
+#[template(path = "redoc.html")]
 pub struct ReDoc {
     pub spec_url: String,
 }

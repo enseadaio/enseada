@@ -19,7 +19,7 @@ actix-tls = { version = "1.0.0", features = ["rustls"] }
 actix-session = "0.3.0"
 actix-web-httpauth = "0.4.1"
 http = "0.2.1"
-yarte = { version = "0.7", features = ["with-actix-web"]  }
+askama = { version = "0.9", features = ["with-actix-web"] }
 
 # Serde
 serde = { version = "1.0", features = ["derive"] }
@@ -66,6 +66,3 @@ features = [
 "pattern_encoder",
 "threshold_filter"
 ]
-
-[build-dependencies]
-yarte = { version = "0.7", features = ["with-actix-web"]  }

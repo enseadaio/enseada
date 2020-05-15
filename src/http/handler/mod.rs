@@ -1,3 +1,7 @@
+use std::char::ToLowercase;
+
+use actix_web::{HttpRequest, HttpResponse};
+use actix_web::http::HeaderValue;
 use serde::Deserialize;
 
 use crate::http::error::ApiError;
@@ -26,4 +30,18 @@ impl PaginationQuery {
     pub fn cursor(&self) -> Option<&String> {
         self.cursor.as_ref()
     }
+}
+
+pub async fn home(req: HttpRequest) -> HttpResponse {
+    let accept = req.headers().get(http::header::ACCEPT)
+        .and_then(|accept| accept.to_str().ok())
+        .map(str::to_lowercase)
+        .filter(|accept| (*accept).contains("html"));
+    let redirect = match accept {
+        Some(_) => "/ui",
+        None => "/health",
+    };
+    HttpResponse::SeeOther()
+        .header(http::header::LOCATION, redirect)
+        .finish()
 }
