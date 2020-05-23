@@ -17,15 +17,15 @@ export OCI_TEST_CONTENT_MANAGEMENT=1
 script=$(realpath "$0")
 dir=$(dirname "$script")
 
-if [[ ! -f ./conformance.test ]]; then
+if [[ ! -f "$dir/conformance.test" ]]; then
   echo "Test binary not found. Downloading.."
   go get -u github.com/opencontainers/distribution-spec/conformance
   cd "$GOPATH"/src/github.com/opencontainers/distribution-spec/conformance
   go test -c
   cp ./conformance.test "$dir"
-  cd "$dir"
   echo "Done"
 fi
 
+cd "$dir"
 echo "Starting OCI Conformance Test"
 ./conformance.test

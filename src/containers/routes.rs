@@ -34,6 +34,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     .route(web::get().to(handler::upload::get_status))
                     .route(web::patch().to(handler::upload::upload_chunk))
                     .route(web::put().to(handler::upload::complete))
+                    .route(web::delete().to(handler::upload::cancel))
                 )
                 .service(web::resource("/{digest}")
                     .name("blob")

@@ -118,6 +118,28 @@ pub async fn complete(
     }
 }
 
+pub async fn cancel(
+    name: Path<NameParams>,
+    upload: Path<UploadParams>,
+    uploads: Data<UploadService>,
+) -> HttpResponse {
+    let upload_id = &upload.upload_id;
+    log::debug!("Cancelling upload {}", upload_id);
+
+    let res = uploads.find_upload(upload_id).await
+        .and_then(|opt| opt.ok_or_else(|| Error::from(ErrorCode::BlobUploadUnknown)));
+
+    let upload = match res {
+        Ok(upload) => upload,
+        Err(err) => return err.error_response(),
+    };
+
+    match uploads.delete_upload(upload).await {
+        Ok(()) => HttpResponse::Ok().finish(),
+        Err(err) => err.error_response(),
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct DigestParams {
     digest: Digest,

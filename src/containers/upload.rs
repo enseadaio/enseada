@@ -141,6 +141,11 @@ impl UploadService {
                 .ok_or_else(|| Error::from(ErrorCode::BlobUploadUnknown))?
         };
 
+        for chunk in &upload.chunks {
+            let chunk_key = chunk.storage_key().unwrap();
+            self.store.delete_blob(&chunk_key).await?;
+        }
+
         self.db.delete(&upload.id.to_string(), upload.rev.as_ref().unwrap()).await
             .map_err(Error::from)
     }
@@ -180,7 +185,6 @@ impl UploadService {
                 .ok_or_else(|| Error::from(ErrorCode::BlobUnknown))?;
             let mut content = blob.content().clone();
             buf.append(&mut content);
-            self.store.delete_blob(&chunk_key).await?;
         }
         buf.append(&mut chunk.content);
 
