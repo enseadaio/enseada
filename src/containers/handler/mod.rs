@@ -1,11 +1,11 @@
 use actix_web::HttpResponse;
-use actix_web::web::{Data, Path};
+use actix_web::web::Path;
 use serde::Deserialize;
 
 use crate::containers::name::Name;
-use crate::containers::storage::Provider;
 
 pub mod manifest;
+pub mod repo;
 pub mod upload;
 
 #[derive(Debug, Deserialize)]

@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use actix_web::{HttpMessage, HttpRequest};
 use actix_web::http::HeaderMap;
+use actix_web::HttpRequest;
 use actix_web::web::{Bytes, ServiceConfig};
-use futures::StreamExt;
 use hold::blob::Blob;
 use http::header;
 use serde::{Deserialize, Serialize};

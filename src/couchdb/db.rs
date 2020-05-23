@@ -77,8 +77,8 @@ impl Database {
         }
     }
 
-    pub async fn list<R: DeserializeOwned + Clone>(&self, kind: &str, limit: usize, start_key: Option<String>) -> Result<RowsResponse<R>> {
-        let path = format!("{}/_partition/{}/_all_docs", &self.name, kind);
+    pub async fn list<R: DeserializeOwned + Clone>(&self, partition: &str, limit: usize, start_key: Option<String>) -> Result<RowsResponse<R>> {
+        let path = format!("{}/_partition/{}/_all_docs", &self.name, partition);
         let query = Some(ListQuery {
             include_docs: true,
             limit,

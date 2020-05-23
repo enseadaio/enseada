@@ -31,9 +31,6 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     let rbac_db = couch.database(db::name::RBAC, true);
     create_db_if_not_exist(&rbac_db).await?;
 
-    let oci_db = couch.database(db::name::OCI, true);
-    create_db_if_not_exist(&oci_db).await?;
-
     create_mango_index(&rbac_db, JsonIndex::new(
         "rule_sub_idx",
         Some("rbac_indexes".to_string()),
@@ -47,6 +44,18 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
         Some("rbac_indexes".to_string()),
         serde_json::json!({
           "fields": ["subject"]
+        }),
+    )).await?;
+
+
+    let oci_db = couch.database(db::name::OCI, true);
+    create_db_if_not_exist(&oci_db).await?;
+
+    create_mango_index(&oci_db, JsonIndex::new(
+        "repo_name_idx",
+        Some("oci_indexes".to_string()),
+        serde_json::json!({
+          "fields": ["group", "name"]
         }),
     )).await?;
 

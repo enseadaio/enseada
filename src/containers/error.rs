@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::containers::mime::oci::v1::{IMAGE_INDEX as OCI_IMAGE_INDEX_V1, IMAGE_MANIFEST as OCI_IMAGE_MANIFEST_V1};
 use crate::couchdb::error::Error as CouchError;
+use crate::http::error::ApiError;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Error {
@@ -148,4 +149,11 @@ pub enum ErrorCode {
     NotFound,
     /// Internal server error.
     Internal,
+}
+
+impl From<Error> for ApiError {
+    fn from(err: Error) -> Self {
+        let status = err.status_code();
+        ApiError::new(status, err.to_string())
+    }
 }

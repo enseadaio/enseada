@@ -33,6 +33,18 @@ pub struct ErrorResponse {
 }
 
 impl ApiError {
+    pub fn new(status: StatusCode, msg: String) -> Self {
+        match status {
+            StatusCode::BAD_REQUEST => ApiError::BadRequest(msg),
+            StatusCode::CONFLICT => ApiError::Conflict(msg),
+            StatusCode::FORBIDDEN => ApiError::Forbidden(msg),
+            StatusCode::NOT_FOUND => ApiError::NotFound(msg),
+            StatusCode::UNAUTHORIZED => ApiError::Unauthorized(msg),
+            StatusCode::SERVICE_UNAVAILABLE => ApiError::ServiceUnavailable(msg),
+            _ => ApiError::InternalServerError(msg),
+        }
+    }
+
     pub fn unauthorized() -> Self {
         ApiError::Unauthorized("unauthorized".to_string())
     }

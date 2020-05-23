@@ -1,3 +1,4 @@
+pub use repo::add_repo_service;
 pub use routes::routes;
 
 use crate::containers::error::Error;
@@ -9,6 +10,7 @@ pub mod header;
 pub mod manifest;
 pub mod mime;
 pub mod name;
+mod repo;
 mod routes;
 mod storage;
 mod upload;

@@ -1,6 +1,7 @@
 use actix_files as fs;
 use actix_web::{FromRequest, web};
 
+use crate::containers;
 use crate::http::handler::{api_docs, health, home, oauth, rbac, ui, user};
 use crate::oauth::request::{AuthorizationRequest, TokenRequest};
 
@@ -37,6 +38,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 .route("", web::get().to(api_docs::redoc))
             )
 
+            // Core
             // V1Beta1
             .service(web::scope("/v1beta1")
                 .service(web::scope("/users")
@@ -67,6 +69,21 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                             .route(web::post().to(rbac::add_role_permission))
                             .route(web::delete().to(rbac::remove_role_permission))
                         )
+                    )
+                )
+            )
+
+            // OCI Containers
+            .service(web::scope("/oci")
+                // V1Beta1
+                .service(web::scope("/v1beta1")
+                    .service(web::resource("/repositories")
+                        .route(web::get().to(containers::handler::repo::list))
+                        .route(web::post().to(containers::handler::repo::create))
+                    )
+                    .service(web::resource("/repositories/{repo_id}")
+                        .route(web::get().to(containers::handler::repo::get))
+                        .route(web::delete().to(containers::handler::repo::delete))
                     )
                 )
             )

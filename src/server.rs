@@ -51,6 +51,7 @@ pub async fn run() -> io::Result<()> {
             .app_data(enforcer.clone())
             .configure(add_couch_client)
             .configure(add_user_service)
+            .configure(containers::add_repo_service)
             .configure(oauth::add_oauth_handler)
             .configure(containers::routes)
             .configure(routes)

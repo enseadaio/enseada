@@ -13,7 +13,7 @@ pub fn is_valid_name(group: &str, name: &str) -> bool {
     REGEX.is_match(group) && REGEX.is_match(name)
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Name {
     group: String,
     name: String,

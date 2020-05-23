@@ -119,7 +119,6 @@ pub async fn complete(
 }
 
 pub async fn cancel(
-    name: Path<NameParams>,
     upload: Path<UploadParams>,
     uploads: Data<UploadService>,
 ) -> HttpResponse {

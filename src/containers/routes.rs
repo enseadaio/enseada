@@ -1,12 +1,10 @@
 use actix_web::{ResponseError, web};
 use actix_web::middleware::DefaultHeaders;
-use actix_web::web::Data;
 
 use crate::config::CONFIG;
 use crate::containers::{handler, header};
 use crate::containers::error::{Error, ErrorCode};
 use crate::containers::manifest::resolver::add_manifest_resolver;
-use crate::containers::storage;
 use crate::containers::upload::add_upload_service;
 use crate::http::guard::subdomain;
 
@@ -45,5 +43,4 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
         )
         .default_service(web::route().to(|| Error::from(ErrorCode::NotFound).error_response())));
 }
-
 

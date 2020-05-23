@@ -21,7 +21,7 @@ pub fn add_user_service(app: &mut ServiceConfig) {
     app.data(service);
 }
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize)]
 pub struct UserResponse {
     pub username: String,
 }
@@ -106,7 +106,7 @@ pub async fn me(
     Ok(Json(user.into()))
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize)]
 pub struct Registration {
     pub username: String,
     pub password: String,
