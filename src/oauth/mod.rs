@@ -1,9 +1,6 @@
 use chrono::{DateTime, Utc};
 
-
-
 use crate::oauth::error::Error;
-
 
 pub mod client;
 pub mod code;

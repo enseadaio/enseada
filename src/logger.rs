@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use log::{Level, LevelFilter};
 use log4rs::append::console::ConsoleAppender;
-use log4rs::config::{Appender, Config, Root, Logger};
+use log4rs::config::{Appender, Config, Logger, Root};
 use log4rs::encode::Encode;
 use log4rs::encode::json::JsonEncoder;
 use log4rs::encode::pattern::PatternEncoder;

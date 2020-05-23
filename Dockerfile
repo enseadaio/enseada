@@ -5,6 +5,7 @@ WORKDIR /web
 
 COPY package.json .
 COPY yarn.lock .
+COPY .snyk .
 
 RUN yarn install
 

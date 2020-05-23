@@ -1,17 +1,11 @@
-use std::fmt::Debug;
 use std::pin::Pin;
 
-use actix_session::UserSession;
-use actix_web::{Error, FromRequest, HttpRequest};
-use actix_web::dev::{Payload, PayloadStream, ServiceRequest};
-use actix_web::error::PayloadError;
-use actix_web::http::{header, HeaderMap};
-use actix_web::web::{Bytes, Data};
-use actix_web_httpauth::extractors::basic::BasicAuth;
-use actix_web_httpauth::extractors::bearer::BearerAuth;
+use actix_web::{FromRequest, HttpRequest};
+use actix_web::dev::{Payload, PayloadStream};
+use actix_web::http::header;
+use actix_web::web::Data;
 use actix_web_httpauth::headers::authorization::{Basic, Bearer, ParseError, Scheme};
-use futures::{Future, FutureExt, Stream, TryFutureExt};
-use serde::export::Formatter;
+use futures::{Future, FutureExt, TryFutureExt};
 
 use crate::http::error::ApiError;
 use crate::http::handler::oauth::ConcreteOAuthHandler;

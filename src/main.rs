@@ -3,7 +3,7 @@ extern crate lazy_static;
 
 mod config;
 mod couchdb;
-mod docker;
+mod containers;
 mod error;
 mod guid;
 mod http;
@@ -15,11 +15,11 @@ mod responses;
 mod routes;
 mod secure;
 mod server;
+mod storage;
 mod templates;
 mod user;
 
-#[actix_rt::main]
-async fn main() -> std::io::Result<()> {
+async fn run() -> std::io::Result<()> {
     logger::init();
 
     couchdb::migrate().await?;
@@ -31,4 +31,11 @@ async fn main() -> std::io::Result<()> {
     log::info!("Stopping Enseada...");
 
     Ok(())
+}
+
+#[actix_rt::main]
+async fn main() {
+    if let Err(err) = run().await {
+        log::error!("{}", err);
+    }
 }

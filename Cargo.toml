@@ -21,6 +21,10 @@ actix-web = { version = "2.0", features = ["default", "rustls"] }
 actix-web-httpauth = "0.4.1"
 askama = { version = "0.9", features = ["with-actix-web"] }
 
+# Storage
+hold = "0.1.0-alpha.1"
+hold_s3 = "0.1.0-alpha.1"
+
 # Serde
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

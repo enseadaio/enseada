@@ -6,8 +6,6 @@ use std::fmt::Display;
 use glob::Pattern;
 use serde::export::Formatter;
 
-use crate::error::Error;
-
 pub struct Model {
     principals: HashMap<String, Principal>,
 }

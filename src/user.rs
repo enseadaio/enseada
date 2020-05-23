@@ -1,12 +1,10 @@
 use std::fmt;
 use std::fmt::Debug;
 
-use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde::export::Formatter;
 
 use crate::couchdb::db::Database;
-use crate::couchdb::error::Error as CouchError;
 use crate::error::Error;
 use crate::guid::Guid;
 use crate::pagination::{Cursor, Page};

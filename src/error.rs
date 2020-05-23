@@ -1,7 +1,6 @@
 use std::fmt;
 use std::string::FromUtf8Error;
 
-use base64::DecodeError;
 use http::StatusCode;
 
 use crate::couchdb;

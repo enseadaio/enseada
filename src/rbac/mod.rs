@@ -4,9 +4,8 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use http::StatusCode;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde::export::Formatter;
-use uuid::Uuid;
 
 use crate::couchdb::db::Database;
 use crate::error::Error;

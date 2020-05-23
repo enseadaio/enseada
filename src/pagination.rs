@@ -2,10 +2,9 @@ use std::fmt;
 use std::fmt::Display;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::DeserializeOwned;
 use serde::export::Formatter;
 
-use crate::couchdb::responses::{FindResponse, RawDocResponse, RowsResponse};
+use crate::couchdb::responses::{FindResponse, RowsResponse};
 use crate::error::Error;
 
 #[derive(Deserialize, Serialize, Debug)]

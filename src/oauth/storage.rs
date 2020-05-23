@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 
-use crate::oauth::Result;
 use crate::oauth::client::Client;
-use crate::oauth::token::Token;
 use crate::oauth::code::AuthorizationCode;
+use crate::oauth::Result;
+use crate::oauth::token::Token;
 
 #[async_trait]
 pub trait ClientStorage: Send + Sync {

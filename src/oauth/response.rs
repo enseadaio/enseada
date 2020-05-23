@@ -8,7 +8,6 @@ use serde_json::Value;
 
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::scope::Scope;
-use crate::oauth::session::Session;
 use crate::oauth::token::{Token, TokenTypeHint};
 
 #[derive(Debug, Serialize)]

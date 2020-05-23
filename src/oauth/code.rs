@@ -1,12 +1,11 @@
-use crate::secure::SecureSecret;
+use std::ops::Add;
 
+use chrono::{DateTime, Duration, Utc};
 use serde::{Serialize, Serializer};
 
-use crate::oauth::session::Session;
-use chrono::{DateTime, Utc, Duration};
-use std::ops::Add;
 use crate::oauth::Expirable;
-
+use crate::oauth::session::Session;
+use crate::secure::SecureSecret;
 
 #[derive(Debug, Clone)]
 pub struct AuthorizationCode {

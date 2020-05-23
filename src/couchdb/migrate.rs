@@ -7,7 +7,6 @@ use crate::couchdb;
 use crate::couchdb::Couch;
 use crate::couchdb::db::{self, Database};
 use crate::couchdb::index::JsonIndex;
-use crate::couchdb::responses::JsonIndexResponse;
 use crate::couchdb::Result;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
@@ -16,6 +15,7 @@ use crate::user::User;
 
 pub async fn migrate() -> std::io::Result<()> {
     let couch = &couchdb::SINGLETON;
+    couch.status().await.map_err(|err| Error::new(ErrorKind::Other, format!("CouchDB is unavailable: {}", err)))?;
     run(couch, &CONFIG).await.map_err(|err| Error::new(ErrorKind::Other, err.to_string()))
 }
 
@@ -30,6 +30,9 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
 
     let rbac_db = couch.database(db::name::RBAC, true);
     create_db_if_not_exist(&rbac_db).await?;
+
+    let oci_db = couch.database(db::name::OCI, true);
+    create_db_if_not_exist(&oci_db).await?;
 
     create_mango_index(&rbac_db, JsonIndex::new(
         "rule_sub_idx",

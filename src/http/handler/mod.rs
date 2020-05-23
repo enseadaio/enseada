@@ -1,11 +1,7 @@
-use std::char::ToLowercase;
-
 use actix_web::{HttpRequest, HttpResponse};
-use actix_web::http::HeaderValue;
 use serde::Deserialize;
 
 use crate::http::error::ApiError;
-use crate::pagination::Cursor;
 
 pub mod api_docs;
 pub mod health;

@@ -11,6 +11,8 @@ pub struct Configuration {
     public: Public,
     secret: Secret,
     root: Root,
+    storage: Storage,
+    oci: OCI,
 }
 
 #[derive(Debug, Deserialize)]
@@ -54,6 +56,23 @@ struct Root {
     password: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "kebab-case", tag = "provider")]
+pub enum Storage {
+    S3 {
+        bucket: String,
+        endpoint: Option<String>,
+    },
+    #[serde(other)]
+    Unknown,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct OCI {
+    subdomain: String,
+}
+
+
 impl Configuration {
     pub fn new() -> Result<Self, ConfigError> {
         dotenv();
@@ -75,17 +94,18 @@ impl Configuration {
         c.set_default("log.level", "info")?;
         c.set_default("log.rootlevel", "warn")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
+        c.set_default("oci.subdomain", "containers")?;
 
 
         // Validations
         let secret_key = c.get_str("secret.key")?;
         if secret_key.len() < 32 {
-            return Err(ConfigError::Message("insecure secret key, must be at least 32 bytes".to_string()))
+            return Err(ConfigError::Message("insecure secret key, must be at least 32 bytes".to_string()));
         }
 
         let root_pwd = c.get_str("root.password")?;
         if root_pwd.len() < 8 {
-            return Err(ConfigError::Message("insecure root password, must be at least 8 characters".to_string()))
+            return Err(ConfigError::Message("insecure root password, must be at least 8 characters".to_string()));
         }
 
         // Deserialize
@@ -118,6 +138,14 @@ impl Configuration {
 
     pub fn root_password(&self) -> String {
         self.root.password.clone()
+    }
+
+    pub fn storage(&self) -> &Storage {
+        &self.storage
+    }
+
+    pub fn oci(&self) -> &OCI {
+        &self.oci
     }
 }
 
@@ -167,6 +195,12 @@ impl TLS {
 
     pub fn key_path(&self) -> Option<String> {
         self.key.path.clone()
+    }
+}
+
+impl OCI {
+    pub fn subdomain(&self) -> String {
+        self.subdomain.clone()
     }
 }
 

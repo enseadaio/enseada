@@ -1,7 +1,5 @@
-use actix_web::dev::Service;
 use bytes::Bytes;
 use derivative::Derivative;
-use futures::TryFutureExt;
 use reqwest::{Client as HttpClient, Method, RequestBuilder, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;

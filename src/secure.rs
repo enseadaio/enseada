@@ -1,9 +1,9 @@
-use ring::rand::{SecureRandom, SystemRandom};
 use std::fmt::{self, Display, Formatter};
-use ring::hmac::{self, Key, HMAC_SHA512};
+
+use ring::hmac::{self, HMAC_SHA512, Key};
+use ring::rand::{SecureRandom, SystemRandom};
 
 use crate::config::CONFIG;
-
 
 lazy_static! {
     static ref SECURE_RANDOM: SystemRandom = SystemRandom::new();

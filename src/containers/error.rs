@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 
 use actix_web::{HttpResponse, ResponseError};
-use http::StatusCode;
+use http::{header, StatusCode};
 use serde::{Deserialize, Serialize};
 
+use crate::containers::mime::oci::v1::{IMAGE_INDEX as OCI_IMAGE_INDEX_V1, IMAGE_MANIFEST as OCI_IMAGE_MANIFEST_V1};
 use crate::couchdb::error::Error as CouchError;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -42,6 +43,7 @@ impl From<ErrorCode> for Error {
             ErrorCode::Unauthorized => Self::new(code, "authentication required"),
             ErrorCode::Denied => Self::new(code, "requested access to the resource is denied"),
             ErrorCode::Unsupported => Self::new(code, "The operation is unsupported"),
+            ErrorCode::NotFound => Self::new(code, "Not found"),
             ErrorCode::Internal => Self::new(code, "Internal server error"),
         }
     }
@@ -61,6 +63,16 @@ impl From<CouchError> for Error {
     }
 }
 
+impl From<hold::error::Error> for Error {
+    fn from(err: hold::error::Error) -> Self {
+        log::error!("{}", &err);
+        match err {
+            hold::error::Error::IDNotFound { .. } => Self::from(ErrorCode::BlobUnknown),
+            hold::error::Error::ProviderError { .. } => Self::from(ErrorCode::Internal),
+        }
+    }
+}
+
 #[derive(Default, Deserialize, Serialize)]
 pub struct ErrorBody {
     errors: Vec<Error>,
@@ -73,6 +85,7 @@ impl ResponseError for Error {
             | ErrorCode::BlobUploadUnknown
             | ErrorCode::ManifestUnknown
             | ErrorCode::ManifestBlobUnknown
+            | ErrorCode::NotFound
             | ErrorCode::NameUnknown => StatusCode::NOT_FOUND,
             ErrorCode::Unauthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::Denied => StatusCode::FORBIDDEN,
@@ -86,7 +99,15 @@ impl ResponseError for Error {
             errors: vec![self.clone()],
         };
 
-        HttpResponse::build(self.status_code()).json(body)
+        let mut res = HttpResponse::build(self.status_code());
+        if let ErrorCode::Unsupported = &self.code {
+            res
+                .header(header::ACCEPT, vec![
+                    OCI_IMAGE_INDEX_V1,
+                    OCI_IMAGE_MANIFEST_V1,
+                ].join(","));
+        }
+        res.json(body)
     }
 }
 
@@ -123,6 +144,8 @@ pub enum ErrorCode {
     Denied,
     /// The operation was unsupported due to a missing implementation or invalid set of parameters.
     Unsupported,
+    /// Not found
+    NotFound,
     /// Internal server error.
     Internal,
 }

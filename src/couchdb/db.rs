@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use std::io::{BufRead, BufReader, Cursor};
+use std::io::{BufRead, Cursor};
 use std::str::from_utf8;
 use std::sync::Arc;
 

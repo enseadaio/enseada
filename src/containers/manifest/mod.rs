@@ -1,2 +1,2 @@
 pub mod resolver;
-pub mod s2;
+pub mod oci_v1;

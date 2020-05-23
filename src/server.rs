@@ -7,7 +7,7 @@ use std::sync::Arc;
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use actix_web::cookie::SameSite;
-use actix_web::middleware::{DefaultHeaders, Logger};
+use actix_web::middleware::{DefaultHeaders, Logger, NormalizePath};
 use actix_web::web::Data;
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
@@ -15,9 +15,8 @@ use tokio::sync::RwLock;
 use url::Url;
 
 use crate::config::CONFIG;
+use crate::containers;
 use crate::couchdb::{self, add_couch_client};
-use crate::docker;
-use crate::http::guard::subdomain;
 use crate::http::handler::oauth;
 use crate::http::handler::user::add_user_service;
 use crate::rbac::Enforcer;
@@ -40,6 +39,7 @@ pub async fn run() -> io::Result<()> {
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .wrap(NormalizePath)
             .wrap(CookieSession::private(secret_key.as_bytes())
                 .domain(public_host.domain().expect("public_host.domain()"))
                 .name("enseada_session")
@@ -52,7 +52,7 @@ pub async fn run() -> io::Result<()> {
             .configure(add_couch_client)
             .configure(add_user_service)
             .configure(oauth::add_oauth_handler)
-            .configure(docker::routes)
+            .configure(containers::routes)
             .configure(routes)
     });
 

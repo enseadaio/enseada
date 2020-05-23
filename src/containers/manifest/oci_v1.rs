@@ -1,27 +1,28 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::docker::mime::{FOREIGN_LAYER, IMAGE_MANIFEST_V2, IMAGE_V1, LAYER, MANIFEST_LIST_V2};
+use crate::containers::digest::Digest;
+use crate::containers::mime::oci::v1::{IMAGE_CONFIG, IMAGE_INDEX, IMAGE_LAYER, IMAGE_MANIFEST};
+use crate::containers::name::Name;
 use crate::guid::Guid;
-use crate::docker::Name;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ManifestList {
+pub struct ImageIndex {
     schema_version: u8,
     media_type: String,
     manifests: Vec<ManifestObject>,
 }
 
-impl ManifestList {
+impl ImageIndex {
     pub fn build_guid(name: &Name) -> Guid {
-        Guid::partitioned("docker_list_v2", &format!("{}:{}", name.group, name.name))
+        Guid::partitioned(IMAGE_INDEX, &name.to_string())
     }
 
     pub fn new(manifests: Vec<ManifestObject>) -> Self {
-        ManifestList {
+        ImageIndex {
             schema_version: 2,
-            media_type: MANIFEST_LIST_V2.to_string(),
+            media_type: IMAGE_INDEX.to_string(),
             manifests,
         }
     }
@@ -32,14 +33,14 @@ impl ManifestList {
 pub struct ManifestObject {
     media_type: String,
     size: u64,
-    digest: String,
+    digest: Digest,
     platform: Platform,
 }
 
 impl ManifestObject {
-    pub fn new(size: u64, digest: String, platform: Platform) -> Self {
+    pub fn new(size: u64, digest: Digest, platform: Platform) -> Self {
         ManifestObject {
-            media_type: IMAGE_MANIFEST_V2.to_string(),
+            media_type: IMAGE_MANIFEST.to_string(),
             size,
             digest,
             platform,
@@ -73,13 +74,13 @@ pub struct ImageManifest {
 
 impl ImageManifest {
     pub fn build_guid(name: &Name) -> Guid {
-        Guid::partitioned("docker_image_v2", &format!("{}:{}", name.group, name.name))
+        Guid::partitioned(IMAGE_MANIFEST, &name.to_string())
     }
     
     pub fn new(config: ImageManifestConfig, layers: Vec<ImageManifestLayer>) -> Self {
         ImageManifest {
             schema_version: 2,
-            media_type: IMAGE_MANIFEST_V2.to_string(),
+            media_type: IMAGE_MANIFEST.to_string(),
             config,
             layers,
         }
@@ -91,13 +92,13 @@ impl ImageManifest {
 pub struct ImageManifestConfig {
     media_type: String,
     size: u64,
-    digest: String,
+    digest: Digest,
 }
 
 impl ImageManifestConfig {
-    pub fn new(size: u64, digest: String) -> Self {
+    pub fn new(size: u64, digest: Digest) -> Self {
         ImageManifestConfig {
-            media_type: IMAGE_V1.to_string(),
+            media_type: IMAGE_CONFIG.to_string(),
             size,
             digest,
         }
@@ -109,14 +110,14 @@ impl ImageManifestConfig {
 pub struct ImageManifestLayer {
     media_type: String,
     size: u64,
-    digest: String,
+    digest: Digest,
     urls: Vec<Url>,
 }
 
 impl ImageManifestLayer {
-    pub fn new(remote: bool, size: u64, digest: String, urls: Vec<Url>) -> Self {
+    pub fn new(size: u64, digest: Digest, urls: Vec<Url>) -> Self {
         ImageManifestLayer {
-            media_type: if remote { FOREIGN_LAYER } else { LAYER }.to_string(),
+            media_type: IMAGE_LAYER.to_string(),
             size,
             digest,
             urls,
