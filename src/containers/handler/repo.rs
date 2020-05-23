@@ -75,7 +75,7 @@ pub async fn create(
     current_user: CurrentUser,
 ) -> ApiResult<Json<RepoResponse>> {
     Scope::from("oci:repos:manage").matches(&scope)?;
-    let enf = enforcer.read().await;
+    let enf = enforcer.write().await;
     enf.check(current_user.id(), &Guid::simple("oci:repos"), "create")?;
 
     let name = Name::new(data.group.clone(), data.name.clone());
@@ -85,6 +85,8 @@ pub async fn create(
     }
     let repo = Repo::new(name);
     let repo = service.save_repo(repo).await?;
+
+    enf.add_permission(current_user.id().clone(), repo.id().clone(), "*").await?;
 
     responses::ok(RepoResponse::from(repo))
 }
