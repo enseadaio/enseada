@@ -34,7 +34,6 @@ impl Model {
     }
 
     pub fn check(&self, principal: &str, object: &str, action: &str) -> EvaluationResult {
-        log::debug!("{:?}", &self.principals);
         if principal == "user:root" {
             return EvaluationResult::Granted;
         }
@@ -46,6 +45,7 @@ impl Model {
             None => return EvaluationResult::Denied,
         };
 
+        log::trace!("Found principal {}", &principal.name);
         principal.visit(&visitor)
     }
 }

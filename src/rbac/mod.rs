@@ -41,9 +41,9 @@ impl Enforcer {
             let rule = &row.doc;
             log::debug!("Processing rule {:?}", rule);
             let permission = Permission::new(&rule.obj.to_string(), &rule.act);
-            let sub = rule.sub.id().to_string();
             if rule.sub.partition() == Some("role".to_string()) {
                 log::debug!("Rule has a role subject. Adding permission to it");
+                let sub = rule.sub.id().to_string();
                 if !roles.contains_key(&sub) {
                     roles.insert(sub.clone(), Role::new(sub.clone()));
                 }
@@ -51,6 +51,7 @@ impl Enforcer {
                 role.add_permission(permission);
             } else {
                 log::debug!("Rule has a principal subject. Adding permission to it");
+                let sub = rule.sub.to_string();
                 if !principals.contains_key(&sub) {
                     principals.insert(sub.clone(), Principal::new(sub.clone()));
                 }
@@ -103,8 +104,13 @@ impl Enforcer {
     }
 
     pub async fn add_permission(&self, sub: Guid, obj: Guid, act: &str) -> Result<(), Error> {
+        if is_root(&sub) {
+            return Ok(())
+        }
+
         let sub_name = sub.to_string();
         let rule = Rule::new(sub, obj, act.to_string());
+        log::debug!("Adding permission {:?} to sub {}", &rule, &sub_name);
         match self.db.put(&rule.id.to_string(), rule).await {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
@@ -119,8 +125,12 @@ impl Enforcer {
     }
 
     pub async fn remove_permission(&self, sub: &Guid, obj: Guid, act: &str) -> Result<(), Error> {
+        if is_root(&sub) {
+            return Ok(())
+        }
+
         let sub_name = sub.to_string();
-        log::debug!("Removing permission form sub {}", &sub_name);
+        log::debug!("Removing permission from sub {}", &sub_name);
         let id = Rule::build_guid(&sub_name, &obj.to_string(), &act.to_string());
         let rule = self.db.get::<Rule>(&id.to_string()).await?
             .ok_or_else(|| Error::new("permission not found", Some(StatusCode::NOT_FOUND)))?;
@@ -143,6 +153,10 @@ impl Enforcer {
     }
 
     pub async fn add_role_to_principal(&self, sub: Guid, role: &str) -> Result<(), Error> {
+        if is_root(&sub) {
+            return Ok(())
+        }
+
         let sub_name = sub.to_string();
         let assignment = RoleAssignment::new(sub, role.to_string());
         match self.db.put(&assignment.id.to_string(), assignment).await {
@@ -159,6 +173,10 @@ impl Enforcer {
     }
 
     pub async fn remove_role_from_principal(&self, sub: &Guid, role: &str) -> Result<(), Error> {
+        if is_root(&sub) {
+            return Ok(())
+        }
+
         if let Some(assignment) = self.db.get::<RoleAssignment>(&RoleAssignment::build_guid(&sub.to_string(), role).to_string()).await? {
             self.db.delete(&assignment.id.to_string(), &assignment.rev.unwrap()).await?;
         }
@@ -179,6 +197,10 @@ impl Enforcer {
             .map(|assignment| assignment.role.clone());
         Ok(page)
     }
+}
+
+fn is_root(sub: &Guid) -> bool {
+    sub.partition() == Some("user".to_string()) && sub.id() == "root"
 }
 
 #[derive(Debug)]
