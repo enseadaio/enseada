@@ -11,6 +11,8 @@ use crate::couchdb::db::Database;
 use crate::guid::Guid;
 use crate::pagination::{Cursor, Page};
 
+const PARTITION_NAME: &str = "oci_repo";
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Repo {
     #[serde(rename = "_id")]
@@ -23,7 +25,7 @@ pub struct Repo {
 
 impl Repo {
     pub fn build_guid(uuid: &str) -> Guid {
-        Guid::partitioned("repo", &uuid)
+        Guid::partitioned(PARTITION_NAME, &uuid)
     }
 
     pub fn new(name: Name) -> Self {
@@ -64,7 +66,7 @@ impl RepoService {
     }
 
     pub async fn list_repos(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<Repo>> {
-        let res = self.db.list::<Repo>("repo", limit + 1, cursor.map(Cursor::to_string)).await?;
+        let res = self.db.list::<Repo>(PARTITION_NAME, limit + 1, cursor.map(Cursor::to_string)).await?;
         Ok(Page::from_rows_response(res, limit))
     }
 
@@ -75,7 +77,7 @@ impl RepoService {
 
     pub async fn find_repo_by_name(&self, name: &Name) -> Result<Option<Repo>> {
         log::debug!("Finding oci repo with name {}", name);
-        let response = self.db.find_partitioned("repo", serde_json::json!({
+        let response = self.db.find_partitioned(PARTITION_NAME, serde_json::json!({
             "group": name.group(),
             "name": name.name(),
         }), 1, None).await?;

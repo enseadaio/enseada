@@ -17,8 +17,8 @@ externalDocs:
   description: Find out more about Enseada
   url: https://enseada.io
 tags:
-  - name: docker
-    description: Docker V2 registry endpoints
+  - name: containers
+    description: OCI containers endpoints
   - name: monitoring
     description: Monitoring and observability endpoints
   - name: rbac
@@ -96,12 +96,7 @@ paths:
                 $ref: "#/components/schemas/APIError"
   "/api/v1beta1/users/{username}":
     parameters:
-      - name: username
-        in: path
-        description: Username of the desired user
-        required: true
-        schema:
-          type: string
+      - $ref: "#/components/parameters/username"
     get:
       tags:
         - users
@@ -587,6 +582,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/APIError"
+  /api/oci/v1beta1/repositories:
+    get:
+      tags:
+        - containers
+      summary: List OCI repositories
+      operationId: repo::list
+      x-required-permissions:
+        - object: oci:repos
+          action: read
+      security:
+        - oauth:
+            - oci:repos:read
+      parameters:
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/OCIRepo"
+    post:
+      tags:
+        - containers
+      summary: Create a new image repository
+      operationId: repo::create
+      x-required-permissions:
+        - object: oci:repos
+          action: create
+      security:
+        - oauth:
+            - oci:repos:manage
+      requestBody:
+        required: true
+        description: New repository data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OCINewRepo"
+      responses:
+        "200":
+          description: New repo details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OCIRepo"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "409":
+          description: A repository with the given group and name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+  /api/oci/v1beta1/repositories/{id}:
+    parameters:
+      - $ref: "#/components/parameters/uuid"
+    get:
+      tags:
+        - containers
+      summary: Fetch an image repository
+      operationId: repo::get
+      x-required-permissions:
+        - object: oci_repo:$id
+          action: read
+      security:
+        - oauth:
+            - oci:repos:read
+      responses:
+        "200":
+          description: Repo details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OCIRepo"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A repository with the given ID doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    delete:
+      tags:
+        - containers
+      summary: Delete an image repository
+      operationId: repo::delete
+      x-required-permissions:
+        - object: oci_repo:$id
+          action: delete
+      security:
+        - oauth:
+            - oci:repos:delete
+      responses:
+        "200":
+          description: Deleted repo details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OCIRepo"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A repository with the given ID doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
   /health:
     get:
       tags:
@@ -643,6 +769,14 @@ components:
       required: true
       schema:
         type: string
+    uuid:
+      name: id
+      in: path
+      description: Resource unique ID
+      required: true
+      schema:
+        type: string
+        format: uuid
   schemas:
     User:
       type: object
@@ -711,6 +845,42 @@ components:
           type: string
           description: The action that is permitted on the object
           example: read
+    OCIRepo:
+      type: object
+      description: |
+        An OCI image repository, identified by a group, that acts as a namespace, and
+        a name that identifies the image. These elements are combined as `{group}/{name}
+        to compose the image name as defined by the `org.opencontainers.image.ref.name` [annotation](https://github.com/opencontainers/image-spec/blob/master/annotations.md).
+        A unique ID is also attached for use inside the Enseada API.
+      required:
+        - id
+        - group
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique ID of the repository
+        group:
+          type: string
+          description: Group component of the repository coordinates
+        name:
+          type: string
+          description: Name component of the repository coordinates
+    OCINewRepo:
+      type: object
+      description: |
+        Request body used to create a new OCI repository
+      required:
+        - group
+        - name
+      properties:
+        group:
+          type: string
+          description: Group component of the repository coordinates
+        name:
+          type: string
+          description: Name component of the repository coordinates
     HealthResponse:
       type: object
       required:
@@ -771,3 +941,6 @@ components:
             users:manage: read-write access to registered users
             roles: read-write access to user roles
             permissions: read-write access to user permissions
+            oci:repos:read: read-only access to OCI image repositories
+            oci:repos:manage: read-write access to OCI image repositories
+            oci:repos:delete: ability to delete OCI image repositories

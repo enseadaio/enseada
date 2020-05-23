@@ -122,7 +122,7 @@ pub async fn delete(
     enforcer: Data<RwLock<Enforcer>>,
     current_user: CurrentUser,
 ) -> ApiResult<Json<RepoResponse>> {
-    Scope::from("oci:repos:manage").matches(&scope)?;
+    Scope::from("oci:repos:delete").matches(&scope)?;
     let id = &path.repo_id;
     let enf = enforcer.read().await;
     let guid = &Repo::build_guid(id);
