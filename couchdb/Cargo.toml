@@ -1,0 +1,19 @@
+[package]
+name = "couchdb"
+version = "0.1.0"
+authors = ["Matteo Joliveau <matteo.joliveau@mikamai.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bytes = "0.5"
+derivative = "2.1"
+futures = "0.3"
+log = "0.4"
+reqwest = { version = "0.10", features = ["json", "rustls-tls", "stream"] }
+rustls = "0.17"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+snafu = "0.6"
+url = { version = "2.1", features = ["serde"] }

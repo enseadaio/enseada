@@ -1,0 +1,10 @@
+{
+    "name": "users",
+    "operations": [
+        {
+            "kind": "create_database",
+            "name": "users",
+            "partitioned": true
+        }
+    ]
+}
