@@ -1,11 +1,12 @@
-use chrono::{DateTime, Utc};
 use chrono::serde::ts_seconds;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::guid::Guid;
+use enseada::guid::Guid;
+use enseada::secure::SecureSecret;
+
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::session::Session;
-use crate::secure::SecureSecret;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AuthorizationCodeEntity {
@@ -22,9 +23,18 @@ impl AuthorizationCodeEntity {
     pub fn build_guid(id: &str) -> Guid {
         Guid::from(format!("code:{}", id))
     }
-    pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AuthorizationCodeEntity {
+    pub fn new(
+        sig: String,
+        session: Session,
+        expiration: DateTime<Utc>,
+    ) -> AuthorizationCodeEntity {
         let id = Self::build_guid(&sig);
-        AuthorizationCodeEntity { id, rev: None::<String>, session, expiration, }
+        AuthorizationCodeEntity {
+            id,
+            rev: None::<String>,
+            session,
+            expiration,
+        }
     }
 
     pub fn id(&self) -> &Guid {

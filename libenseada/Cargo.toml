@@ -1,0 +1,17 @@
+[package]
+name = "enseada"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+base64 = "0.12"
+couchdb = { path = "../couchdb" }
+hex = "0.4"
+http = "0.2"
+lazy_static = "1.4"
+log = "0.4"
+ring = "0.16"
+rust-argon2 = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+snafu = "0.6"

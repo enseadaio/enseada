@@ -4,7 +4,8 @@ use std::convert::TryInto;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::guid::Guid;
+use enseada::guid::Guid;
+
 use crate::oauth::client::Client;
 use crate::oauth::client::ClientKind as ExtClientKind;
 use crate::oauth::error::Error;
@@ -84,7 +85,7 @@ impl TryInto<Client> for ClientEntity {
             ClientKind::Confidential => {
                 let secret = self.client_secret_hash.unwrap();
                 Client::confidential_with_hash(client_id, secret, scopes, allowed_redirect_uris)
-            },
+            }
         };
         Ok(client)
     }

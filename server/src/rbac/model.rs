@@ -6,7 +6,7 @@ use std::fmt::Display;
 use glob::Pattern;
 use serde::export::Formatter;
 
-use crate::error::Error;
+use enseada::error::Error;
 
 pub struct Model {
     principals: HashMap<String, Principal>,
@@ -14,7 +14,9 @@ pub struct Model {
 
 impl Model {
     pub fn empty() -> Self {
-        Model { principals: HashMap::new() }
+        Model {
+            principals: HashMap::new(),
+        }
     }
 
     pub fn set_principals(&mut self, principals: HashMap<String, Principal>) -> &mut Self {
@@ -81,7 +83,11 @@ pub struct Principal {
 
 impl Principal {
     pub fn new(name: String) -> Self {
-        Principal { name, roles: HashMap::new(), permissions: HashMap::new() }
+        Principal {
+            name,
+            roles: HashMap::new(),
+            permissions: HashMap::new(),
+        }
     }
 
     pub fn name(&self) -> &str {
@@ -114,9 +120,18 @@ impl Visitable for Principal {
         }
 
         for permission in permissions {
-            log::trace!("Checking if permission '{}' matches target '{}'", permission, target_permission);
+            log::trace!(
+                "Checking if permission '{}' matches target '{}'",
+                permission,
+                target_permission
+            );
             if permission.matches(target_permission) {
-                log::trace!("Principal {} has matching permission obj: {}, act: {}", &self.name, &permission.object, &permission.action);
+                log::trace!(
+                    "Principal {} has matching permission obj: {}, act: {}",
+                    &self.name,
+                    &permission.object,
+                    &permission.action
+                );
                 return EvaluationResult::Granted;
             }
             log::trace!("Permission doesn't match target. Continuing");
@@ -141,7 +156,10 @@ pub struct Role {
 
 impl Role {
     pub fn new(name: String) -> Self {
-        Role { name, permissions: HashMap::new() }
+        Role {
+            name,
+            permissions: HashMap::new(),
+        }
     }
 
     pub fn add_permission(&mut self, permission: Permission) -> &mut Self {
@@ -170,9 +188,18 @@ impl Visitable for Role {
         }
 
         for permission in permissions {
-            log::trace!("Checking if permission '{}' matches target '{}'", permission, target_permission);
+            log::trace!(
+                "Checking if permission '{}' matches target '{}'",
+                permission,
+                target_permission
+            );
             if permission.matches(target_permission) {
-                log::trace!("Role {} has matching permission obj: {}, act: {}", &self.name, &permission.object, &permission.action);
+                log::trace!(
+                    "Role {} has matching permission obj: {}, act: {}",
+                    &self.name,
+                    &permission.object,
+                    &permission.action
+                );
                 return EvaluationResult::Granted;
             }
             log::trace!("Permission doesn't match target. Continuing.");
@@ -204,8 +231,7 @@ impl Permission {
     }
 
     fn matches(&self, other: &Permission) -> bool {
-        self.object_pattern.matches(&other.object)
-            && self.action_pattern.matches(&other.action)
+        self.object_pattern.matches(&other.object) && self.action_pattern.matches(&other.action)
     }
 }
 

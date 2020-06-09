@@ -3,18 +3,18 @@ extern crate include_dir;
 #[macro_use]
 extern crate lazy_static;
 
+use actix::ArbiterService;
+
+use crate::user::{Ping, UserSubsystem};
+
 mod config;
 mod couchdb;
-mod error;
-mod guid;
 mod http;
 mod logger;
 mod oauth;
-mod pagination;
 mod rbac;
 mod responses;
 mod routes;
-mod secure;
 mod server;
 mod templates;
 mod user;

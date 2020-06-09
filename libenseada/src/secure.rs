@@ -3,14 +3,8 @@ use std::fmt::{self, Display, Formatter};
 use ring::hmac::{self, Key, HMAC_SHA512};
 use ring::rand::{SecureRandom, SystemRandom};
 
-use crate::config::CONFIG;
-
 lazy_static! {
     static ref SECURE_RANDOM: SystemRandom = SystemRandom::new();
-}
-
-lazy_static! {
-    static ref SECRET_KEY: Key = Key::new(HMAC_SHA512, CONFIG.secret_key().as_bytes());
 }
 
 lazy_static! {
@@ -33,6 +27,10 @@ impl SecureSecret {
         self.0.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_slice()
     }
@@ -50,8 +48,9 @@ pub fn generate_token(size: usize) -> Result<SecureSecret, String> {
     Ok(SecureSecret(buf))
 }
 
-pub fn generate_signature(source: &str) -> SecureSecret {
-    let sig = hmac::sign(&SECRET_KEY, source.as_bytes());
+pub fn generate_signature(source: &str, key: &str) -> SecureSecret {
+    let key = Key::new(HMAC_SHA512, key.as_bytes());
+    let sig = hmac::sign(&key, source.as_bytes());
     let buf = sig.as_ref().to_vec();
     SecureSecret(buf)
 }

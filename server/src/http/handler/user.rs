@@ -1,3 +1,4 @@
+use actix::ArbiterService;
 use actix_web::web::{Data, Form, Json, Path, Query, ServiceConfig};
 use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
@@ -5,15 +6,15 @@ use tokio::sync::RwLock;
 
 use couchdb;
 use couchdb::db;
+use enseada::guid::Guid;
+use enseada::pagination::{Cursor, Page};
 
-use crate::guid::Guid;
 use crate::http::error::ApiError;
 use crate::http::extractor::{scope::Scope, user::CurrentUser};
 use crate::http::handler::{ApiResult, PaginationQuery};
-use crate::pagination::{Cursor, Page};
 use crate::rbac::Enforcer;
 use crate::responses;
-use crate::user::{User, UserService};
+use crate::user::{ListUsers, User, UserService, UserSubsystem};
 
 pub fn add_user_service(app: &mut ServiceConfig) {
     let couch = &crate::couchdb::SINGLETON;
@@ -44,7 +45,6 @@ impl From<&User> for UserResponse {
 }
 
 pub async fn list(
-    service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
     current_user: CurrentUser,
@@ -67,9 +67,11 @@ pub async fn list(
     } else {
         None
     };
+
+    let service = UserService::from_registry();
     let page = service
-        .list_users(limit, cursor.as_ref())
-        .await?
+        .send(ListUsers { limit, cursor })
+        .await??
         .map(|user| UserResponse::from(user));
     Ok(Json(page))
 }

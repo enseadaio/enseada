@@ -2,13 +2,14 @@ use actix_web::web::{Data, Json, Path, Query};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::guid::Guid;
+use enseada::guid::Guid;
+use enseada::pagination::{Cursor, Page};
+
 use crate::http::error::ApiError;
 use crate::http::extractor::user::CurrentUser;
-use crate::http::handler::{ApiResult, PaginationQuery};
 use crate::http::handler::user::UsernamePathParam;
+use crate::http::handler::{ApiResult, PaginationQuery};
 use crate::oauth::scope::Scope;
-use crate::pagination::{Cursor, Page};
 use crate::rbac::{Enforcer, Rule};
 use crate::user::UserService;
 
@@ -44,7 +45,9 @@ pub async fn get_user_roles(
         None
     };
 
-    let page = enforcer.list_principal_roles(&sub, limit, cursor.as_ref()).await?;
+    let page = enforcer
+        .list_principal_roles(&sub, limit, cursor.as_ref())
+        .await?;
     Ok(Json(page))
 }
 
@@ -73,9 +76,7 @@ pub async fn add_user_role(
 
     let role = &path.role;
     enforcer.add_role_to_principal(sub.clone(), role).await?;
-    Ok(Json(RoleResponse {
-        role: role.clone(),
-    }))
+    Ok(Json(RoleResponse { role: role.clone() }))
 }
 
 pub async fn remove_user_role(
@@ -97,9 +98,7 @@ pub async fn remove_user_role(
 
     let role = &path.role;
     enforcer.remove_role_from_principal(sub, role).await?;
-    Ok(Json(RoleResponse {
-        role: role.clone(),
-    }))
+    Ok(Json(RoleResponse { role: role.clone() }))
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -142,7 +141,9 @@ pub async fn get_user_permissions(
         None
     };
 
-    let page = enforcer.list_principal_permissions(&sub, limit, cursor.as_ref()).await?;
+    let page = enforcer
+        .list_principal_permissions(&sub, limit, cursor.as_ref())
+        .await?;
     let permissions = page.map(|rule| Permission::from(rule));
     Ok(Json(permissions))
 }
@@ -162,7 +163,9 @@ pub async fn add_user_permission(
 
     let mut permission = permission;
     permission.subject = Some(sub.clone());
-    enforcer.add_permission(sub, permission.object.clone(), &permission.action).await?;
+    enforcer
+        .add_permission(sub, permission.object.clone(), &permission.action)
+        .await?;
 
     Ok(permission)
 }
@@ -182,7 +185,9 @@ pub async fn remove_user_permission(
 
     let mut permission = permission;
     permission.subject = Some(sub.clone());
-    enforcer.remove_permission(sub, permission.object.clone(), &permission.action).await?;
+    enforcer
+        .remove_permission(sub, permission.object.clone(), &permission.action)
+        .await?;
 
     Ok(permission)
 }
@@ -214,7 +219,9 @@ pub async fn get_role_permissions(
         None
     };
 
-    let rules = enforcer.list_principal_permissions(&sub, limit, cursor.as_ref()).await?;
+    let rules = enforcer
+        .list_principal_permissions(&sub, limit, cursor.as_ref())
+        .await?;
     let permissions = rules.map(|rule| Permission::from(rule));
     Ok(Json(permissions))
 }
@@ -234,7 +241,9 @@ pub async fn add_role_permission(
 
     let mut permission = permission;
     permission.subject = Some(sub.clone());
-    enforcer.add_permission(sub, permission.object.clone(), &permission.action).await?;
+    enforcer
+        .add_permission(sub, permission.object.clone(), &permission.action)
+        .await?;
 
     Ok(permission)
 }
@@ -254,7 +263,9 @@ pub async fn remove_role_permission(
 
     let mut permission = permission;
     permission.subject = Some(sub.clone());
-    enforcer.remove_permission(sub, permission.object.clone(), &permission.action).await?;
+    enforcer
+        .remove_permission(sub, permission.object.clone(), &permission.action)
+        .await?;
 
     Ok(permission)
 }

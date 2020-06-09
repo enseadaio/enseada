@@ -3,9 +3,10 @@ use std::ops::Add;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Serialize, Serializer};
 
+use enseada::secure::SecureSecret;
+
 use crate::oauth::session::Session;
 use crate::oauth::Expirable;
-use crate::secure::SecureSecret;
 
 #[derive(Debug, Clone)]
 pub struct AuthorizationCode {

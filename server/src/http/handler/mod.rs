@@ -1,11 +1,12 @@
 use std::char::ToLowercase;
 
-use actix_web::{HttpRequest, HttpResponse};
 use actix_web::http::HeaderValue;
+use actix_web::{HttpRequest, HttpResponse};
 use serde::Deserialize;
 
+use enseada::pagination::Cursor;
+
 use crate::http::error::ApiError;
-use crate::pagination::Cursor;
 
 pub mod api_docs;
 pub mod health;
@@ -33,7 +34,9 @@ impl PaginationQuery {
 }
 
 pub async fn home(req: HttpRequest) -> HttpResponse {
-    let accept = req.headers().get(http::header::ACCEPT)
+    let accept = req
+        .headers()
+        .get(http::header::ACCEPT)
         .and_then(|accept| accept.to_str().ok())
         .map(str::to_lowercase)
         .filter(|accept| (*accept).contains("html"));

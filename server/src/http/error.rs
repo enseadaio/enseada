@@ -1,3 +1,4 @@
+use actix::MailboxError;
 use actix_web::error::BlockingError;
 use actix_web::http::StatusCode;
 use actix_web::{Error as HttpError, HttpResponse, ResponseError};
@@ -6,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use url::ParseError;
 
 use couchdb::error::Error as CouchError;
+use enseada::error::Error;
 
-use crate::error::Error;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::rbac::EvaluationError;
 
@@ -99,8 +100,7 @@ impl From<BlockingError<ApiError>> for ApiError {
 impl From<Error> for ApiError {
     fn from(err: Error) -> Self {
         let message = err.to_string();
-        let status = err.status().unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
-        match status {
+        match err.status() {
             StatusCode::CONFLICT => ApiError::Conflict(message),
             StatusCode::NOT_FOUND => ApiError::NotFound(message),
             _ => ApiError::InternalServerError(message),
@@ -150,5 +150,11 @@ impl From<EvaluationError> for ApiError {
             EvaluationError::Denied => ApiError::Forbidden(err.to_string()),
             EvaluationError::Other(msg) => ApiError::InternalServerError(msg),
         }
+    }
+}
+
+impl From<MailboxError> for ApiError {
+    fn from(err: MailboxError) -> Self {
+        ApiError::InternalServerError(err.to_string())
     }
 }

@@ -9,10 +9,10 @@ use serde::{Deserialize, Deserializer, Serialize};
 use uuid::Uuid;
 
 use couchdb::db::Database;
+use enseada::error::Error;
+use enseada::guid::Guid;
+use enseada::pagination::{Cursor, Page};
 
-use crate::error::Error;
-use crate::guid::Guid;
-use crate::pagination::{Cursor, Page};
 use crate::rbac::model::{EvaluationResult, Model, Permission, Principal, Role};
 
 mod model;
@@ -44,7 +44,7 @@ impl Enforcer {
             log::debug!("Processing rule {:?}", rule);
             let permission = Permission::new(&rule.obj.to_string(), &rule.act);
             let sub = rule.sub.id().to_string();
-            if rule.sub.partition() == Some("role".to_string()) {
+            if rule.sub.partition() == Some("role") {
                 log::debug!("Rule has a role subject. Adding permission to it");
                 if !roles.contains_key(&sub) {
                     roles.insert(sub.clone(), Role::new(sub.clone()));
@@ -119,9 +119,8 @@ impl Enforcer {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
                 StatusCode::CONFLICT => {
-                    let mut err =
-                        Error::from(format!("permission already assigned to {}", sub_name));
-                    err.set_status(StatusCode::CONFLICT);
+                    let err =
+                        Error::conflict(format!("permission already assigned to {}", sub_name));
                     Err(err)
                 }
                 _ => Err(Error::from(err)),
@@ -137,7 +136,7 @@ impl Enforcer {
             .db
             .get::<Rule>(&id.to_string())
             .await?
-            .ok_or_else(|| Error::new("permission not found", Some(StatusCode::NOT_FOUND)))?;
+            .ok_or_else(|| Error::not_found(id.partition().unwrap_or("permission"), id.id()))?;
         log::debug!("Permission found, removing");
         self.db
             .delete(&rule.id.to_string(), &rule.rev.unwrap())
@@ -183,8 +182,7 @@ impl Enforcer {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
                 StatusCode::CONFLICT => {
-                    let mut err = Error::from(format!("role already assigned to {}", sub_name));
-                    err.set_status(StatusCode::CONFLICT);
+                    let err = Error::conflict(format!("role already assigned to {}", sub_name));
                     Err(err)
                 }
                 _ => Err(Error::from(err)),

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::export::Formatter;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Clone, Debug)]
 pub struct Guid {
@@ -11,15 +11,21 @@ pub struct Guid {
 
 impl Guid {
     pub fn simple(id: &str) -> Self {
-        Guid { partition: None, id: id.to_string() }
+        Guid {
+            partition: None,
+            id: id.to_string(),
+        }
     }
 
     pub fn partitioned(partition: &str, id: &str) -> Self {
-        Guid { partition: Some(partition.to_string()), id: id.to_string() }
+        Guid {
+            partition: Some(partition.to_string()),
+            id: id.to_string(),
+        }
     }
 
-    pub fn partition(&self) -> Option<String> {
-        self.partition.clone()
+    pub fn partition(&self) -> Option<&str> {
+        self.partition.as_deref()
     }
 
     pub fn id(&self) -> &str {
@@ -29,7 +35,8 @@ impl Guid {
 
 impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let partition = self.partition()
+        let partition = self
+            .partition()
             .map(|s| format!("{}:", s))
             .unwrap_or_else(|| "".to_string());
         write!(f, "{}{}", partition, &self.id)
@@ -40,18 +47,14 @@ impl From<String> for Guid {
     fn from(s: String) -> Self {
         if s.contains(':') {
             let p: Vec<&str> = s.splitn(2, ':').collect();
-            let partition = p.get(0)
-                .take()
-                .cloned()
-                .map(String::from);
-            let id = p.get(1)
-                .take()
-                .cloned()
-                .map(String::from)
-                .unwrap();
+            let partition = p.get(0).take().cloned().map(String::from);
+            let id = p.get(1).take().cloned().map(String::from).unwrap();
             Guid { partition, id }
         } else {
-            Guid { partition: None, id: s }
+            Guid {
+                partition: None,
+                id: s,
+            }
         }
     }
 }
@@ -63,15 +66,19 @@ impl<'a> From<&'a str> for Guid {
 }
 
 impl Serialize for Guid {
-    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error> where
-        S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
         self.to_string().serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for Guid {
-    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
-        D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let s = String::deserialize(deserializer)?;
         Ok(Guid::from(s))
     }

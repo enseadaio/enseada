@@ -3,10 +3,11 @@ use std::ops::Add;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::oauth::Expirable;
+use enseada::secure::SecureSecret;
+
 use crate::oauth::scope::Scope;
 use crate::oauth::session::Session;
-use crate::secure::SecureSecret;
+use crate::oauth::Expirable;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -69,7 +70,9 @@ impl Expirable for AccessToken {
     }
 
     fn expires_in(&self) -> i64 {
-        self.expiration.signed_duration_since(Utc::now()).num_seconds()
+        self.expiration
+            .signed_duration_since(Utc::now())
+            .num_seconds()
     }
 
     fn is_expired(&self) -> bool {
@@ -85,7 +88,12 @@ pub struct RefreshToken {
 }
 
 impl RefreshToken {
-    pub fn new(token: SecureSecret, session: Session, expires_in: Duration, related_access_token_signature: String) -> RefreshToken {
+    pub fn new(
+        token: SecureSecret,
+        session: Session,
+        expires_in: Duration,
+        related_access_token_signature: String,
+    ) -> RefreshToken {
         RefreshToken {
             token_rep: Some(token),
             session,
@@ -128,7 +136,9 @@ impl Expirable for RefreshToken {
     }
 
     fn expires_in(&self) -> i64 {
-        self.expiration.signed_duration_since(Utc::now()).num_seconds()
+        self.expiration
+            .signed_duration_since(Utc::now())
+            .num_seconds()
     }
 
     fn is_expired(&self) -> bool {

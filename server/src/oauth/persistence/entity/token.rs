@@ -1,12 +1,13 @@
-use chrono::{DateTime, Duration, Utc};
 use chrono::serde::ts_seconds;
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::guid::Guid;
-use crate::oauth::Expirable;
+use enseada::guid::Guid;
+use enseada::secure::SecureSecret;
+
 use crate::oauth::session::Session;
 use crate::oauth::token::{AccessToken, RefreshToken, Token};
-use crate::secure::SecureSecret;
+use crate::oauth::Expirable;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccessTokenEntity {
@@ -25,7 +26,12 @@ impl AccessTokenEntity {
     }
     pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AccessTokenEntity {
         let id = Self::build_guid(&sig);
-        AccessTokenEntity { id, rev: None::<String>, session, expiration }
+        AccessTokenEntity {
+            id,
+            rev: None::<String>,
+            session,
+            expiration,
+        }
     }
 
     pub fn from_token(sig: String, token: &AccessToken) -> Self {
@@ -78,7 +84,12 @@ impl RefreshTokenEntity {
         Guid::from(format!("refresh_token:{}", id))
     }
 
-    pub fn new(sig: String, session: Session, expiration: DateTime<Utc>, related_access_token_signature: String) -> RefreshTokenEntity {
+    pub fn new(
+        sig: String,
+        session: Session,
+        expiration: DateTime<Utc>,
+        related_access_token_signature: String,
+    ) -> RefreshTokenEntity {
         let id = Self::build_guid(&sig);
         RefreshTokenEntity {
             id,
@@ -97,7 +108,6 @@ impl RefreshTokenEntity {
             token.related_access_token_signature().to_string(),
         )
     }
-
 
     pub fn id(&self) -> &Guid {
         &self.id
@@ -120,7 +130,12 @@ impl RefreshTokenEntity {
     }
 
     pub fn to_token(&self, token: SecureSecret) -> RefreshToken {
-        RefreshToken::new(token, self.session.clone(), self.expires_in(), self.related_access_token_signature.clone())
+        RefreshToken::new(
+            token,
+            self.session.clone(),
+            self.expires_in(),
+            self.related_access_token_signature.clone(),
+        )
     }
 
     pub fn to_empty_token(&self) -> RefreshToken {

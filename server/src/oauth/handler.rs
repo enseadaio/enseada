@@ -6,18 +6,23 @@ use chrono::Duration;
 use url::Url;
 
 use async_trait::async_trait;
+use enseada::secure;
 
-use crate::oauth::{Expirable, Result};
+use crate::config::CONFIG;
 use crate::oauth::client::{Client, ClientKind};
 use crate::oauth::code;
 use crate::oauth::error::{Error, ErrorKind};
-use crate::oauth::request::{AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest};
-use crate::oauth::response::{AuthorizationResponse, IntrospectionResponse, RevocationResponse, TokenResponse, TokenType};
+use crate::oauth::request::{
+    AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest,
+};
+use crate::oauth::response::{
+    AuthorizationResponse, IntrospectionResponse, RevocationResponse, TokenResponse, TokenType,
+};
 use crate::oauth::scope::Scope;
 use crate::oauth::session::Session;
 use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::oauth::token::{AccessToken, RefreshToken, Token, TokenTypeHint};
-use crate::secure;
+use crate::oauth::{Expirable, Result};
 
 /// Represent HTTP basic authentication as (client_id, client_secret)
 #[derive(Debug)]
@@ -42,11 +47,11 @@ pub trait TokenIntrospectionHandler<T: Token> {
 }
 
 pub struct OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
     client_storage: Arc<CS>,
     access_token_storage: Arc<ATS>,
@@ -55,11 +60,11 @@ pub struct OAuthHandler<CS, ATS, RTS, ACS>
 }
 
 impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
     pub fn new(
         client_storage: Arc<CS>,
@@ -67,11 +72,11 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
         refresh_token_storage: Arc<RTS>,
         authorization_code_storage: Arc<ACS>,
     ) -> OAuthHandler<CS, ATS, RTS, ACS>
-        where
-            CS: ClientStorage,
-            ATS: TokenStorage<AccessToken>,
-            RTS: TokenStorage<RefreshToken>,
-            ACS: AuthorizationCodeStorage
+    where
+        CS: ClientStorage,
+        ATS: TokenStorage<AccessToken>,
+        RTS: TokenStorage<RefreshToken>,
+        ACS: AuthorizationCodeStorage,
     {
         OAuthHandler {
             client_storage,
@@ -81,22 +86,37 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
         }
     }
 
-    async fn validate_client(&self, client_id: &str, redirect_uri: Option<&String>, scope: &Scope) -> Result<Client> {
+    async fn validate_client(
+        &self,
+        client_id: &str,
+        redirect_uri: Option<&String>,
+        scope: &Scope,
+    ) -> Result<Client> {
         log::debug!("Validating client '{}'", client_id);
-        let client = self.client_storage.get_client(client_id).await
+        let client = self
+            .client_storage
+            .get_client(client_id)
+            .await
             .ok_or_else(|| Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()))?;
 
         log::debug!("Validating request scopes");
         if !client.allowed_scopes().is_superset(scope) {
-            return Err(Error::new(ErrorKind::InvalidScope, "invalid scopes".to_string()));
+            return Err(Error::new(
+                ErrorKind::InvalidScope,
+                "invalid scopes".to_string(),
+            ));
         }
 
         if let Some(redirect_uri) = redirect_uri {
             log::debug!("Validating redirect_uri");
-            let uri = Url::parse(&redirect_uri).map_err(|err| Error::new(ErrorKind::InvalidRedirectUri, err.to_string()))?;
+            let uri = Url::parse(&redirect_uri)
+                .map_err(|err| Error::new(ErrorKind::InvalidRedirectUri, err.to_string()))?;
 
             if !client.allowed_redirect_uris().contains(&uri) {
-                return Err(Error::new(ErrorKind::InvalidRedirectUri, String::from("invalid redirect URI")));
+                return Err(Error::new(
+                    ErrorKind::InvalidRedirectUri,
+                    String::from("invalid redirect URI"),
+                ));
             }
         }
 
@@ -104,7 +124,11 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
         Ok(client)
     }
 
-    async fn authenticate_client(&self, client: &Client, client_secret: Option<&String>) -> Result<()> {
+    async fn authenticate_client(
+        &self,
+        client: &Client,
+        client_secret: Option<&String>,
+    ) -> Result<()> {
         log::debug!("Checking client authentication");
         match client.kind() {
             ClientKind::Public => {
@@ -120,10 +144,16 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
                             Ok(())
                         } else {
                             log::debug!("Client authentication failed");
-                            Err(Error::new(ErrorKind::InvalidClient, "invalid client credentials".to_string()))
+                            Err(Error::new(
+                                ErrorKind::InvalidClient,
+                                "invalid client credentials".to_string(),
+                            ))
                         }
                     }
-                    None => Err(Error::new(ErrorKind::InvalidClient, "invalid client credentials".to_string())),
+                    None => Err(Error::new(
+                        ErrorKind::InvalidClient,
+                        "invalid client credentials".to_string(),
+                    )),
                 }
             }
         }
@@ -131,14 +161,33 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
 
     async fn generate_token_set(&self, session: &Session) -> Result<TokenResponse> {
         let access_token_value = secure::generate_token(32).unwrap();
-        let access_token_sig = secure::generate_signature(access_token_value.to_string().as_str()).to_string();
-        let access_token = AccessToken::new(access_token_value, session.clone(), Duration::minutes(5));
-        let access_token = self.access_token_storage.store_token(access_token_sig.as_str(), access_token).await?;
+        let access_token_sig = secure::generate_signature(
+            access_token_value.to_string().as_str(),
+            &CONFIG.secret_key(),
+        )
+        .to_string();
+        let access_token =
+            AccessToken::new(access_token_value, session.clone(), Duration::minutes(5));
+        let access_token = self
+            .access_token_storage
+            .store_token(access_token_sig.as_str(), access_token)
+            .await?;
 
         let refresh_token_value = secure::generate_token(32).unwrap();
-        let refresh_token_sig = secure::generate_signature(refresh_token_value.to_string().as_str());
-        let refresh_token = RefreshToken::new(refresh_token_value, session.clone(), Duration::days(1), access_token_sig);
-        let refresh_token = self.refresh_token_storage.store_token(refresh_token_sig.to_string().as_str(), refresh_token).await?;
+        let refresh_token_sig = secure::generate_signature(
+            refresh_token_value.to_string().as_str(),
+            &CONFIG.secret_key(),
+        );
+        let refresh_token = RefreshToken::new(
+            refresh_token_value,
+            session.clone(),
+            Duration::days(1),
+            access_token_sig,
+        );
+        let refresh_token = self
+            .refresh_token_storage
+            .store_token(refresh_token_sig.to_string().as_str(), refresh_token)
+            .await?;
 
         Ok(TokenResponse {
             access_token: access_token.to_string(),
@@ -152,26 +201,39 @@ impl<CS, ATS, RTS, ACS> OAuthHandler<CS, ATS, RTS, ACS>
 }
 
 #[async_trait]
-impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationResponse> for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationResponse>
+    for OAuthHandler<CS, ATS, RTS, ACS>
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
-    async fn validate(&self, req: &AuthorizationRequest, _client_auth: Option<&BasicAuth>) -> Result<Client> {
-        self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope).await
+    async fn validate(
+        &self,
+        req: &AuthorizationRequest,
+        _client_auth: Option<&BasicAuth>,
+    ) -> Result<Client> {
+        self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope)
+            .await
     }
 
-    async fn handle(&self, req: &AuthorizationRequest, session: &mut Session) -> Result<AuthorizationResponse> {
+    async fn handle(
+        &self,
+        req: &AuthorizationRequest,
+        session: &mut Session,
+    ) -> Result<AuthorizationResponse> {
         log::info!("Handling new authorization request");
         session.set_scope(req.scope.clone());
 
         let secret = secure::generate_token(16).unwrap();
         let code = code::AuthorizationCode::new(secret, session.clone(), Duration::minutes(5));
-        let code_sig = secure::generate_signature(code.to_string().as_str());
+        let code_sig = secure::generate_signature(code.to_string().as_str(), &CONFIG.secret_key());
         log::debug!("Storing token with signature {}", code_sig);
-        let code = self.authorization_code_storage.store_code(code_sig.to_string().as_str(), code).await?;
+        let code = self
+            .authorization_code_storage
+            .store_code(code_sig.to_string().as_str(), code)
+            .await?;
         log::debug!("Successfully stored token with signature {}", code_sig);
 
         let res = AuthorizationResponse::new(code, req.state.as_ref().map(String::clone));
@@ -180,159 +242,278 @@ impl<CS, ATS, RTS, ACS> RequestHandler<AuthorizationRequest, AuthorizationRespon
 }
 
 #[async_trait]
-impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse> for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse>
+    for OAuthHandler<CS, ATS, RTS, ACS>
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
-    async fn validate(&self, req: &TokenRequest, client_auth: Option<&BasicAuth>) -> Result<Client> {
+    async fn validate(
+        &self,
+        req: &TokenRequest,
+        client_auth: Option<&BasicAuth>,
+    ) -> Result<Client> {
         let auth_client_id = client_auth.map(|BasicAuth(client_id, _client_secret)| client_id);
-        let auth_client_secret = client_auth.and_then(|BasicAuth(_client_id, client_secret)| client_secret.as_ref());
+        let auth_client_secret =
+            client_auth.and_then(|BasicAuth(_client_id, client_secret)| client_secret.as_ref());
         match req {
             TokenRequest::AuthorizationCode {
-                code, redirect_uri, client_id, client_secret,
+                code,
+                redirect_uri,
+                client_id,
+                client_secret,
             } => {
                 log::debug!("Validating AuthorizationCode token request");
                 let client_id = client_id.as_ref().or(auth_client_id);
                 let client_id = match client_id {
                     Some(client_id) => client_id,
-                    None => return Err(Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string())),
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidClient,
+                            "invalid client_id".to_string(),
+                        ))
+                    }
                 };
 
-                let code_sig = secure::generate_signature(code.as_str());
+                let code_sig = secure::generate_signature(code.as_str(), &CONFIG.secret_key());
                 log::debug!("Received auth code with sig {}", &code_sig);
-                let code = self.authorization_code_storage.get_code(code_sig.to_string().as_str()).await;
+                let code = self
+                    .authorization_code_storage
+                    .get_code(code_sig.to_string().as_str())
+                    .await;
                 let code = match code {
                     Some(code) => code,
-                    None => return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string())),
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidRequest,
+                            "invalid authorization code".to_string(),
+                        ))
+                    }
                 };
 
                 if code.is_expired() {
                     log::warn!("Authorization code is expired");
-                    return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string()));
+                    return Err(Error::new(
+                        ErrorKind::InvalidRequest,
+                        "invalid authorization code".to_string(),
+                    ));
                 }
 
                 let session = code.session();
 
                 if session.client_id() != client_id {
-                    return Err(Error::new(ErrorKind::InvalidClient, format!("invalid client '{}'", client_id)));
+                    return Err(Error::new(
+                        ErrorKind::InvalidClient,
+                        format!("invalid client '{}'", client_id),
+                    ));
                 }
 
-                let client = self.validate_client(&client_id, Some(redirect_uri), session.scope()).await?;
-                self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret)).await?;
+                let client = self
+                    .validate_client(&client_id, Some(redirect_uri), session.scope())
+                    .await?;
+                self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret))
+                    .await?;
                 Ok(client)
             }
-            TokenRequest::RefreshToken { refresh_token, scope, client_id, client_secret } => {
+            TokenRequest::RefreshToken {
+                refresh_token,
+                scope,
+                client_id,
+                client_secret,
+            } => {
                 let client_id = client_id.as_ref().or(auth_client_id);
                 let client_id = match client_id {
                     Some(client_id) => client_id,
-                    None => return Err(Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string())),
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidClient,
+                            "invalid client_id".to_string(),
+                        ))
+                    }
                 };
-                let refresh_token_sig = secure::generate_signature(refresh_token);
+                let refresh_token_sig =
+                    secure::generate_signature(refresh_token, &CONFIG.secret_key());
                 let refresh_token_sig = &refresh_token_sig.to_string();
-                let refresh_token = match self.refresh_token_storage.get_token(refresh_token_sig).await {
+                let refresh_token = match self
+                    .refresh_token_storage
+                    .get_token(refresh_token_sig)
+                    .await
+                {
                     Some(token) => token,
-                    None => return Err(Error::new(ErrorKind::InvalidRequest, "invalid refresh token".to_string()))
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidRequest,
+                            "invalid refresh token".to_string(),
+                        ))
+                    }
                 };
 
                 if refresh_token.is_expired() {
-                    return Err(Error::new(ErrorKind::UnsupportedGrantType, "invalid refresh token".to_string()));
+                    return Err(Error::new(
+                        ErrorKind::UnsupportedGrantType,
+                        "invalid refresh token".to_string(),
+                    ));
                 }
 
                 let mut session = refresh_token.session().clone();
                 if session.client_id() != client_id {
-                    return Err(Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()));
+                    return Err(Error::new(
+                        ErrorKind::InvalidClient,
+                        "invalid client_id".to_string(),
+                    ));
                 }
 
                 if let Some(other) = scope {
                     let scope = session.scope();
                     if !scope.is_superset(other) {
-                        return Err(Error::new(ErrorKind::InvalidScope, "invalid scope".to_string()));
+                        return Err(Error::new(
+                            ErrorKind::InvalidScope,
+                            "invalid scope".to_string(),
+                        ));
                     }
 
                     session.set_scope(other.clone());
                 }
 
-                let client = self.validate_client(&client_id, None, session.scope()).await?;
-                self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret)).await?;
+                let client = self
+                    .validate_client(&client_id, None, session.scope())
+                    .await?;
+                self.authenticate_client(&client, client_secret.as_ref().or(auth_client_secret))
+                    .await?;
                 Ok(client)
             }
-            TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))
+            TokenRequest::Unknown => Err(Error::new(
+                ErrorKind::UnsupportedGrantType,
+                "unsupported grant type".to_string(),
+            )),
         }
     }
 
     async fn handle(&self, req: &TokenRequest, _session: &mut Session) -> Result<TokenResponse> {
         match req {
-            TokenRequest::AuthorizationCode {
-                code, ..
-            } => {
-                let code_sig = secure::generate_signature(code.as_str());
-                let code = self.authorization_code_storage.get_code(code_sig.to_string().as_str()).await;
+            TokenRequest::AuthorizationCode { code, .. } => {
+                let code_sig = secure::generate_signature(code.as_str(), &CONFIG.secret_key());
+                let code = self
+                    .authorization_code_storage
+                    .get_code(code_sig.to_string().as_str())
+                    .await;
                 let code = match code {
                     Some(code) => code,
-                    None => return Err(Error::new(ErrorKind::InvalidRequest, "invalid authorization code".to_string())),
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidRequest,
+                            "invalid authorization code".to_string(),
+                        ))
+                    }
                 };
 
                 let session = code.session();
 
                 let res = self.generate_token_set(session).await?;
 
-                self.authorization_code_storage.revoke_code(code_sig.to_string().as_str()).await?;
+                self.authorization_code_storage
+                    .revoke_code(code_sig.to_string().as_str())
+                    .await?;
 
                 Ok(res)
             }
             TokenRequest::RefreshToken { refresh_token, .. } => {
-                let refresh_token_sig = secure::generate_signature(refresh_token);
+                let refresh_token_sig =
+                    secure::generate_signature(refresh_token, &CONFIG.secret_key());
                 let refresh_token_sig = &refresh_token_sig.to_string();
-                let refresh_token = match self.refresh_token_storage.get_token(refresh_token_sig).await {
+                let refresh_token = match self
+                    .refresh_token_storage
+                    .get_token(refresh_token_sig)
+                    .await
+                {
                     Some(token) => token,
-                    None => return Err(Error::new(ErrorKind::InvalidGrant, "invalid refresh token".to_string()))
+                    None => {
+                        return Err(Error::new(
+                            ErrorKind::InvalidGrant,
+                            "invalid refresh token".to_string(),
+                        ))
+                    }
                 };
 
                 if refresh_token.is_expired() {
-                    return Err(Error::new(ErrorKind::UnsupportedGrantType, "invalid refresh token".to_string()));
+                    return Err(Error::new(
+                        ErrorKind::UnsupportedGrantType,
+                        "invalid refresh token".to_string(),
+                    ));
                 }
 
                 let session = refresh_token.session();
 
                 // We revoke it because we are gonna generate a new one anyway
-                self.refresh_token_storage.revoke_token(refresh_token_sig).await?;
+                self.refresh_token_storage
+                    .revoke_token(refresh_token_sig)
+                    .await?;
                 // We don't care if the revocation fails, since the access token may have been revoked before the refresh token.
-                self.access_token_storage.revoke_token(refresh_token.related_access_token_signature()).await.ok();
+                self.access_token_storage
+                    .revoke_token(refresh_token.related_access_token_signature())
+                    .await
+                    .ok();
                 self.generate_token_set(session).await
             }
-            TokenRequest::Unknown => Err(Error::new(ErrorKind::UnsupportedGrantType, "unsupported grant type".to_string()))
+            TokenRequest::Unknown => Err(Error::new(
+                ErrorKind::UnsupportedGrantType,
+                "unsupported grant type".to_string(),
+            )),
         }
     }
 }
 
 #[async_trait]
-impl<CS, ATS, RTS, ACS> RequestHandler<IntrospectionRequest, IntrospectionResponse> for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+impl<CS, ATS, RTS, ACS> RequestHandler<IntrospectionRequest, IntrospectionResponse>
+    for OAuthHandler<CS, ATS, RTS, ACS>
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
-    async fn validate(&self, _req: &IntrospectionRequest, client_auth: Option<&BasicAuth>) -> Result<Client> {
-        let BasicAuth(client_id, client_secret) = client_auth.ok_or_else(|| Error::new(ErrorKind::AccessDenied, "introspection requires client credentials".to_string()))?;
-        let client = self.client_storage.get_client(client_id).await
+    async fn validate(
+        &self,
+        _req: &IntrospectionRequest,
+        client_auth: Option<&BasicAuth>,
+    ) -> Result<Client> {
+        let BasicAuth(client_id, client_secret) = client_auth.ok_or_else(|| {
+            Error::new(
+                ErrorKind::AccessDenied,
+                "introspection requires client credentials".to_string(),
+            )
+        })?;
+        let client = self
+            .client_storage
+            .get_client(client_id)
+            .await
             .ok_or_else(|| Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()))?;
-        self.authenticate_client(&client, client_secret.as_ref()).await?;
+        self.authenticate_client(&client, client_secret.as_ref())
+            .await?;
         Ok(client)
     }
 
-    async fn handle(&self, req: &IntrospectionRequest, _session: &mut Session) -> Result<IntrospectionResponse> {
-        let sig = secure::generate_signature(&req.token).to_string();
+    async fn handle(
+        &self,
+        req: &IntrospectionRequest,
+        _session: &mut Session,
+    ) -> Result<IntrospectionResponse> {
+        let sig = secure::generate_signature(&req.token, &CONFIG.secret_key()).to_string();
         let sig = sig.as_str();
         if let Some(hint) = &req.token_type_hint {
             if let Some(res) = match hint {
-                TokenTypeHint::AccessToken => self.access_token_storage.get_token(sig).await
+                TokenTypeHint::AccessToken => self
+                    .access_token_storage
+                    .get_token(sig)
+                    .await
                     .as_ref()
                     .map(IntrospectionResponse::from_token),
-                TokenTypeHint::RefreshToken => self.refresh_token_storage.get_token(sig).await
+                TokenTypeHint::RefreshToken => self
+                    .refresh_token_storage
+                    .get_token(sig)
+                    .await
                     .as_ref()
                     .map(IntrospectionResponse::from_token),
                 TokenTypeHint::Unknown => None,
@@ -341,14 +522,20 @@ impl<CS, ATS, RTS, ACS> RequestHandler<IntrospectionRequest, IntrospectionRespon
             };
         };
 
-        let access_token = self.access_token_storage.get_token(sig).await
+        let access_token = self
+            .access_token_storage
+            .get_token(sig)
+            .await
             .as_ref()
             .map(IntrospectionResponse::from_token);
         if let Some(res) = access_token {
             return Ok(res);
         }
 
-        let refresh_token = self.refresh_token_storage.get_token(sig).await
+        let refresh_token = self
+            .refresh_token_storage
+            .get_token(sig)
+            .await
             .as_ref()
             .map(IntrospectionResponse::from_token);
         if let Some(res) = refresh_token {
@@ -360,25 +547,43 @@ impl<CS, ATS, RTS, ACS> RequestHandler<IntrospectionRequest, IntrospectionRespon
 }
 
 #[async_trait]
-impl<CS, ATS, RTS, ACS> RequestHandler<RevocationRequest, RevocationResponse> for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+impl<CS, ATS, RTS, ACS> RequestHandler<RevocationRequest, RevocationResponse>
+    for OAuthHandler<CS, ATS, RTS, ACS>
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
-    async fn validate(&self, _req: &RevocationRequest, client_auth: Option<&BasicAuth>) -> Result<Client> {
-        let BasicAuth(client_id, client_secret) = client_auth.ok_or_else(|| Error::new(ErrorKind::AccessDenied, "revocation requires client credentials".to_string()))?;
-        let client = self.client_storage.get_client(client_id).await
+    async fn validate(
+        &self,
+        _req: &RevocationRequest,
+        client_auth: Option<&BasicAuth>,
+    ) -> Result<Client> {
+        let BasicAuth(client_id, client_secret) = client_auth.ok_or_else(|| {
+            Error::new(
+                ErrorKind::AccessDenied,
+                "revocation requires client credentials".to_string(),
+            )
+        })?;
+        let client = self
+            .client_storage
+            .get_client(client_id)
+            .await
             .ok_or_else(|| Error::new(ErrorKind::InvalidClient, "invalid client_id".to_string()))?;
-        self.authenticate_client(&client, client_secret.as_ref()).await?;
+        self.authenticate_client(&client, client_secret.as_ref())
+            .await?;
         Ok(client)
     }
 
-    async fn handle(&self, req: &RevocationRequest, session: &mut Session) -> Result<RevocationResponse> {
+    async fn handle(
+        &self,
+        req: &RevocationRequest,
+        session: &mut Session,
+    ) -> Result<RevocationResponse> {
         let requester_client_id = session.client_id();
         let ok = RevocationResponse::ok();
-        let sig = secure::generate_signature(&req.token).to_string();
+        let sig = secure::generate_signature(&req.token, &CONFIG.secret_key()).to_string();
         let sig = sig.as_str();
         if let Some(hint) = &req.token_type_hint {
             if let Some(()) = match hint {
@@ -387,12 +592,15 @@ impl<CS, ATS, RTS, ACS> RequestHandler<RevocationRequest, RevocationResponse> fo
                     if let Some(access_token) = access_token {
                         let session = access_token.session();
                         if session.client_id() != requester_client_id {
-                            return Err(Error::new(ErrorKind::AccessDenied, "access denied".to_string()))
+                            return Err(Error::new(
+                                ErrorKind::AccessDenied,
+                                "access denied".to_string(),
+                            ));
                         }
                         self.access_token_storage.revoke_token(sig).await?;
                     }
                     Some(())
-                },
+                }
                 TokenTypeHint::RefreshToken => {
                     let refresh_token = match self.refresh_token_storage.get_token(sig).await {
                         Some(token) => token,
@@ -401,10 +609,18 @@ impl<CS, ATS, RTS, ACS> RequestHandler<RevocationRequest, RevocationResponse> fo
 
                     let session = refresh_token.session();
                     if session.client_id() != requester_client_id {
-                        return Err(Error::new(ErrorKind::AccessDenied, "access denied".to_string()))
+                        return Err(Error::new(
+                            ErrorKind::AccessDenied,
+                            "access denied".to_string(),
+                        ));
                     }
                     self.refresh_token_storage.revoke_token(sig).await?;
-                    if let None = self.access_token_storage.revoke_token(refresh_token.related_access_token_signature()).await.ok() {}
+                    if let None = self
+                        .access_token_storage
+                        .revoke_token(refresh_token.related_access_token_signature())
+                        .await
+                        .ok()
+                    {}
                     Some(())
                 }
                 TokenTypeHint::Unknown => None,
@@ -417,20 +633,29 @@ impl<CS, ATS, RTS, ACS> RequestHandler<RevocationRequest, RevocationResponse> fo
         if let Some(access_token) = access_token {
             let session = access_token.session();
             if session.client_id() != requester_client_id {
-                return Err(Error::new(ErrorKind::AccessDenied, "access denied".to_string()))
+                return Err(Error::new(
+                    ErrorKind::AccessDenied,
+                    "access denied".to_string(),
+                ));
             }
             self.access_token_storage.revoke_token(sig).await;
-            return Ok(ok)
+            return Ok(ok);
         }
 
         if let Some(refresh_token) = self.refresh_token_storage.get_token(sig).await {
             let session = refresh_token.session();
             if session.client_id() != requester_client_id {
-                return Err(Error::new(ErrorKind::AccessDenied, "access denied".to_string()))
+                return Err(Error::new(
+                    ErrorKind::AccessDenied,
+                    "access denied".to_string(),
+                ));
             }
             self.refresh_token_storage.revoke_token(sig).await?;
             // We don't care if the revocation fails, since the access token may have been revoked before the refresh token.
-            self.access_token_storage.revoke_token(refresh_token.related_access_token_signature()).await.ok();
+            self.access_token_storage
+                .revoke_token(refresh_token.related_access_token_signature())
+                .await
+                .ok();
             return Ok(ok);
         };
 
@@ -440,44 +665,64 @@ impl<CS, ATS, RTS, ACS> RequestHandler<RevocationRequest, RevocationResponse> fo
 
 #[async_trait]
 impl<CS, ATS, RTS, ACS> TokenIntrospectionHandler<AccessToken> for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
     async fn get_token(&self, token: &str) -> Result<AccessToken> {
-        let sig = secure::generate_signature(token);
-        let token = self.access_token_storage.get_token(sig.to_string().as_str()).await
-            .ok_or_else(|| Error::new(ErrorKind::InvalidRequest, "access token not found".to_string()))?;
+        let sig = secure::generate_signature(token, &CONFIG.secret_key());
+        let token = self
+            .access_token_storage
+            .get_token(sig.to_string().as_str())
+            .await
+            .ok_or_else(|| {
+                Error::new(
+                    ErrorKind::InvalidRequest,
+                    "access token not found".to_string(),
+                )
+            })?;
 
         Ok(token)
     }
 
     async fn revoke_token(&self, token: &str) -> Result<()> {
-        let sig = secure::generate_signature(token);
-        self.access_token_storage.revoke_token(sig.to_string().as_str()).await
+        let sig = secure::generate_signature(token, &CONFIG.secret_key());
+        self.access_token_storage
+            .revoke_token(sig.to_string().as_str())
+            .await
     }
 }
 
 #[async_trait]
 impl<CS, ATS, RTS, ACS> TokenIntrospectionHandler<RefreshToken> for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
     async fn get_token(&self, token: &str) -> Result<RefreshToken> {
-        let sig = secure::generate_signature(token);
-        let token = self.refresh_token_storage.get_token(sig.to_string().as_str()).await
-            .ok_or_else(|| Error::new(ErrorKind::InvalidRequest, "refresh token not found".to_string()))?;
+        let sig = secure::generate_signature(token, &CONFIG.secret_key());
+        let token = self
+            .refresh_token_storage
+            .get_token(sig.to_string().as_str())
+            .await
+            .ok_or_else(|| {
+                Error::new(
+                    ErrorKind::InvalidRequest,
+                    "refresh token not found".to_string(),
+                )
+            })?;
 
         Ok(token)
     }
 
     async fn revoke_token(&self, token: &str) -> Result<()> {
-        let sig = secure::generate_signature(token);
-        self.refresh_token_storage.revoke_token(sig.to_string().as_str()).await
+        let sig = secure::generate_signature(token, &CONFIG.secret_key());
+        self.refresh_token_storage
+            .revoke_token(sig.to_string().as_str())
+            .await
     }
 }

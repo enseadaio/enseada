@@ -6,8 +6,8 @@ use tokio::sync::RwLock;
 
 use couchdb::changes::ChangeEvent;
 use couchdb::db::Database;
+use enseada::error::Error;
 
-use crate::error::Error;
 use crate::rbac::Enforcer;
 
 pub struct Watcher {
@@ -44,7 +44,6 @@ impl Watcher {
                                     if let Err(err) = enf.load_rules().await {
                                         log::error!("Failed to reload RBAC rules: {:?}", &err);
                                     }
-                                    drop(enf);
                                 }
                                 ChangeEvent::End { .. } => {
                                     continue;
