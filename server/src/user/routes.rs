@@ -1,26 +1,29 @@
-use actix::ArbiterService;
-use actix_web::web::{Data, Form, Json, Path, Query, ServiceConfig};
-use actix_web::HttpResponse;
+use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
+use actix_web::{delete, get, post, HttpResponse};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use couchdb;
-use couchdb::db;
 use enseada::guid::Guid;
 use enseada::pagination::{Cursor, Page};
 
+use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::extractor::{scope::Scope, user::CurrentUser};
 use crate::http::handler::{ApiResult, PaginationQuery};
 use crate::rbac::Enforcer;
 use crate::responses;
-use crate::user::{ListUsers, User, UserService, UserSubsystem};
+use crate::user::{User, UserService};
 
-pub fn add_user_service(app: &mut ServiceConfig) {
+pub fn mount(cfg: &mut ServiceConfig) {
     let couch = &crate::couchdb::SINGLETON;
     let db = couch.database(crate::couchdb::name::USERS, true);
     let service = UserService::new(db);
-    app.data(service);
+    cfg.data(service);
+    cfg.service(me);
+    cfg.service(list);
+    cfg.service(register);
+    cfg.service(get);
+    cfg.service(delete);
 }
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -44,7 +47,9 @@ impl From<&User> for UserResponse {
     }
 }
 
+#[get("/api/v1beta1/users")]
 pub async fn list(
+    service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
     current_user: CurrentUser,
@@ -68,10 +73,9 @@ pub async fn list(
         None
     };
 
-    let service = UserService::from_registry();
     let page = service
-        .send(ListUsers { limit, cursor })
-        .await??
+        .list(limit, cursor.as_ref())
+        .await?
         .map(|user| UserResponse::from(user));
     Ok(Json(page))
 }
@@ -81,6 +85,7 @@ pub struct UsernamePathParam {
     pub username: String,
 }
 
+#[get("/api/v1beta1/users/{username}")]
 pub async fn get(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -93,13 +98,14 @@ pub async fn get(
     let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &User::build_guid(username), "read")?;
     service
-        .find_user(username)
+        .find(username)
         .await?
         .ok_or_else(|| ApiError::NotFound(format!("User {} not found", username)))
         .map(UserResponse::from)
         .map(Json)
 }
 
+#[delete("/api/v1beta1/users/{username}")]
 pub async fn delete(
     service: Data<UserService>,
     scope: Scope,
@@ -108,14 +114,15 @@ pub async fn delete(
     Scope::from("users:manage").matches(&scope)?;
     let username = &path.username;
     let user = service
-        .find_user(username)
+        .find(username)
         .await?
         .ok_or_else(|| ApiError::NotFound(username.clone()))?;
 
-    service.delete_user(&user).await?;
+    service.delete(&user).await?;
     Ok(HttpResponse::NoContent().finish())
 }
 
+#[get("/api/v1beta1/users/me")]
 pub async fn me(user: CurrentUser, scope: Scope) -> ApiResult<Json<UserResponse>> {
     Scope::from("profile").matches(&scope)?;
     Ok(Json(user.into()))
@@ -128,6 +135,7 @@ pub struct Registration {
     pub roles: Option<Vec<String>>,
 }
 
+#[post("/api/v1beta1/users")]
 pub async fn register(
     service: Data<UserService>,
     data: Json<Registration>,
@@ -140,7 +148,7 @@ pub async fn register(
     enf.check(current_user.id(), &Guid::simple("users"), "create")?;
 
     let user = User::new(data.username.clone(), data.password.clone())?;
-    let user = service.save_user(user).await?;
+    let user = service.save(user).await?;
 
     if let Some(roles) = &data.roles {
         // We exclusively lock the enforcer to avoid having

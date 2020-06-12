@@ -5,8 +5,7 @@ use std::sync::Arc;
 
 use http::StatusCode;
 use serde::export::Formatter;
-use serde::{Deserialize, Deserializer, Serialize};
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 
 use couchdb::db::Database;
 use enseada::error::Error;
@@ -16,7 +15,10 @@ use enseada::pagination::{Cursor, Page};
 use crate::rbac::model::{EvaluationResult, Model, Permission, Principal, Role};
 
 mod model;
+mod routes;
 pub mod watcher;
+
+pub use routes::*;
 
 pub struct Enforcer {
     db: Arc<Database>,
@@ -38,7 +40,7 @@ impl Enforcer {
         let mut roles = HashMap::new();
 
         log::debug!("Loading rules");
-        let rules = self.db.list_all::<Rule>("rule").await?;
+        let rules = self.db.list_all_partitioned::<Rule>("rule").await?;
         for row in rules.rows {
             let rule = &row.doc;
             log::debug!("Processing rule {:?}", rule);
@@ -63,7 +65,10 @@ impl Enforcer {
         }
 
         log::debug!("Loading roles for principals");
-        let role_assignments = self.db.list_all::<RoleAssignment>("role").await?;
+        let role_assignments = self
+            .db
+            .list_all_partitioned::<RoleAssignment>("role")
+            .await?;
         for row in role_assignments.rows {
             let assignment = &row.doc;
 

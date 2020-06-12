@@ -12,6 +12,13 @@ pub struct Error {
 }
 
 impl Error {
+    pub fn not_found(message: String) -> Self {
+        Error {
+            message,
+            status: StatusCode::NOT_FOUND,
+        }
+    }
+
     pub fn status(&self) -> StatusCode {
         self.status
     }

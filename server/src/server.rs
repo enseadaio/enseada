@@ -17,10 +17,10 @@ use url::Url;
 use crate::config::CONFIG;
 use crate::couchdb::{add_couch_client, name as dbname, SINGLETON};
 use crate::http::handler::oauth;
-use crate::http::handler::user::add_user_service;
 use crate::rbac::watcher::Watcher;
 use crate::rbac::Enforcer;
 use crate::routes::routes;
+use crate::{rbac, user};
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());
@@ -37,7 +37,7 @@ pub async fn run() -> io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default())
+            .wrap(Logger::default().exclude("/health"))
             .wrap(
                 CookieSession::private(secret_key.as_bytes())
                     .domain(public_host.domain().expect("public_host.domain()"))
@@ -50,7 +50,8 @@ pub async fn run() -> io::Result<()> {
             .wrap(default_headers())
             .app_data(enforcer.clone())
             .configure(add_couch_client)
-            .configure(add_user_service)
+            .configure(user::mount)
+            .configure(rbac::mount)
             .configure(oauth::add_oauth_handler)
             .configure(routes)
     });

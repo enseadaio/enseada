@@ -9,6 +9,7 @@ use couchdb::migrator::Migrator;
 use couchdb::{Couch, Result};
 
 use crate::config::{Configuration, CONFIG};
+use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
 use crate::oauth::scope::Scope;

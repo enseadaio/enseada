@@ -8,8 +8,7 @@ use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use couchdb::{self, db};
-
+use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::oauth::handler::{BasicAuth, OAuthHandler, RequestHandler};
@@ -56,7 +55,7 @@ pub async fn login_form(
     );
 
     if let Some(username) = http_session.get::<String>("user_id")? {
-        if let Some(_user) = users.find_user(&username).await? {
+        if let Some(_user) = users.find(&username).await? {
             return login(
                 handler,
                 users,
@@ -120,7 +119,7 @@ pub async fn login(
     };
 
     let user = match http_session.get::<String>("user_id")? {
-        Some(username) => users.find_user(&username).await?,
+        Some(username) => users.find(&username).await?,
         None => users
             .authenticate_user(&form.username, &form.password)
             .await

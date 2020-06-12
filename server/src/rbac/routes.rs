@@ -1,23 +1,37 @@
-use actix_web::web::{Data, Json, Path, Query};
+use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
+use actix_web::{delete, get, post, put};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use enseada::guid::Guid;
 use enseada::pagination::{Cursor, Page};
 
+use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::extractor::user::CurrentUser;
-use crate::http::handler::user::UsernamePathParam;
 use crate::http::handler::{ApiResult, PaginationQuery};
 use crate::oauth::scope::Scope;
 use crate::rbac::{Enforcer, Rule};
 use crate::user::UserService;
+use crate::user::UsernamePathParam;
 
+pub fn mount(cfg: &mut ServiceConfig) {
+    cfg.service(get_user_roles);
+    cfg.service(add_user_role);
+    cfg.service(remove_user_role);
+    cfg.service(get_user_permissions);
+    cfg.service(add_user_permission);
+    cfg.service(remove_user_permission);
+    cfg.service(get_role_permissions);
+    cfg.service(add_role_permission);
+    cfg.service(remove_role_permission);
+}
 #[derive(Debug, Serialize, PartialEq)]
 pub struct RoleResponse {
     pub role: String,
 }
 
+#[get("/v1beta1/users/{username}/roles")]
 pub async fn get_user_roles(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -32,7 +46,7 @@ pub async fn get_user_roles(
     let sub = Guid::partitioned("user", username);
     enforcer.check(current_user.id(), &sub, "read_roles")?;
 
-    if service.find_user(username).await?.is_none() {
+    if service.find(username).await?.is_none() {
         return Err(ApiError::NotFound(format!("User {} not found", username)));
     }
 
@@ -57,6 +71,7 @@ pub struct UserRolesPathParams {
     role: String,
 }
 
+#[put("/v1beta1/users/{username}/roles/{role}")]
 pub async fn add_user_role(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -70,7 +85,7 @@ pub async fn add_user_role(
     let sub = Guid::partitioned("user", username);
     enforcer.check(current_user.id(), &sub, "manage_roles")?;
 
-    if service.find_user(username).await?.is_none() {
+    if service.find(username).await?.is_none() {
         return Err(ApiError::NotFound(format!("User {} not found", username)));
     }
 
@@ -79,6 +94,7 @@ pub async fn add_user_role(
     Ok(Json(RoleResponse { role: role.clone() }))
 }
 
+#[delete("/v1beta1/users/{username}/roles/{role}")]
 pub async fn remove_user_role(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -92,7 +108,7 @@ pub async fn remove_user_role(
     let sub = &Guid::partitioned("user", username);
     enforcer.check(current_user.id(), sub, "manage_roles")?;
 
-    if service.find_user(username).await?.is_none() {
+    if service.find(username).await?.is_none() {
         return Err(ApiError::NotFound(format!("User {} not found", username)));
     }
 
@@ -119,6 +135,7 @@ impl From<&Rule> for Permission {
     }
 }
 
+#[get("/v1beta1/users/{username}/permissions")]
 pub async fn get_user_permissions(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -148,6 +165,7 @@ pub async fn get_user_permissions(
     Ok(Json(permissions))
 }
 
+#[post("/v1beta1/users/{username}/permissions")]
 pub async fn add_user_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -170,6 +188,7 @@ pub async fn add_user_permission(
     Ok(permission)
 }
 
+#[delete("/v1beta1/users/{username}/permissions")]
 pub async fn remove_user_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -197,6 +216,7 @@ pub struct RolePathParam {
     pub role: String,
 }
 
+#[get("/v1beta1/roles/{role}/permissions")]
 pub async fn get_role_permissions(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -226,6 +246,7 @@ pub async fn get_role_permissions(
     Ok(Json(permissions))
 }
 
+#[post("/v1beta1/roles/{role}/permissions")]
 pub async fn add_role_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -248,6 +269,7 @@ pub async fn add_role_permission(
     Ok(permission)
 }
 
+#[delete("/v1beta1/roles/{role}/permissions")]
 pub async fn remove_role_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,

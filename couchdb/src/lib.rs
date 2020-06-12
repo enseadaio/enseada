@@ -7,8 +7,8 @@ use crate::db::Database;
 use crate::error::Error;
 use crate::status::Status;
 
-pub mod client;
 pub mod changes;
+pub mod client;
 pub mod db;
 pub mod error;
 pub mod index;

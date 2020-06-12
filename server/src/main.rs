@@ -5,8 +5,6 @@ extern crate lazy_static;
 
 use actix::ArbiterService;
 
-use crate::user::{Ping, UserSubsystem};
-
 mod config;
 mod couchdb;
 mod http;

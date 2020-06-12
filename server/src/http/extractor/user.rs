@@ -1,13 +1,13 @@
 use std::pin::Pin;
 
 use actix_web::dev::{Payload, PayloadStream};
-use actix_web::error::PayloadError;
-use actix_web::web::{Bytes, Data};
-use actix_web::{Error, FromRequest, HttpRequest};
-use futures::{Future, FutureExt, Stream, TryFutureExt};
+use actix_web::web::Data;
+use actix_web::{FromRequest, HttpRequest};
+use futures::{Future, TryFutureExt};
 
 use enseada::guid::Guid;
 
+use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
 use crate::user::{User, UserService};
@@ -32,7 +32,7 @@ impl FromRequest for CurrentUser {
             };
 
             let guid = Guid::from(username.clone());
-            let user = service.find_user(guid.id()).await?;
+            let user = service.find(guid.id()).await?;
             match user {
                 Some(user) => {
                     log::debug!("Found user {}", user.id());
