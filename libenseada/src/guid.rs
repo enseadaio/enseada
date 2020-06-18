@@ -92,7 +92,7 @@ mod test {
     fn it_converts_from_string_with_partition() {
         let s = String::from("part:id:id");
         let guid = Guid::from(s.as_str());
-        assert_eq!(guid.partition(), Some(String::from("part")));
+        assert_eq!(guid.partition(), Some("part"));
         assert_eq!(guid.id(), &String::from("id:id"));
     }
 
@@ -124,7 +124,7 @@ mod test {
         let s = String::from("part:id");
         let guid: Guid = serde_json::from_str("\"part:id\"").unwrap();
 
-        assert_eq!(guid.partition(), Some(String::from("part")));
+        assert_eq!(guid.partition(), Some("part"));
         assert_eq!(guid.id(), &String::from("id"));
         assert_eq!(guid.to_string(), s);
     }

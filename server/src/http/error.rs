@@ -148,7 +148,6 @@ impl From<EvaluationError> for ApiError {
     fn from(err: EvaluationError) -> Self {
         match err {
             EvaluationError::Denied => ApiError::Forbidden(err.to_string()),
-            EvaluationError::Other(msg) => ApiError::InternalServerError(msg),
         }
     }
 }

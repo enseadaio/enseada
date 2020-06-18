@@ -1,44 +1,43 @@
 use actix_files as fs;
-use actix_web::{web, FromRequest};
+use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 
-use crate::http::handler::{api_docs, health, home, oauth, ui};
-use crate::oauth::request::{AuthorizationRequest, TokenRequest};
+use crate::templates::ReDoc;
 
-pub fn routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/", web::get().to(home))
-        .service(fs::Files::new("/static", "./dist"))
-        .service(fs::Files::new("/images", "./images"))
-        .route("/health", web::get().to(health::get))
-        // UI
-        .service(web::scope("/ui").route("", web::get().to(ui::index)))
-        // OAuth
-        .service(
-            web::scope("/oauth")
-                .app_data(web::Query::<AuthorizationRequest>::configure(
-                    oauth::error::handle_query_errors,
-                ))
-                .app_data(web::Form::<TokenRequest>::configure(
-                    oauth::error::handle_form_errors,
-                ))
-                .service(
-                    web::resource("/authorize")
-                        .route(web::get().to(oauth::login_form))
-                        .route(web::post().to(oauth::login)),
-                )
-                .route("/token", web::post().to(oauth::token))
-                .route("/introspect", web::post().to(oauth::introspect))
-                .route("/revoke", web::post().to(oauth::revoke)),
-        )
-        // API
-        .service(
-            web::scope("/api").service(
-                web::scope("/docs")
-                    .service(
-                        web::resource("/openapi.yml")
-                            .name("open_api_spec")
-                            .route(web::get().to(api_docs::open_api)),
-                    )
-                    .route("", web::get().to(api_docs::redoc)),
-            ),
-        );
+pub fn mount(cfg: &mut web::ServiceConfig) {
+    cfg.service(home);
+    cfg.service(fs::Files::new("/static", "./dist"));
+    cfg.service(fs::Files::new("/images", "./images"));
+    cfg.service(open_api);
+    cfg.service(redoc);
+}
+
+#[get("/")]
+pub async fn home(req: HttpRequest) -> HttpResponse {
+    let accept = req
+        .headers()
+        .get(http::header::ACCEPT)
+        .and_then(|accept| accept.to_str().ok())
+        .map(str::to_lowercase)
+        .filter(|accept| (*accept).contains("html"));
+    let redirect = match accept {
+        Some(_) => "/ui",
+        None => "/health",
+    };
+    HttpResponse::SeeOther()
+        .header(http::header::LOCATION, redirect)
+        .finish()
+}
+
+const SPEC: &str = include_str!(concat!(env!("OUT_DIR"), "/openapi.yml"));
+
+#[get("/api/docs/openapi.yml")]
+pub async fn open_api() -> HttpResponse {
+    HttpResponse::Ok().content_type("text/yaml").body(SPEC)
+}
+
+#[get("/api/docs")]
+pub async fn redoc() -> impl Responder {
+    ReDoc {
+        spec_url: "/api/docs/openapi.yml".to_string(),
+    }
 }

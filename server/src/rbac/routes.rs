@@ -9,7 +9,7 @@ use enseada::pagination::{Cursor, Page};
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::extractor::user::CurrentUser;
-use crate::http::handler::{ApiResult, PaginationQuery};
+use crate::http::{ApiResult, PaginationQuery};
 use crate::oauth::scope::Scope;
 use crate::rbac::{Enforcer, Rule};
 use crate::user::UserService;
@@ -31,7 +31,7 @@ pub struct RoleResponse {
     pub role: String,
 }
 
-#[get("/v1beta1/users/{username}/roles")]
+#[get("/api/v1beta1/users/{username}/roles")]
 pub async fn get_user_roles(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -71,7 +71,7 @@ pub struct UserRolesPathParams {
     role: String,
 }
 
-#[put("/v1beta1/users/{username}/roles/{role}")]
+#[put("/api/v1beta1/users/{username}/roles/{role}")]
 pub async fn add_user_role(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -94,7 +94,7 @@ pub async fn add_user_role(
     Ok(Json(RoleResponse { role: role.clone() }))
 }
 
-#[delete("/v1beta1/users/{username}/roles/{role}")]
+#[delete("/api/v1beta1/users/{username}/roles/{role}")]
 pub async fn remove_user_role(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
@@ -135,7 +135,7 @@ impl From<&Rule> for Permission {
     }
 }
 
-#[get("/v1beta1/users/{username}/permissions")]
+#[get("/api/v1beta1/users/{username}/permissions")]
 pub async fn get_user_permissions(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -165,7 +165,7 @@ pub async fn get_user_permissions(
     Ok(Json(permissions))
 }
 
-#[post("/v1beta1/users/{username}/permissions")]
+#[post("/api/v1beta1/users/{username}/permissions")]
 pub async fn add_user_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -188,7 +188,7 @@ pub async fn add_user_permission(
     Ok(permission)
 }
 
-#[delete("/v1beta1/users/{username}/permissions")]
+#[delete("/api/v1beta1/users/{username}/permissions")]
 pub async fn remove_user_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -216,7 +216,7 @@ pub struct RolePathParam {
     pub role: String,
 }
 
-#[get("/v1beta1/roles/{role}/permissions")]
+#[get("/api/v1beta1/roles/{role}/permissions")]
 pub async fn get_role_permissions(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -246,7 +246,7 @@ pub async fn get_role_permissions(
     Ok(Json(permissions))
 }
 
-#[post("/v1beta1/roles/{role}/permissions")]
+#[post("/api/v1beta1/roles/{role}/permissions")]
 pub async fn add_role_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
@@ -269,7 +269,7 @@ pub async fn add_role_permission(
     Ok(permission)
 }
 
-#[delete("/v1beta1/roles/{role}/permissions")]
+#[delete("/api/v1beta1/roles/{role}/permissions")]
 pub async fn remove_role_permission(
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,

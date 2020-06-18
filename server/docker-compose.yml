@@ -1,0 +1,28 @@
+version: '3'
+services:
+  couchdb:
+    image: couchdb:3
+    container_name: enseada_server_couchdb
+    environment:
+      COUCHDB_USER: enseada
+      COUCHDB_PASSWORD: enseada
+    ports:
+      - "5984:5984"
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+
+  minio:
+    image: minio/minio
+    container_name: enseada_server_minio
+    environment:
+      MINIO_ACCESS_KEY: enseada
+      MINIO_SECRET_KEY: enseadaminio
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  couchdb_data:
+  minio_data:

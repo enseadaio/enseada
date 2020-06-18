@@ -1,4 +1,3 @@
-use std::fmt;
 use std::string::FromUtf8Error;
 
 use http::StatusCode;

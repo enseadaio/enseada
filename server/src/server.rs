@@ -16,11 +16,9 @@ use url::Url;
 
 use crate::config::CONFIG;
 use crate::couchdb::{add_couch_client, name as dbname, SINGLETON};
-use crate::http::handler::oauth;
 use crate::rbac::watcher::Watcher;
 use crate::rbac::Enforcer;
-use crate::routes::routes;
-use crate::{rbac, user};
+use crate::{oauth, observability, rbac, routes, ui, user};
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());
@@ -52,8 +50,10 @@ pub async fn run() -> io::Result<()> {
             .configure(add_couch_client)
             .configure(user::mount)
             .configure(rbac::mount)
-            .configure(oauth::add_oauth_handler)
-            .configure(routes)
+            .configure(oauth::mount)
+            .configure(ui::mount)
+            .configure(observability::mount)
+            .configure(routes::mount)
     });
 
     let server = if let Some(host) = public_host.host() {

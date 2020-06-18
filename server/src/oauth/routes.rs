@@ -1,8 +1,12 @@
+use std::str::FromStr;
 use std::sync::Arc;
 
 use actix_session::Session as HttpSession;
+use actix_web::error::{Error, InternalError, QueryPayloadError, UrlencodedError};
 use actix_web::http::header;
 use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
+use actix_web::web::{FormConfig, QueryConfig};
+use actix_web::{get, post, web, FromRequest};
 use actix_web::{HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
@@ -18,23 +22,32 @@ use crate::oauth::request::{
 };
 use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use crate::oauth::session::Session;
+use crate::oauth::ConcreteOAuthHandler;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
 use crate::user::UserService;
 
-pub mod error;
-
-pub type ConcreteOAuthHandler =
-    OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
-
-pub fn add_oauth_handler(app: &mut ServiceConfig) {
+pub fn mount(cfg: &mut ServiceConfig) {
     let couch = &crate::couchdb::SINGLETON;
     let db = couch.database(crate::couchdb::name::OAUTH, true);
     let storage = Arc::new(CouchStorage::new(Arc::new(db)));
     let handler = OAuthHandler::new(storage.clone(), storage.clone(), storage.clone(), storage);
-    app.data::<ConcreteOAuthHandler>(handler);
+
+    cfg.data::<ConcreteOAuthHandler>(handler).service(
+        web::scope("/oauth")
+            .app_data(web::Query::<AuthorizationRequest>::configure(
+                handle_query_errors,
+            ))
+            .app_data(web::Form::<TokenRequest>::configure(handle_form_errors))
+            .service(login_form)
+            .service(login)
+            .service(token)
+            .service(introspect)
+            .service(revoke),
+    );
 }
 
+#[get("/authorize")]
 pub async fn login_form(
     handler: Data<ConcreteOAuthHandler>,
     users: Data<UserService>,
@@ -56,7 +69,7 @@ pub async fn login_form(
 
     if let Some(username) = http_session.get::<String>("user_id")? {
         if let Some(_user) = users.find(&username).await? {
-            return login(
+            return do_login(
                 handler,
                 users,
                 Form(LoginFormBody {
@@ -98,7 +111,18 @@ pub struct LoginFormBody {
     pub auth_request: AuthorizationRequest,
 }
 
+#[post("/authorize")]
 pub async fn login(
+    handler: Data<ConcreteOAuthHandler>,
+    users: Data<UserService>,
+    form: Form<LoginFormBody>,
+    http_session: HttpSession,
+    req: HttpRequest,
+) -> Result<HttpResponse, ApiError> {
+    do_login(handler, users, form, http_session, req).await
+}
+
+async fn do_login(
     handler: Data<ConcreteOAuthHandler>,
     users: Data<UserService>,
     form: Form<LoginFormBody>,
@@ -153,6 +177,7 @@ pub async fn login(
     }
 }
 
+#[post("/token")]
 pub async fn token(
     handler: Data<ConcreteOAuthHandler>,
     form: Form<TokenRequest>,
@@ -169,6 +194,7 @@ pub async fn token(
     Ok(Json(res))
 }
 
+#[post("/introspect")]
 pub async fn introspect(
     handler: Data<ConcreteOAuthHandler>,
     form: Form<IntrospectionRequest>,
@@ -185,6 +211,7 @@ pub async fn introspect(
     Ok(Json(res))
 }
 
+#[post("/revoke")]
 pub async fn revoke(
     handler: Data<ConcreteOAuthHandler>,
     form: Form<RevocationRequest>,
@@ -220,4 +247,55 @@ fn get_basic_auth(req: &HttpRequest) -> Option<BasicAuth> {
                 basic.password().map(ToString::to_string),
             )
         })
+}
+
+pub fn handle_query_errors(cfg: QueryConfig) -> QueryConfig {
+    cfg.error_handler(handle_query_error)
+}
+
+pub fn handle_form_errors(cfg: FormConfig) -> FormConfig {
+    cfg.error_handler(handle_form_error)
+}
+
+fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
+    let detail = err.to_string();
+    log::error!("Error: {}", &detail);
+    let res = match &err {
+        QueryPayloadError::Deserialize(err) => {
+            if detail.contains("redirect_uri") {
+                HttpResponse::BadRequest().body("invalid redirect_uri parameter")
+            } else {
+                let err = OAuthError::new(ErrorKind::InvalidRequest, err.to_string());
+                let result =
+                    serde_urlencoded::from_str::<Vec<(String, String)>>(req.query_string());
+                match result
+                    .ok()
+                    .unwrap_or_else(Vec::new)
+                    .into_iter()
+                    .find(|(k, _)| k == "redirect_uri")
+                    .and_then(|(_, uri)| Url::from_str(uri.as_str()).ok())
+                {
+                    Some(mut redirect_uri) => redirect_to_client(&mut redirect_uri, err),
+                    None => HttpResponse::BadRequest().body("invalid redirect_uri parameter"),
+                }
+            }
+        }
+    };
+    InternalError::from_response(err, res).into()
+}
+
+fn handle_form_error(err: UrlencodedError, req: &HttpRequest) -> Error {
+    let detail = err.to_string();
+    log::error!("Error: {}", &detail);
+    log::debug!("{:?}", req);
+    let res = match &err {
+        UrlencodedError::Parse => HttpResponse::BadRequest().json(OAuthError::new(
+            ErrorKind::InvalidRequest,
+            "request data is invalid or is missing a required parameter".to_string(),
+        )),
+        _ => HttpResponse::BadRequest()
+            .content_type("text/plain")
+            .body(detail),
+    };
+    InternalError::from_response(err, res).into()
 }

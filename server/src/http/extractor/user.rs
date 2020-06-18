@@ -3,7 +3,7 @@ use std::pin::Pin;
 use actix_web::dev::{Payload, PayloadStream};
 use actix_web::web::Data;
 use actix_web::{FromRequest, HttpRequest};
-use futures::{Future, TryFutureExt};
+use futures::Future;
 
 use enseada::guid::Guid;
 

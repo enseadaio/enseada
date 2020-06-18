@@ -614,11 +614,12 @@ where
                         ));
                     }
                     self.refresh_token_storage.revoke_token(sig).await?;
-                    if let None = self
+                    if self
                         .access_token_storage
                         .revoke_token(refresh_token.related_access_token_signature())
                         .await
                         .ok()
+                        .is_none()
                     {}
                     Some(())
                 }

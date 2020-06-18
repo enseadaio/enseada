@@ -9,7 +9,7 @@ use enseada::pagination::{Cursor, Page};
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::extractor::{scope::Scope, user::CurrentUser};
-use crate::http::handler::{ApiResult, PaginationQuery};
+use crate::http::{ApiResult, PaginationQuery};
 use crate::rbac::Enforcer;
 use crate::responses;
 use crate::user::{User, UserService};

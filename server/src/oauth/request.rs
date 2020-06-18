@@ -17,7 +17,7 @@ pub struct AuthorizationRequest {
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ResponseType {
-    Code
+    Code,
 }
 
 impl Debug for ResponseType {
@@ -32,7 +32,7 @@ impl Debug for ResponseType {
 impl From<String> for ResponseType {
     fn from(typ: String) -> Self {
         match typ.as_str() {
-            "code" | _ => ResponseType::Code,
+            _ => ResponseType::Code,
         }
     }
 }

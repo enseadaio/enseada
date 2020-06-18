@@ -1,14 +1,13 @@
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Formatter};
 
-use chrono::{DateTime, Utc};
 use chrono::serde::ts_seconds;
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 use serde_json::Value;
 
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::scope::Scope;
-use crate::oauth::session::Session;
 use crate::oauth::token::{Token, TokenTypeHint};
 
 #[derive(Debug, Serialize)]
@@ -20,10 +19,7 @@ pub struct AuthorizationResponse {
 
 impl AuthorizationResponse {
     pub fn new(code: AuthorizationCode, state: Option<String>) -> AuthorizationResponse {
-        AuthorizationResponse {
-            code,
-            state,
-        }
+        AuthorizationResponse { code, state }
     }
 }
 
@@ -42,7 +38,7 @@ pub struct TokenResponse {
 #[derive(Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TokenType {
-    Bearer
+    Bearer,
 }
 
 impl Debug for TokenType {
@@ -102,7 +98,7 @@ impl IntrospectionResponse {
                 client_id: session.client_id().clone(),
                 username: session.user_id().clone(),
                 token_type: token.type_hint(),
-                exp: token.expiration().clone(),
+                exp: *token.expiration(),
             }),
         }
     }

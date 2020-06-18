@@ -13,7 +13,7 @@ fn encoder() -> Box<dyn Encode> {
     let fmt = CONFIG.log().format().to_lowercase();
     match fmt.as_str() {
         "json" => Box::new(JsonEncoder::new()),
-        "text" | _ => Box::new(PatternEncoder::default()),
+        _ => Box::new(PatternEncoder::default()),
     }
 }
 

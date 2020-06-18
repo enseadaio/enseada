@@ -1,8 +1,6 @@
 use std::convert::TryInto;
 use std::sync::Arc;
 
-use http::StatusCode;
-
 use async_trait::async_trait;
 use couchdb;
 use couchdb::db::Database;

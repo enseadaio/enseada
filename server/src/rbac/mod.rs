@@ -11,14 +11,13 @@ use couchdb::db::Database;
 use enseada::error::Error;
 use enseada::guid::Guid;
 use enseada::pagination::{Cursor, Page};
+pub use routes::*;
 
 use crate::rbac::model::{EvaluationResult, Model, Permission, Principal, Role};
 
 mod model;
 mod routes;
 pub mod watcher;
-
-pub use routes::*;
 
 pub struct Enforcer {
     db: Arc<Database>,
@@ -240,14 +239,12 @@ impl Enforcer {
 #[derive(Debug)]
 pub enum EvaluationError {
     Denied,
-    Other(String),
 }
 
 impl Display for EvaluationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Denied => write!(f, "Access denied"),
-            Self::Other(ms) => ms.fmt(f),
         }
     }
 }
