@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use enseada::guid::Guid;
 use enseada::secure::SecureSecret;
 
+use crate::couchdb::repository::Entity;
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::session::Session;
 
@@ -19,10 +20,26 @@ pub struct AuthorizationCodeEntity {
     expiration: DateTime<Utc>,
 }
 
-impl AuthorizationCodeEntity {
-    pub fn build_guid(id: &str) -> Guid {
+impl Entity for AuthorizationCodeEntity {
+    fn build_guid(id: &str) -> Guid {
         Guid::from(format!("code:{}", id))
     }
+
+    fn id(&self) -> &Guid {
+        &self.id
+    }
+
+    fn rev(&self) -> Option<&str> {
+        self.rev.as_deref()
+    }
+
+    fn set_rev(&mut self, rev: String) -> &mut Self {
+        self.rev = Some(rev);
+        self
+    }
+}
+
+impl AuthorizationCodeEntity {
     pub fn new(
         sig: String,
         session: Session,
@@ -35,14 +52,6 @@ impl AuthorizationCodeEntity {
             session,
             expiration,
         }
-    }
-
-    pub fn id(&self) -> &Guid {
-        &self.id
-    }
-
-    pub fn rev(&self) -> Option<String> {
-        self.rev.clone()
     }
 
     pub fn session(&self) -> &Session {

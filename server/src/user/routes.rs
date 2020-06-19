@@ -108,11 +108,16 @@ pub async fn get(
 #[delete("/api/v1beta1/users/{username}")]
 pub async fn delete(
     service: Data<UserService>,
+    enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
 ) -> ApiResult<HttpResponse> {
     Scope::from("users:manage").matches(&scope)?;
     let username = &path.username;
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &User::build_guid(username), "delete")?;
+
     let user = service
         .find(username)
         .await?

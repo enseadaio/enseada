@@ -15,14 +15,16 @@ impl Scope {
     /// A full scope always matches everything
     pub fn matches(&self, other: &Scope) -> Result<Scope> {
         if self.is_full_scope() {
-            return Ok(other.clone())
+            return Ok(other.clone());
         }
 
-        let intersection: HashSet<String> = self.0.intersection(&other.0)
-            .map(String::clone)
-            .collect();
+        let intersection: HashSet<String> =
+            self.0.intersection(&other.0).map(String::clone).collect();
         if intersection.is_empty() {
-            Err(Error::new(ErrorKind::InvalidScope, "invalid scope".to_string()))
+            Err(Error::new(
+                ErrorKind::InvalidScope,
+                "invalid scope".to_string(),
+            ))
         } else {
             Ok(Scope::from(intersection))
         }
@@ -32,13 +34,16 @@ impl Scope {
     /// A full scope always matches everything
     pub fn matches_exactly(&self, other: &Scope) -> Result<()> {
         if self.is_full_scope() {
-            return Ok(())
+            return Ok(());
         }
 
         if self.is_subset(other) {
             Ok(())
         } else {
-            Err(Error::new(ErrorKind::InvalidScope, "invalid scope".to_string()))
+            Err(Error::new(
+                ErrorKind::InvalidScope,
+                "invalid scope".to_string(),
+            ))
         }
     }
 
@@ -65,9 +70,7 @@ impl From<HashSet<String>> for Scope {
 
 impl From<Vec<String>> for Scope {
     fn from(vec: Vec<String>) -> Self {
-        let set = vec.iter()
-            .map(String::clone)
-            .collect();
+        let set = vec.iter().map(String::clone).collect();
         Scope(set)
     }
 }
@@ -80,9 +83,7 @@ impl From<Vec<&str>> for Scope {
 
 impl From<String> for Scope {
     fn from(scope: String) -> Self {
-        Scope(scope.split(' ')
-            .map(|s| s.to_string())
-            .collect())
+        Scope(scope.split(' ').map(|s| s.to_string()).collect())
     }
 }
 
@@ -94,33 +95,44 @@ impl From<&str> for Scope {
 
 impl ToString for Scope {
     fn to_string(&self) -> String {
-        let mut vec: Vec<String> = self.0.iter()
-            .map(String::clone)
-            .collect();
+        let mut vec: Vec<String> = self.0.iter().map(String::clone).collect();
         vec.sort();
         vec.join(" ")
     }
 }
 
 impl Serialize for Scope {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<<S as Serializer>::Ok, <S as Serializer>::Error> where
-        S: Serializer {
+    fn serialize<S>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
         self.to_string().serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for Scope {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, <D as Deserializer<'de>>::Error> where
-        D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, <D as Deserializer<'de>>::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let scope = String::deserialize(deserializer)?;
         Ok(Scope(scope.split(' ').map(|s| s.to_string()).collect()))
     }
 }
 
+impl PartialEq for Scope {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq(&other.0)
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use super::Scope;
     use super::super::error::ErrorKind;
+    use super::Scope;
 
     #[test]
     fn it_matches_a_similar_scope() {

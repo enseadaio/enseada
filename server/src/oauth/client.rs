@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt::{self, Display, Formatter};
 
 use enseada::secure;
 
@@ -11,6 +12,16 @@ use crate::oauth::Result;
 pub enum ClientKind {
     Public,
     Confidential { secret: String },
+}
+
+impl Display for ClientKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            Public => "public",
+            ClientKind::Confidential { .. } => "confidential",
+        };
+        write!(f, "{}", name)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -67,7 +78,7 @@ impl Client {
         }
     }
 
-    pub fn client_id(&self) -> &String {
+    pub fn client_id(&self) -> &str {
         &self.client_id
     }
 

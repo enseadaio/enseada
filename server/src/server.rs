@@ -6,9 +6,11 @@ use std::sync::Arc;
 
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
+use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::middleware::{DefaultHeaders, Logger};
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
+use http::StatusCode;
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use tokio::sync::RwLock;
@@ -16,6 +18,7 @@ use url::Url;
 
 use crate::config::CONFIG;
 use crate::couchdb::{add_couch_client, name as dbname, SINGLETON};
+use crate::http::error;
 use crate::rbac::watcher::Watcher;
 use crate::rbac::Enforcer;
 use crate::{oauth, observability, rbac, routes, ui, user};
@@ -45,6 +48,7 @@ pub async fn run() -> io::Result<()> {
                     .http_only(true)
                     .same_site(SameSite::Strict),
             )
+            .wrap(ErrorHandlers::new().handler(StatusCode::BAD_REQUEST, error::handle_bad_request))
             .wrap(default_headers())
             .app_data(enforcer.clone())
             .configure(add_couch_client)

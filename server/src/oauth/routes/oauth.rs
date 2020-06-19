@@ -1,12 +1,11 @@
 use std::str::FromStr;
-use std::sync::Arc;
 
 use actix_session::Session as HttpSession;
 use actix_web::error::{Error, InternalError, QueryPayloadError, UrlencodedError};
 use actix_web::http::header;
-use actix_web::web::{Data, Form, Json, Query, ServiceConfig};
+use actix_web::web::{Data, Form, Json, Query};
 use actix_web::web::{FormConfig, QueryConfig};
-use actix_web::{get, post, web, FromRequest};
+use actix_web::{get, post, FromRequest};
 use actix_web::{HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
@@ -15,8 +14,7 @@ use url::Url;
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
-use crate::oauth::handler::{BasicAuth, OAuthHandler, RequestHandler};
-use crate::oauth::persistence::CouchStorage;
+use crate::oauth::handler::{BasicAuth, RequestHandler};
 use crate::oauth::request::{
     AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest,
 };
@@ -26,26 +24,6 @@ use crate::oauth::ConcreteOAuthHandler;
 use crate::responses;
 use crate::templates::oauth::LoginForm;
 use crate::user::UserService;
-
-pub fn mount(cfg: &mut ServiceConfig) {
-    let couch = &crate::couchdb::SINGLETON;
-    let db = couch.database(crate::couchdb::name::OAUTH, true);
-    let storage = Arc::new(CouchStorage::new(Arc::new(db)));
-    let handler = OAuthHandler::new(storage.clone(), storage.clone(), storage.clone(), storage);
-
-    cfg.data::<ConcreteOAuthHandler>(handler).service(
-        web::scope("/oauth")
-            .app_data(web::Query::<AuthorizationRequest>::configure(
-                handle_query_errors,
-            ))
-            .app_data(web::Form::<TokenRequest>::configure(handle_form_errors))
-            .service(login_form)
-            .service(login)
-            .service(token)
-            .service(introspect)
-            .service(revoke),
-    );
-}
 
 #[get("/authorize")]
 pub async fn login_form(
@@ -164,7 +142,7 @@ async fn do_login(
 
     let user_id = user.id();
     http_session.set("user_id", user_id.id())?;
-    let session = &mut Session::for_client(client.client_id().clone());
+    let session = &mut Session::for_client(client.client_id().to_string());
     session.set_user_id(user_id.to_string());
 
     let handle = handler.handle(&auth, session).await;
@@ -189,7 +167,7 @@ pub async fn token(
     log::debug!("received token request");
 
     let client = handler.validate(&req, client_auth).await?;
-    let session = &mut Session::for_client(client.client_id().clone());
+    let session = &mut Session::for_client(client.client_id().to_string());
     let res = handler.handle(&req, session).await?;
     Ok(Json(res))
 }
@@ -206,7 +184,7 @@ pub async fn introspect(
     log::debug!("received introspection request");
 
     let client = handler.validate(&req, client_auth).await?;
-    let session = &mut Session::for_client(client.client_id().clone());
+    let session = &mut Session::for_client(client.client_id().to_string());
     let res = handler.handle(&req, session).await?;
     Ok(Json(res))
 }
@@ -223,7 +201,7 @@ pub async fn revoke(
     log::debug!("received revocation request");
 
     let client = handler.validate(&req, client_auth).await?;
-    let session = &mut Session::for_client(client.client_id().clone());
+    let session = &mut Session::for_client(client.client_id().to_string());
     let res = handler.handle(&req, session).await?;
     Ok(Json(res))
 }

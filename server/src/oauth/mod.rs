@@ -21,6 +21,7 @@ pub mod token;
 
 pub type ConcreteOAuthHandler =
     OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub trait Expirable {

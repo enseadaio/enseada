@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use enseada::guid::Guid;
 use enseada::secure::SecureSecret;
 
+use crate::couchdb::repository::Entity;
 use crate::oauth::session::Session;
 use crate::oauth::token::{AccessToken, RefreshToken, Token};
 use crate::oauth::Expirable;
@@ -20,10 +21,26 @@ pub struct AccessTokenEntity {
     expiration: DateTime<Utc>,
 }
 
-impl AccessTokenEntity {
-    pub fn build_guid(id: &str) -> Guid {
+impl Entity for AccessTokenEntity {
+    fn build_guid(id: &str) -> Guid {
         Guid::from(format!("access_token:{}", id))
     }
+
+    fn id(&self) -> &Guid {
+        &self.id
+    }
+
+    fn rev(&self) -> Option<&str> {
+        self.rev.as_deref()
+    }
+
+    fn set_rev(&mut self, rev: String) -> &mut Self {
+        self.rev = Some(rev);
+        self
+    }
+}
+
+impl AccessTokenEntity {
     pub fn new(sig: String, session: Session, expiration: DateTime<Utc>) -> AccessTokenEntity {
         let id = Self::build_guid(&sig);
         AccessTokenEntity {
@@ -36,14 +53,6 @@ impl AccessTokenEntity {
 
     pub fn from_token(sig: String, token: &AccessToken) -> Self {
         Self::new(sig, token.session().clone(), *token.expiration())
-    }
-
-    pub fn id(&self) -> &Guid {
-        &self.id
-    }
-
-    pub fn rev(&self) -> Option<String> {
-        self.rev.clone()
     }
 
     pub fn session(&self) -> &Session {
@@ -79,11 +88,26 @@ pub struct RefreshTokenEntity {
     related_access_token_signature: String,
 }
 
-impl RefreshTokenEntity {
-    pub fn build_guid(id: &str) -> Guid {
-        Guid::from(format!("refresh_token:{}", id))
+impl Entity for RefreshTokenEntity {
+    fn build_guid(id: &str) -> Guid {
+        Guid::from(format!("access_token:{}", id))
     }
 
+    fn id(&self) -> &Guid {
+        &self.id
+    }
+
+    fn rev(&self) -> Option<&str> {
+        self.rev.as_deref()
+    }
+
+    fn set_rev(&mut self, rev: String) -> &mut Self {
+        self.rev = Some(rev);
+        self
+    }
+}
+
+impl RefreshTokenEntity {
     pub fn new(
         sig: String,
         session: Session,
@@ -107,14 +131,6 @@ impl RefreshTokenEntity {
             *token.expiration(),
             token.related_access_token_signature().to_string(),
         )
-    }
-
-    pub fn id(&self) -> &Guid {
-        &self.id
-    }
-
-    pub fn rev(&self) -> Option<String> {
-        self.rev.clone()
     }
 
     pub fn session(&self) -> &Session {

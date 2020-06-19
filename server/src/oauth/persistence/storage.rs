@@ -4,7 +4,9 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use couchdb;
 use couchdb::db::Database;
+use enseada::pagination::{Cursor, Page};
 
+use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::error::{Error, ErrorKind};
@@ -23,18 +25,21 @@ impl CouchStorage {
     pub fn new(db: Arc<Database>) -> CouchStorage {
         CouchStorage { db }
     }
-
-    pub fn save_client(&self, client: Client) -> Result<Client> {
-        let entity = ClientEntity::from(client.clone());
-        log::info!("{:?}", entity);
-        Ok(client)
-    }
 }
 
 #[async_trait]
 impl ClientStorage for CouchStorage {
+    async fn list_clients(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<Client>> {
+        let res = self
+            .db
+            .list_partitioned::<ClientEntity>("client", limit, cursor.map(Cursor::to_string))
+            .await?;
+        Ok(Page::from_rows_response(res, limit)
+            .map(|entity| ClientEntity::try_into(entity.clone()).unwrap()))
+    }
+
     async fn get_client(&self, id: &str) -> Option<Client> {
-        let guid = ClientEntity::build_guid(&String::from(id));
+        let guid = ClientEntity::build_guid(id);
         let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
             Ok(client) => match client {
                 Some(client) => client,
@@ -47,6 +52,28 @@ impl ClientStorage for CouchStorage {
         };
 
         client.try_into().ok()
+    }
+
+    async fn save_client(&self, client: Client) -> Result<Client> {
+        let mut entity = ClientEntity::from(client.clone());
+        let res = self.db.put(&entity.id().to_string(), &entity).await?;
+        entity.set_rev(res.rev.clone());
+        entity.try_into()
+    }
+
+    async fn delete_client(&self, client: &Client) -> Result<()> {
+        let id = ClientEntity::build_guid(client.client_id());
+        let entity = self.db.get::<ClientEntity>(&id.to_string()).await?;
+        let entity = entity.ok_or_else(|| {
+            Error::new(
+                ErrorKind::InvalidClient,
+                format!("client '{}' not found", id.id()),
+            )
+        })?;
+        self.db
+            .delete(&entity.id().to_string(), entity.rev().unwrap())
+            .await?;
+        Ok(())
     }
 }
 
@@ -83,10 +110,7 @@ impl TokenStorage<AccessToken> for CouchStorage {
         match token {
             Some(token) => self
                 .db
-                .delete(
-                    token.id().to_string().as_str(),
-                    token.rev().unwrap().as_str(),
-                )
+                .delete(token.id().to_string().as_str(), token.rev().unwrap())
                 .await
                 .map_err(map_couch_err),
             None => Err(Error::new(
@@ -130,10 +154,7 @@ impl TokenStorage<RefreshToken> for CouchStorage {
         match token {
             Some(token) => self
                 .db
-                .delete(
-                    token.id().to_string().as_str(),
-                    token.rev().unwrap().as_str(),
-                )
+                .delete(token.id().to_string().as_str(), token.rev().unwrap())
                 .await
                 .map_err(map_couch_err),
             None => Err(Error::new(
@@ -185,7 +206,7 @@ impl AuthorizationCodeStorage for CouchStorage {
         match code {
             Some(code) => self
                 .db
-                .delete(code.id().to_string().as_str(), code.rev().unwrap().as_str())
+                .delete(code.id().to_string().as_str(), code.rev().unwrap())
                 .await
                 .map_err(map_couch_err),
             None => Err(Error::new(

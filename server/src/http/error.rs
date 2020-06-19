@@ -1,6 +1,8 @@
 use actix::MailboxError;
+use actix_web::dev::ServiceResponse;
 use actix_web::error::BlockingError;
 use actix_web::http::StatusCode;
+use actix_web::middleware::errhandlers::ErrorHandlerResponse;
 use actix_web::{Error as HttpError, HttpResponse, ResponseError};
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
@@ -35,8 +37,23 @@ pub struct ErrorResponse {
 }
 
 impl ApiError {
+    pub fn new(status: StatusCode, reason: String) -> Self {
+        match status {
+            StatusCode::BAD_REQUEST => ApiError::BadRequest(reason),
+            StatusCode::CONFLICT => ApiError::Conflict(reason),
+            StatusCode::FORBIDDEN => ApiError::Forbidden(reason),
+            StatusCode::NOT_FOUND => ApiError::NotFound(reason),
+            StatusCode::UNAUTHORIZED => ApiError::Unauthorized(reason),
+            StatusCode::SERVICE_UNAVAILABLE => ApiError::ServiceUnavailable(reason),
+            _ => ApiError::InternalServerError(reason),
+        }
+    }
+
     pub fn unauthorized() -> Self {
         ApiError::Unauthorized("unauthorized".to_string())
+    }
+    pub fn not_found(msg: &str) -> Self {
+        ApiError::NotFound(msg.to_string())
     }
 }
 
@@ -121,7 +138,14 @@ impl From<CouchError> for ApiError {
 
 impl From<HttpError> for ApiError {
     fn from(err: HttpError) -> Self {
-        ApiError::InternalServerError(err.to_string())
+        Self::from(&err)
+    }
+}
+
+impl From<&HttpError> for ApiError {
+    fn from(err: &HttpError) -> Self {
+        let err = err.as_response_error();
+        Self::new(err.status_code(), err.to_string())
     }
 }
 
@@ -156,4 +180,17 @@ impl From<MailboxError> for ApiError {
     fn from(err: MailboxError) -> Self {
         ApiError::InternalServerError(err.to_string())
     }
+}
+
+pub fn handle_bad_request<B>(
+    res: ServiceResponse<B>,
+) -> actix_web::error::Result<ErrorHandlerResponse<B>> {
+    let err = res.response().error();
+    let msg = err
+        .map(ToString::to_string)
+        .unwrap_or_else(|| "unknown error".to_string());
+    let err = ApiError::BadRequest(msg);
+
+    log::error!("{}", &err);
+    Ok(ErrorHandlerResponse::Response(res.error_response(err)))
 }

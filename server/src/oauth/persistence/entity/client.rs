@@ -6,6 +6,7 @@ use url::Url;
 
 use enseada::guid::Guid;
 
+use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::client::ClientKind as ExtClientKind;
 use crate::oauth::error::Error;
@@ -27,7 +28,7 @@ impl From<ExtClientKind> for ClientKind {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ClientEntity {
     #[serde(rename = "_id")]
     id: Guid,
@@ -40,17 +41,22 @@ pub struct ClientEntity {
     allowed_redirect_uris: HashSet<Url>,
 }
 
-impl ClientEntity {
-    pub fn build_guid(client_id: &str) -> Guid {
-        Guid::from(format!("client:{}", client_id))
+impl Entity for ClientEntity {
+    fn build_guid(id: &str) -> Guid {
+        Guid::from(format!("client:{}", id))
     }
 
-    pub fn id(&self) -> &Guid {
+    fn id(&self) -> &Guid {
         &self.id
     }
 
-    pub fn rev(&self) -> Option<String> {
-        self.rev.clone()
+    fn rev(&self) -> Option<&str> {
+        self.rev.as_deref()
+    }
+
+    fn set_rev(&mut self, rev: String) -> &mut Self {
+        self.rev = Some(rev);
+        self
     }
 }
 

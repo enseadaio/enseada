@@ -48,6 +48,12 @@ impl From<String> for Error {
     }
 }
 
+impl From<couchdb::error::Error> for Error {
+    fn from(err: couchdb::error::Error) -> Self {
+        Self::from(err.to_string())
+    }
+}
+
 impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match self.kind() {
@@ -56,7 +62,8 @@ impl ResponseError for Error {
             ErrorKind::ServerError | ErrorKind::Unknown => HttpResponse::InternalServerError(),
             ErrorKind::TemporarilyUnavailable => HttpResponse::ServiceUnavailable(),
             _ => HttpResponse::BadRequest(),
-        }.json(self)
+        }
+            .json(self)
     }
 }
 
