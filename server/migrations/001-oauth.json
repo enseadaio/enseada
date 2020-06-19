@@ -1,0 +1,10 @@
+{
+    "name": "oauth",
+    "operations": [
+        {
+            "kind": "create_database",
+            "name": "oauth",
+            "partitioned": true
+        }
+    ]
+}

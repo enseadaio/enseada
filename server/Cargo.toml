@@ -1,0 +1,70 @@
+[package]
+name = "enseada_server"
+version = "0.1.0"
+authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
+edition = "2018"
+publish = false
+
+[[bin]]
+name = "enseada-server"
+path = "src/main.rs"
+
+[dependencies]
+# Project
+couchdb = { path = "../couchdb" }
+enseada = { path = "../libenseada" }
+
+# Actix
+actix = "0.9"
+actix-web = { version = "2.0", features = ["default", "rustls"] }
+actix-rt = "1.0"
+actix-files = "0.2"
+actix-tls = { version = "1.0.0", features = ["rustls"] }
+actix-session = "0.3.0"
+actix-web-httpauth = "0.4.1"
+http = "0.2.1"
+askama = { version = "0.9", features = ["with-actix-web"] }
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_urlencoded = "0.6.1"
+
+# Async
+async-trait = "0.1.30"
+chrono = { version = "0.4.11", features = ["serde"] }
+futures = "0.3.4"
+tokio = { version = "0.2.20", features = ["sync"] }
+
+# Security
+rustls = "0.16"
+
+# Macros
+derive_more = "0.99"
+derivative = "1.0.3"
+lazy_static = "1.4"
+
+# Miscellaneous
+bytes = "0.5.4"
+config = "0.9"
+dotenv = "0.15"
+glob="0.3.0"
+include_dir = "0.6"
+log = "0.4"
+reqwest = { version = "0.10", features = ["json", "rustls-tls", "stream"] }
+snafu = "0.6"
+url = { version = "2.1", features = ["serde"] }
+uuid = { version = "0.8", features = ["v4"] }
+
+[dependencies.log4rs]
+version = "0.10"
+features = [
+"console_appender",
+"compound_policy",
+"delete_roller",
+"fixed_window_roller",
+"size_trigger",
+"json_encoder",
+"pattern_encoder",
+"threshold_filter"
+]

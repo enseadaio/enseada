@@ -1,0 +1,58 @@
+version: '3'
+services:
+  enseada:
+    image: enseada/enseada:edge
+    build:
+      context: .
+    environment:
+      ## Generic
+      ENSEADA_PORT: 9623
+      ENSEADA_LOG_FORMAT: text
+      ENSEADA_LOG_LEVEL: debug
+      ENSEADA_LOG_ROOTLEVEL: info
+      ENSEADA_SECRET_KEY: Y7o3UYJTdympbipV54to2e57r5bjTMcq
+      ENSEADA_PUBLIC_HOST: http://localhost:9623
+      ENSEADA_ROOT_PASSWORD: supersecret
+
+      ## Database
+      ENSEADA_COUCHDB_URL: http://couchdb:5984
+      ENSEADA_COUCHDB_USERNAME: enseada
+      ENSEADA_COUCHDB_PASSWORD: enseada
+
+      # Storage
+      ENSEADA_STORAGE_PROVIDER: s3
+      ENSEADA_STORAGE_BUCKET: enseada
+      ENSEADA_STORAGE_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: enseada
+      AWS_SECRET_ACCESS_KEY: enseadaminio
+      AWS_REGION: eu-west-1
+    ports:
+      - "9623:9623"
+    depends_on:
+      - couchdb
+      - minio
+
+  couchdb:
+    image: couchdb:3
+    environment:
+      COUCHDB_USER: enseada
+      COUCHDB_PASSWORD: enseada
+    ports:
+      - "5984:5984"
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: enseada
+      MINIO_SECRET_KEY: enseadaminio
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  couchdb_data:
+  minio_data:

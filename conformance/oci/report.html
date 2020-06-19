@@ -1,0 +1,2781 @@
+<html>
+<head>
+    <title>OCI Distribution Conformance Tests</title>
+    <style>
+        body {
+            padding: 10px 20px 10px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+            background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAG0lEQVQYV2Pce7zwv7NlPyMDFMAZGAIwlRgqAFydCAVv5m4UAAAAAElFTkSuQmCC") repeat;
+
+        }
+
+        .result {
+            padding: 1.25em 0 .25em 0.8em;
+            border: 1px solid #e1e1e1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .red {
+            background: #ffc8c8;
+        }
+
+        pre.fail-message {
+            background: #f9a5a5;
+            padding: 20px;
+            margin-right: 10px;
+            display: inline-block;
+            border-radius: 4px;
+            font-size: 1.25em;
+            width: 94%;
+            overflow-x: auto;
+        }
+
+        .green {
+            background: #c8ffc8;
+            padding: 1.25em 0 1.25em 0.8em;
+        }
+
+        .grey {
+            background: lightgrey;
+            padding: 1.25em 0 1.25em 0.8em;
+        }
+
+        .toggle {
+            border: 2px solid #3e3e3e;
+            cursor: pointer;
+            width: 1em;
+            text-align: center;
+            font-weight: bold;
+            display: inline;
+            font-family: monospace;
+            padding: 0 .25em 0 .25em;
+            margin: 1em 1em 1em 0;
+            font-size: 12pt;
+            color: #3e3e3e;
+            border-radius: 3px;
+        }
+
+        pre.pre-box {
+            background: white;
+            padding: 10px;
+            border: 1px solid gray;
+            display: inline-block;
+            border-radius: 4px;
+            width: 97%;
+            font-size: 1.25em;
+            overflow-x: auto;
+            max-height: 60em;
+            overflow-y: auto;
+        }
+
+        .summary {
+            width: 75%;
+            height: auto;
+            padding: 0 0 .5em 0;
+            border-radius: 6px;
+            border: 1px solid #cccddd;
+            background: white;
+        }
+
+        .summary-bullet {
+            width: 100%;
+            height: auto;
+            display: flex;
+            padding: .5em .1em .1em .5em;
+        }
+
+        .bullet-left {
+            width: 20%;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .bullet-right {
+            width: auto;
+            font-family: monospace;
+            font-size: 1.2em;
+        }
+
+        .quick-summary {
+            width: 70%;
+            display: flex;
+            margin: 0 auto 0 0;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .darkgreen {
+            color: green;
+        }
+
+        .darkred {
+            color: red;
+            padding: 0 0 0 2em;
+        }
+
+        .darkgrey {
+            color: grey;
+            padding: 0 0 0 2em;
+        }
+
+        .meter {
+            border: 1px solid black;
+            margin: 0 .5em 0 auto;
+            display: flex;
+            height: 25px;
+            width: 45%;
+        }
+
+        .meter-green {
+            height: 100%;
+            background: green;
+            width: 33%;
+        }
+
+        .meter-red {
+            height: 100%;
+            background: red;
+            width: 63%;
+        }
+
+        .meter-grey {
+            height: 100%;
+            background: grey;
+            width: 4%;
+        }
+
+        .subcategory {
+            background: white;
+            padding: 0px 20px 20px 20px;
+            border: 1px solid #cccddd;
+            border-radius: 6px;
+        }
+
+        h2 {
+            margin-top: 45px;
+        }
+
+        h4 {
+            vertical-align: bottom;
+        }
+    </style>
+    <script>
+      function toggleOutput (id) {
+        var elem = document.getElementById(id)
+        var button = document.getElementById(id + '-button')
+        if (elem.style['display'] === 'block') {
+          button.innerHTML = '+'
+          elem.style['display'] = 'none'
+        } else {
+          button.innerHTML = '-'
+          elem.style['display'] = 'block'
+        }
+      }
+    </script>
+</head>
+<body>
+<h1>OCI Distribution Conformance Tests</h1>
+<div class="summary">
+    <div class="summary-bullet">
+        <div class="bullet-left">Summary:</div>
+        <div class="quick-summary"><span class="darkgreen">18 passed</span><span class="darkred">34 failed</span><span
+                class="darkgrey">2 skipped</span>
+            <div class="meter">
+                <div class="meter-green"></div>
+                <div class="meter-red"></div>
+                <div class="meter-grey"></div>
+            </div>
+        </div>
+    </div>
+    <div class="summary-bullet">
+        <div class="bullet-left">Start time:</div>
+        <div class="bullet-right">May 25 11:40:49.083 &#43;0200 CEST</div>
+    </div>
+    <div class="summary-bullet">
+        <div class="bullet-left">End time:</div>
+        <div class="bullet-right">May 25 11:40:49.457 &#43;0200 CEST</div>
+    </div>
+    <div class="summary-bullet">
+        <div class="bullet-left">Elapsed time:</div>
+        <div class="bullet-right">374.326467ms</div>
+    </div>
+    <div class="summary-bullet">
+        <div class="bullet-left">Test version:</div>
+        <div class="bullet-right">unknown</div>
+    </div>
+    <div class="summary-bullet">
+        <div class="bullet-left">Configuration:</div>
+        <div class="bullet-right">
+
+            OCI_ROOT_URL=http://containers.localhost:9623<br/>
+
+            OCI_NAMESPACE=conformance/test<br/>
+
+            OCI_TEST_PULL=1<br/>
+
+            OCI_TEST_PUSH=1<br/>
+
+            OCI_TEST_CONTENT_DISCOVERY=1<br/>
+
+            OCI_TEST_CONTENT_MANAGEMENT=1<br/>
+
+        </div>
+    </div>
+</div>
+<div>
+
+
+    <h2>Pull</h2>
+    <div class="subcategory">
+
+
+        <h3>Setup</h3>
+
+
+        <div class="result green">
+            <div id="output-box-0-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-0')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test blob</h4>
+            <br>
+            <div id="output-box-0" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.097294 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.096917959&#43;02:00
+TIME DURATION: 13.629871ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/30e97b81-a3ca-4d69-84ca-848082547387
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=HBtc&#43;Eq03Zey9JY2O0A9tnsNB4251VKh7mktlQVq; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.113182 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/30e97b81-a3ca-4d69-84ca-848082547387?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.112215084&#43;02:00
+TIME DURATION: 14.842502ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Server: Enseada
+	Set-Cookie: enseada_session=ca4Fs9IH9j6ziYziFs1hdSg73GYfxkGXJH9c&#43;phT; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-1-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-1')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test layer</h4>
+            <br>
+            <div id="output-box-1" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.120302 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.11966004&#43;02:00
+TIME DURATION: 6.297188ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/a1c690e6-df2f-44ad-bfda-02cf8daa156a
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=wEaVZgmKzADErxn4BYsA1q1cop18QsNvcdKQdxvG; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.136565 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/a1c690e6-df2f-44ad-bfda-02cf8daa156a?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 168
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.136203268&#43;02:00
+TIME DURATION: 15.718013ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Server: Enseada
+	Set-Cookie: enseada_session=u4HYymuFK1kfVFotOvUWcrUvayrDPD99YBRmcpcZ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-2-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-2')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test manifest</h4>
+            <br>
+            <div>
+                <div id="output-box-2" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.138793 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/manifests/tagtest0  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	Content-Type: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+&#34;ewoJInNjaGVtYVZlcnNpb24iOiAyLAoJImNvbmZpZyI6IHsKCQkibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UuY29uZmlnLnYxK2pzb24iLAoJCSJkaWdlc3QiOiAic2hhMjU2OjY2YWQ5ODE2NWQzOGY1M2VlNzM4NjhmODJiZDRlZWQ2MDU1NmRkZmVlODI0ODEwYTQwNjJjNGY3NzdiMjBhNWIiLAoJCSJzaXplIjogMTEzCgl9LAoJImxheWVycyI6IFsKCQl7CgkJCSJtZWRpYVR5cGUiOiAiYXBwbGljYXRpb24vdm5kLm9jaS5pbWFnZS5sYXllci52MS50YXIrZ3ppcCIsCgkJCSJkaWdlc3QiOiAic2hhMjU2OjQ4YWNmZjFkOTE3NTJlOTU3NTI3YzFiNTQxNmU3Mzc2ZDkxMGJjYWNmMDFiOTQ0MTE3NWY4YzI3MGUzNWMxODMiLAoJCQkic2l6ZSI6IDE2OAoJCX0KCV0KfQ==&#34;
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 400 Bad Request
+RECEIVED AT  : 2020-05-25T11:40:49.138083225&#43;02:00
+TIME DURATION: 1.413693ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=N8xh5ESd0kTrsqvlvcl7ehkUYJ6DepMKyYaUbzzu; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 400
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-3-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-3')">+
+            </div>
+            <h4 style="display: inline;">Get the name of a tag</h4>
+            <br>
+            <div id="output-box-3" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.140757 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/tags/list  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-05-25T11:40:49.140297747&#43;02:00
+TIME DURATION: 855.403µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=S8mWMVQ5fmkYoHomui7&#43;HI9BQGasOzUrSkijX5qP; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result grey">
+            <div id="output-box-4-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-4')">+
+            </div>
+            <h4 style="display: inline;">Get tag name from environment</h4>
+            <br>
+            <div id="output-box-4" style="display: none;">
+                <pre class="pre-box">you have skipped this test.</pre>
+            </div>
+        </div>
+
+        <br>
+
+
+        <h3>Pull blobs</h3>
+
+
+        <div class="result red">
+            <div id="output-box-5-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-5')">+
+            </div>
+            <h4 style="display: inline;">GET nonexistent blob should result in 404 response</h4>
+            <br>
+            <div>
+                <div id="output-box-5" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.143218 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.142637587&#43;02:00
+TIME DURATION: 1.293675ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=E9FUtLUD6PU5u1z%2FJXVAsiTHZzAYFjNo7ajj0qFh; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 404</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-6-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-6')">+
+            </div>
+            <h4 style="display: inline;">GET request to existing blob URL should yield 200</h4>
+            <br>
+            <div>
+                <div id="output-box-6" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.145367 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.144870564&#43;02:00
+TIME DURATION: 1.005488ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=d5qxk%2Fy0WQf0eCup&#43;tfFjLpl0ZnTTDvX%2Fzzd1bHp; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Pull manifests</h3>
+
+
+        <div class="result red">
+            <div id="output-box-7-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-7')">+
+            </div>
+            <h4 style="display: inline;">GET nonexistent manifest should return 404</h4>
+            <br>
+            <div>
+                <div id="output-box-7" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.151071 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/manifests/.INVALID_MANIFEST_NAME  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 500 Internal Server Error
+RECEIVED AT  : 2020-05-25T11:40:49.150494073&#43;02:00
+TIME DURATION: 4.54292ms
+HEADERS      :
+	Content-Length: 197
+	Content-Type: application/json
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=oBSXfq72&#43;fcj9EcZo0DWWClHIC9WyW0bIKpjH34g; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;INTERNAL&#34;,
+         &#34;message&#34;: &#34;HTTP status client error (400 Bad Request) for url (http://localhost:5984/users/application/vnd.oci.image.manifest.v1&#43;json:conformance/test)&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 500
+to equal
+    &lt;int&gt;: 404</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-8-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-8')">+
+            </div>
+            <h4 style="display: inline;">GET request to manifest path (digest) should yield 200 response</h4>
+            <br>
+            <div>
+                <div id="output-box-8" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.156942 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 500 Internal Server Error
+RECEIVED AT  : 2020-05-25T11:40:49.155526311&#43;02:00
+TIME DURATION: 3.89457ms
+HEADERS      :
+	Content-Length: 197
+	Content-Type: application/json
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=tvrrvE9tZ7Wx64%2Fz5b88Qd08vm8VkkQd1LDl7v&#43;%2F; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;INTERNAL&#34;,
+         &#34;message&#34;: &#34;HTTP status client error (400 Bad Request) for url (http://localhost:5984/users/application/vnd.oci.image.manifest.v1&#43;json:conformance/test)&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 500
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-9-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-9')">+
+            </div>
+            <h4 style="display: inline;">GET request to manifest path (tag) should yield 200 response</h4>
+            <br>
+            <div>
+                <div id="output-box-9" style="display: none;">
+                    <pre class="pre-box"></pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;string&gt;: 
+not to be empty</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Error codes</h3>
+
+
+        <div class="result red">
+            <div id="output-box-10-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-10')">+
+            </div>
+            <h4 style="display: inline;">400 response body should contain OCI-conforming JSON message</h4>
+            <br>
+            <div>
+                <div id="output-box-10" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.159724 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/manifests/sha256:totallywrong  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	Content-Type: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+&#34;YmxhYmxhYmxh&#34;
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 400 Bad Request
+RECEIVED AT  : 2020-05-25T11:40:49.159476526&#43;02:00
+TIME DURATION: 1.368125ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=R5tFB4Ekv%2F&#43;a9Gf4tPzuZZ73TXlBMPzxuHwCdUaL; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;*json.SyntaxError | 0xc00000e7e0&gt;: {
+        msg: &#34;unexpected end of JSON input&#34;,
+        Offset: 0,
+    }
+to be nil</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Teardown</h3>
+
+
+        <div class="result red">
+            <div id="output-box-11-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-11')">+
+            </div>
+            <h4 style="display: inline;">Delete config blob created in setup</h4>
+            <br>
+            <div>
+                <div id="output-box-11" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.161428 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.160929833&#43;02:00
+TIME DURATION: 868.899µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=AifH5it7dUl5ywgwcFtoZDJ750amdSX2LUoqSs0H; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-12-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-12')">+
+            </div>
+            <h4 style="display: inline;">Delete layer blob created in setup</h4>
+            <br>
+            <div>
+                <div id="output-box-12" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.163240 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.16290958&#43;02:00
+TIME DURATION: 853.43µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=RyOURhyAeLxllgoJ9YYWPHgVCXb5I9MTK11L5Lta; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-13-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-13')">+
+            </div>
+            <h4 style="display: inline;">Delete manifest created in setup</h4>
+            <br>
+            <div>
+                <div id="output-box-13" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.164770 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.164312822&#43;02:00
+TIME DURATION: 664.38µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=53AtsmEyPD&#43;eFnJuOp5kKRXEuNiEMhOc9%2FrmvhL9; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+    </div>
+
+
+    <h2>Push</h2>
+    <div class="subcategory">
+
+
+        <h3>Blob Upload Streamed</h3>
+
+
+        <div class="result green">
+            <div id="output-box-14-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-14')">+
+            </div>
+            <h4 style="display: inline;">PATCH request with blob in body should yield 202 response</h4>
+            <br>
+            <div id="output-box-14" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.173675 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.1731556&#43;02:00
+TIME DURATION: 7.817533ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/648ebd6e-2c88-44d9-af96-71ce3d7ed620
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=tqHxHWY6GTDWfHJDECfAMatCJiF052W&#43;Yykdkq4G; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.187276 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/conformance/test/blobs/uploads/648ebd6e-2c88-44d9-af96-71ce3d7ed620  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+TkJBIEphbSBvbiBteSBOQkEgdG9hc3Q=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.18675347&#43;02:00
+TIME DURATION: 12.966673ms
+HEADERS      :
+	Blob-Upload-Session-Id: 648ebd6e-2c88-44d9-af96-71ce3d7ed620
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/648ebd6e-2c88-44d9-af96-71ce3d7ed620
+	Range: bytes=0-23
+	Server: Enseada
+	Set-Cookie: enseada_session=xL&#43;wHV&#43;NDoUcWW6KB4C0VHNoEp79YSEmY6WPibn1; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-15-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-15')">+
+            </div>
+            <h4 style="display: inline;">PUT request to session URL with digest should yield 201 response</h4>
+            <br>
+            <div id="output-box-15" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.203197 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/648ebd6e-2c88-44d9-af96-71ce3d7ed620?digest=sha256%3A852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 23
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.202630726&#43;02:00
+TIME DURATION: 15.203357ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75
+	Server: Enseada
+	Set-Cookie: enseada_session=O9abYZ%2FNnOrgaGyTzLzq9s5dJ330UkTxSjPBBPci; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+        <br>
+
+
+        <h3>Blob Upload Monolithic</h3>
+
+
+        <div class="result red">
+            <div id="output-box-16-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-16')">+
+            </div>
+            <h4 style="display: inline;">GET nonexistent blob should result in 404 response</h4>
+            <br>
+            <div>
+                <div id="output-box-16" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.204672 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.204120823&#43;02:00
+TIME DURATION: 813.233µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=uDtAsh0m5XZJ6nAAPkq1L0awe%2FtTYmwVguoRMAFZ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 404</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-17-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-17')">+
+            </div>
+            <h4 style="display: inline;">POST request with digest and blob should yield a 201</h4>
+            <br>
+            <div>
+                <div id="output-box-17" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.211105 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.210553007&#43;02:00
+TIME DURATION: 5.17567ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/cbfae97f-26bd-403e-95aa-a533e666636f
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=1llqSzrUtznZ1eAQRuUG72Gj8UKu7lPLQHEyUygn; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 202
+to equal
+    &lt;int&gt;: 201</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-18-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-18')">+
+            </div>
+            <h4 style="display: inline;">GET request to blob URL from prior request should yield 200</h4>
+            <br>
+            <div>
+                <div id="output-box-18" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.212875 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.212349927&#43;02:00
+TIME DURATION: 662.798µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=g0O&#43;OUe1tS1MpZgK%2FGCExXCbnt%2Fx8&#43;ZfMZRwDnI8; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-19-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-19')">+
+            </div>
+            <h4 style="display: inline;">POST request should yield a session ID</h4>
+            <br>
+            <div id="output-box-19" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.219702 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.219196437&#43;02:00
+TIME DURATION: 5.777111ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/b37c56d9-fefa-415d-ad23-33e810a05fbb
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=Cq4s72TfgysmJKgVb4YAM179RAlp8uxKLDKgPqc2; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-20-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-20')">+
+            </div>
+            <h4 style="display: inline;">PUT upload of a blob should yield a 201 Response</h4>
+            <br>
+            <div id="output-box-20" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.231929 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/b37c56d9-fefa-415d-ad23-33e810a05fbb?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.2313094&#43;02:00
+TIME DURATION: 11.460695ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Server: Enseada
+	Set-Cookie: enseada_session=&#43;%2FgUSi2JKeRwN9ijLJYosowaVUvI3WnzsJ0dksJ&#43;; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-21-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-21')">+
+            </div>
+            <h4 style="display: inline;">GET request to existing blob should yield 200 response</h4>
+            <br>
+            <div>
+                <div id="output-box-21" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.232998 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.232760974&#43;02:00
+TIME DURATION: 709.396µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=BdcJF8T4r2Z1Mk3ovPCkZnJgj6&#43;Wq%2Foc4ibgj0h2; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-22-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-22')">+
+            </div>
+            <h4 style="display: inline;">PUT upload of a layer blob should yield a 201 Response</h4>
+            <br>
+            <div id="output-box-22" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.240294 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.239843863&#43;02:00
+TIME DURATION: 6.476999ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/58776c89-c80c-45c8-b1fe-5a9fbd24702b
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=PXI2Ea3C7IOUUVpWgN8uFAZJpgl809eCNd5PNfqn; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.253283 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/58776c89-c80c-45c8-b1fe-5a9fbd24702b?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 168
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.25290763&#43;02:00
+TIME DURATION: 12.512772ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Server: Enseada
+	Set-Cookie: enseada_session=waSvKMWgl2tzZFj%2FIWCldJSKsbzrZOgwfhotPA&#43;N; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-23-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-23')">+
+            </div>
+            <h4 style="display: inline;">GET request to existing layer should yield 200 response</h4>
+            <br>
+            <div>
+                <div id="output-box-23" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.254527 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.254113438&#43;02:00
+TIME DURATION: 761.976µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=y760bQLgp3IfymttEOpOW&#43;NX1SGQ2giG0kIm9CSc; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Blob Upload Chunked</h3>
+
+
+        <div class="result red">
+            <div id="output-box-24-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-24')">+
+            </div>
+            <h4 style="display: inline;">Out-of-order blob upload should return 416</h4>
+            <br>
+            <div>
+                <div id="output-box-24" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.261186 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 0
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.260597641&#43;02:00
+TIME DURATION: 5.456463ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/7256975d-a25a-4eb1-9e85-5ba391ce87e7
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=e0iwAHLtnDnpTbNG&#43;UGTLALYFoJBxHdJHKVLlEjM; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.275028 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/conformance/test/blobs/uploads/7256975d-a25a-4eb1-9e85-5ba391ce87e7  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.274425658&#43;02:00
+TIME DURATION: 13.136806ms
+HEADERS      :
+	Blob-Upload-Session-Id: 7256975d-a25a-4eb1-9e85-5ba391ce87e7
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/7256975d-a25a-4eb1-9e85-5ba391ce87e7
+	Range: bytes=0-24
+	Server: Enseada
+	Set-Cookie: enseada_session=juVbPw4FKUEsVx1bcmSFBNjzcW%2FiXCwfuLTkeuSo; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 202
+to equal
+    &lt;int&gt;: 416</pre>
+            <br>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-25-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-25')">+
+            </div>
+            <h4 style="display: inline;">PATCH request with first chunk should return 202</h4>
+            <br>
+            <div id="output-box-25" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.282839 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 0
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.282565432&#43;02:00
+TIME DURATION: 6.959796ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/6b3d009c-162f-4d40-8b12-e10147d55a4f
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=8a9yOEqjoyL&#43;bXgED29gGrL8qFLjohadVuf4o&#43;44; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.298989 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/conformance/test/blobs/uploads/6b3d009c-162f-4d40-8b12-e10147d55a4f  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 3
+	Content-Range: 0-2
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+SGVs
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.298462965&#43;02:00
+TIME DURATION: 15.564371ms
+HEADERS      :
+	Blob-Upload-Session-Id: 6b3d009c-162f-4d40-8b12-e10147d55a4f
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/6b3d009c-162f-4d40-8b12-e10147d55a4f
+	Range: bytes=0-2
+	Server: Enseada
+	Set-Cookie: enseada_session=%2Ffvp3zqavSBjYQu5vF3%2FNMScYp9oCbmTEbyKTPN0; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-26-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-26')">+
+            </div>
+            <h4 style="display: inline;">PUT request with final chunk should return 201</h4>
+            <br>
+            <div id="output-box-26" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.322333 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/6b3d009c-162f-4d40-8b12-e10147d55a4f?digest=sha256%3A6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.321709393&#43;02:00
+TIME DURATION: 22.573511ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48
+	Server: Enseada
+	Set-Cookie: enseada_session=AAlL&#43;JgTJ58PPPCXkgy3N00kct1iW204jwZsThTh; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+        <br>
+
+
+        <h3>Manifest Upload</h3>
+
+
+        <div class="result red">
+            <div id="output-box-27-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-27')">+
+            </div>
+            <h4 style="display: inline;">GET nonexistent manifest should return 404</h4>
+            <br>
+            <div>
+                <div id="output-box-27" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.326785 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/manifests/.INVALID_MANIFEST_NAME  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 500 Internal Server Error
+RECEIVED AT  : 2020-05-25T11:40:49.326463854&#43;02:00
+TIME DURATION: 4.013225ms
+HEADERS      :
+	Content-Length: 197
+	Content-Type: application/json
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=n&#43;soaOHBz2yn37Q8eBrgfjD42RAGoyAoGs0kHVth; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;INTERNAL&#34;,
+         &#34;message&#34;: &#34;HTTP status client error (400 Bad Request) for url (http://localhost:5984/users/application/vnd.oci.image.manifest.v1&#43;json:conformance/test)&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 500
+to equal
+    &lt;int&gt;: 404</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-28-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-28')">+
+            </div>
+            <h4 style="display: inline;">PUT should accept a manifest upload</h4>
+            <br>
+            <div>
+                <div id="output-box-28" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.328993 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/manifests/test0  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	Content-Type: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+&#34;ewoJInNjaGVtYVZlcnNpb24iOiAyLAoJImNvbmZpZyI6IHsKCQkibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UuY29uZmlnLnYxK2pzb24iLAoJCSJkaWdlc3QiOiAic2hhMjU2OjY2YWQ5ODE2NWQzOGY1M2VlNzM4NjhmODJiZDRlZWQ2MDU1NmRkZmVlODI0ODEwYTQwNjJjNGY3NzdiMjBhNWIiLAoJCSJzaXplIjogMTEzCgl9LAoJImxheWVycyI6IFsKCQl7CgkJCSJtZWRpYVR5cGUiOiAiYXBwbGljYXRpb24vdm5kLm9jaS5pbWFnZS5sYXllci52MS50YXIrZ3ppcCIsCgkJCSJkaWdlc3QiOiAic2hhMjU2OjQ4YWNmZjFkOTE3NTJlOTU3NTI3YzFiNTQxNmU3Mzc2ZDkxMGJjYWNmMDFiOTQ0MTE3NWY4YzI3MGUzNWMxODMiLAoJCQkic2l6ZSI6IDE2OAoJCX0KCV0KfQ==&#34;
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 400 Bad Request
+RECEIVED AT  : 2020-05-25T11:40:49.328371463&#43;02:00
+TIME DURATION: 1.211078ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=jLeRtWqPhpU0hOQGDTHf3RO8SZS5JsP9nbRgdbfk; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;string&gt;: 
+not to be empty</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-29-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-29')">+
+            </div>
+            <h4 style="display: inline;">Registry should accept a manifest upload with no layers</h4>
+            <br>
+            <div>
+                <div id="output-box-29" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.331001 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/manifests/emptylayer  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	Content-Type: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+&#34;ewoJInNjaGVtYVZlcnNpb24iOiAyLAoJImNvbmZpZyI6IHsKCQkibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UuY29uZmlnLnYxK2pzb24iLAoJCSJkaWdlc3QiOiAic2hhMjU2OjY2YWQ5ODE2NWQzOGY1M2VlNzM4NjhmODJiZDRlZWQ2MDU1NmRkZmVlODI0ODEwYTQwNjJjNGY3NzdiMjBhNWIiLAoJCSJzaXplIjogMTEzCgl9LAoJImxheWVycyI6IFtdCn0=&#34;
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 400 Bad Request
+RECEIVED AT  : 2020-05-25T11:40:49.330601735&#43;02:00
+TIME DURATION: 1.06957ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=CD8byvLASv5loqUVbrlwyz&#43;C1AGBadRXUAXScFO6; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;string&gt;: 
+not to be empty</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-30-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-30')">+
+            </div>
+            <h4 style="display: inline;">GET request to manifest URL (digest) should yield 200 response</h4>
+            <br>
+            <div>
+                <div id="output-box-30" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.335880 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 500 Internal Server Error
+RECEIVED AT  : 2020-05-25T11:40:49.335248842&#43;02:00
+TIME DURATION: 3.903236ms
+HEADERS      :
+	Content-Length: 197
+	Content-Type: application/json
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=xBBDPtYN&#43;DrTSS92&#43;KIaIksj1&#43;t2aTz66JAVMKww; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;INTERNAL&#34;,
+         &#34;message&#34;: &#34;HTTP status client error (400 Bad Request) for url (http://localhost:5984/users/application/vnd.oci.image.manifest.v1&#43;json:conformance/test)&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 500
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Teardown</h3>
+
+
+        <div class="result green">
+            <div id="output-box-31-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-31')">+
+            </div>
+            <h4 style="display: inline;">Delete config blob created in tests</h4>
+            <br>
+            <div id="output-box-31" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.338009 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.337708108&#43;02:00
+TIME DURATION: 1.274829ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=amflWET2mlKZqAztOWZbXm&#43;nQKI2T13U5uErw4nd; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-32-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-32')">+
+            </div>
+            <h4 style="display: inline;">Delete layer blob created in setup</h4>
+            <br>
+            <div id="output-box-32" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.339714 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.339138192&#43;02:00
+TIME DURATION: 1.073798ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=vIMb%2FT4u36VcBtqX4m84OTK6uugd8wEMJYkB8VXI; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-33-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-33')">+
+            </div>
+            <h4 style="display: inline;">Delete manifest created in tests</h4>
+            <br>
+            <div id="output-box-33" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.341514 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.340778734&#43;02:00
+TIME DURATION: 962.806µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=KS3JOnwO&#43;jNZHUcLJ5keSDPS&#43;6fpiWeJq6AdQOUT; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+        <br>
+
+
+    </div>
+
+
+    <h2>Content Discovery</h2>
+    <div class="subcategory">
+
+
+        <h3>Setup</h3>
+
+
+        <div class="result green">
+            <div id="output-box-34-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-34')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test blob</h4>
+            <br>
+            <div id="output-box-34" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.349819 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.349312726&#43;02:00
+TIME DURATION: 7.534576ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/012e8fd3-2d1b-47c9-b09f-55dbbd63e264
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=joXsB&#43;JgQ38skroWCaE&#43;oWny5&#43;1QrfcEgRh8cJ51; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.363772 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/012e8fd3-2d1b-47c9-b09f-55dbbd63e264?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.363118551&#43;02:00
+TIME DURATION: 13.177993ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Server: Enseada
+	Set-Cookie: enseada_session=aYZoeIFOr1BE&#43;jOZcAMQYXDhCg5Hrqq0MaphJIDw; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-35-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-35')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test layer</h4>
+            <br>
+            <div id="output-box-35" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.371032 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.370716127&#43;02:00
+TIME DURATION: 6.799071ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/03753667-df1c-4dee-be36-574042a5e93d
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=JoXX6aFtrydAjXoxwkwW2yClgtFNbG7bsi0LSwOQ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.385255 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/03753667-df1c-4dee-be36-574042a5e93d?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 168
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.384873669&#43;02:00
+TIME DURATION: 13.701868ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Server: Enseada
+	Set-Cookie: enseada_session=mEecm05kLMCIgwIgkK7QPzVBF8YKMt0sgwnOQkyD; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-36-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-36')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test tags</h4>
+            <br>
+            <div>
+                <div id="output-box-36" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.387140 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/manifests/test0  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	Content-Type: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+&#34;ewoJInNjaGVtYVZlcnNpb24iOiAyLAoJImNvbmZpZyI6IHsKCQkibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UuY29uZmlnLnYxK2pzb24iLAoJCSJkaWdlc3QiOiAic2hhMjU2OjY2YWQ5ODE2NWQzOGY1M2VlNzM4NjhmODJiZDRlZWQ2MDU1NmRkZmVlODI0ODEwYTQwNjJjNGY3NzdiMjBhNWIiLAoJCSJzaXplIjogMTEzCgl9LAoJImxheWVycyI6IFsKCQl7CgkJCSJtZWRpYVR5cGUiOiAiYXBwbGljYXRpb24vdm5kLm9jaS5pbWFnZS5sYXllci52MS50YXIrZ3ppcCIsCgkJCSJkaWdlc3QiOiAic2hhMjU2OjQ4YWNmZjFkOTE3NTJlOTU3NTI3YzFiNTQxNmU3Mzc2ZDkxMGJjYWNmMDFiOTQ0MTE3NWY4YzI3MGUzNWMxODMiLAoJCQkic2l6ZSI6IDE2OAoJCX0KCV0KfQ==&#34;
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 400 Bad Request
+RECEIVED AT  : 2020-05-25T11:40:49.386790987&#43;02:00
+TIME DURATION: 1.417139ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=XAfpjLvGfNWDtBN8Y2I%2Fr%2FSB74k2a2pGCwPAUtnY; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 400
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result grey">
+            <div id="output-box-37-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-37')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test tags (no push)</h4>
+            <br>
+            <div id="output-box-37" style="display: none;">
+                <pre class="pre-box">you have skipped this test.</pre>
+            </div>
+        </div>
+
+        <br>
+
+
+        <h3>Test content discovery endpoints</h3>
+
+
+        <div class="result red">
+            <div id="output-box-38-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-38')">+
+            </div>
+            <h4 style="display: inline;">GET request to list tags should yield 200 response</h4>
+            <br>
+            <div>
+                <div id="output-box-38" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.389088 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/tags/list  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-05-25T11:40:49.388706171&#43;02:00
+TIME DURATION: 955.724µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=crZzXh5HADb51K0J7k0pGw1WCpindy68stSMHtWL; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 404
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-39-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-39')">+
+            </div>
+            <h4 style="display: inline;">GET number of tags should be limitable by `n` query parameter</h4>
+            <br>
+            <div>
+                <div id="output-box-39" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.390592 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/tags/list?n=2  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-05-25T11:40:49.390367042&#43;02:00
+TIME DURATION: 731.478µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=RdkS9HCf7&#43;8N5YxYHx0hsYpgZNtoHR1uzzfbcu2p; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 404
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+
+        <br>
+
+
+        <h3>Teardown</h3>
+
+
+        <div class="result red">
+            <div id="output-box-41-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-41')">+
+            </div>
+            <h4 style="display: inline;">Delete config blob created in tests</h4>
+            <br>
+            <div>
+                <div id="output-box-41" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.393712 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.393426176&#43;02:00
+TIME DURATION: 943.039µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=tzTb82GsdmzfC6P7qujvZpfJj&#43;W7QsPfDYcb&#43;0VO; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-42-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-42')">+
+            </div>
+            <h4 style="display: inline;">Delete layer blob created in setup</h4>
+            <br>
+            <div>
+                <div id="output-box-42" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.395175 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.39494064&#43;02:00
+TIME DURATION: 924.274µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=tbMOB3ste1O1lH941WRQX6zKV0baVWeeN3wT4ONw; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-43-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-43')">+
+            </div>
+            <h4 style="display: inline;">Delete created manifest &amp; associated tags</h4>
+            <br>
+            <div>
+                <div id="output-box-43" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.396638 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.396243432&#43;02:00
+TIME DURATION: 770.793µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=PJf3Ti1EE9I6DHvDPypeOJK465a3iDd0FhAa5TAm; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+    </div>
+
+
+    <h2>Content Management</h2>
+    <div class="subcategory">
+
+
+        <h3>Setup</h3>
+
+
+        <div class="result green">
+            <div id="output-box-44-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-44')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test config blob</h4>
+            <br>
+            <div id="output-box-44" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.405068 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.404778546&#43;02:00
+TIME DURATION: 7.575584ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/c65b27a1-f076-4c45-a917-a3ceaf8f4725
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=2N35n9EE0PPLc9TxvlYtY197j2sb997QFqAqPShs; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.421516 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/c65b27a1-f076-4c45-a917-a3ceaf8f4725?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.42117711&#43;02:00
+TIME DURATION: 16.046776ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Server: Enseada
+	Set-Cookie: enseada_session=DfQ5QP0X1FbsFBf94E0N2LZ4u87aB&#43;A5PToHLw5M; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
+            <div id="output-box-45-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-45')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test layer</h4>
+            <br>
+            <div id="output-box-45" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.428349 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-05-25T11:40:49.428063947&#43;02:00
+TIME DURATION: 6.479855ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/uploads/27d59f93-12b4-418b-8ab3-0c02e6f4525e
+	Range: bytes=0-0
+	Server: Enseada
+	Set-Cookie: enseada_session=Ed%2Fg7sQaSLpFyTE&#43;s0iD8GwUxZ2YG%2FRKE59LluRH; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/05/25 11:40:49.443234 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/27d59f93-12b4-418b-8ab3-0c02e6f4525e?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 168
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-05-25T11:40:49.442362547&#43;02:00
+TIME DURATION: 13.952814ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: http://containers.localhost:9623/v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Server: Enseada
+	Set-Cookie: enseada_session=Dxq7kAyWV%2FPqH5tf2GTP3&#43;oS8EtgkXUFSNufau9i; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-46-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-46')">+
+            </div>
+            <h4 style="display: inline;">Populate registry with test tag</h4>
+            <br>
+            <div>
+                <div id="output-box-46" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.444885 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/manifests/tagtest0  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1&#43;json
+	Content-Type: application/vnd.oci.image.manifest.v1&#43;json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+&#34;ewoJInNjaGVtYVZlcnNpb24iOiAyLAoJImNvbmZpZyI6IHsKCQkibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UuY29uZmlnLnYxK2pzb24iLAoJCSJkaWdlc3QiOiAic2hhMjU2OjY2YWQ5ODE2NWQzOGY1M2VlNzM4NjhmODJiZDRlZWQ2MDU1NmRkZmVlODI0ODEwYTQwNjJjNGY3NzdiMjBhNWIiLAoJCSJzaXplIjogMTEzCgl9LAoJImxheWVycyI6IFsKCQl7CgkJCSJtZWRpYVR5cGUiOiAiYXBwbGljYXRpb24vdm5kLm9jaS5pbWFnZS5sYXllci52MS50YXIrZ3ppcCIsCgkJCSJkaWdlc3QiOiAic2hhMjU2OjQ4YWNmZjFkOTE3NTJlOTU3NTI3YzFiNTQxNmU3Mzc2ZDkxMGJjYWNmMDFiOTQ0MTE3NWY4YzI3MGUzNWMxODMiLAoJCQkic2l6ZSI6IDE2OAoJCX0KCV0KfQ==&#34;
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 400 Bad Request
+RECEIVED AT  : 2020-05-25T11:40:49.444483822&#43;02:00
+TIME DURATION: 1.055613ms
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=8qBAkrBfKbnJ0d8QG7DfBqX%2FoB%2FTjzJ1paNArWOz; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 400
+to be &lt;
+    &lt;int&gt;: 300</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-47-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-47')">+
+            </div>
+            <h4 style="display: inline;">Check how many tags there are before anything gets deleted</h4>
+            <br>
+            <div>
+                <div id="output-box-47" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.446101 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/tags/list  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-05-25T11:40:49.445725868&#43;02:00
+TIME DURATION: 476.224µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=lkBOxWaxs28JgZ7VvpEP16JmdIOkgUnQ0pUdgoPZ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 404
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Manifest delete</h3>
+
+
+        <div class="result green">
+            <div id="output-box-48-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-48')">+
+            </div>
+            <h4 style="display: inline;">DELETE request to manifest tag should return 202, unless tag deletion is
+                disallowed (400/405)</h4>
+            <br>
+            <div id="output-box-48" style="display: none;">
+                        <pre class="pre-box">2020/05/25 11:40:49.447652 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/manifests/tagtest0  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.447256593&#43;02:00
+TIME DURATION: 552.909µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=2zYzbqLzsIMmXJ0WnRn%2FYdfMYW4PuHBS&#43;zllviPV; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-49-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-49')">+
+            </div>
+            <h4 style="display: inline;">DELETE request to manifest (digest) should yield 202 response unless already
+                deleted</h4>
+            <br>
+            <div>
+                <div id="output-box-49" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.448660 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.44822465&#43;02:00
+TIME DURATION: 493.817µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=mYvbRcv4LTFwi2QDenBKsTaxCjAd31gtAgd&#43;ZhqW; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&amp;{202}) %!s(*matchers.EqualMatcher=&amp;{404})]</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-50-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-50')">+
+            </div>
+            <h4 style="display: inline;">GET request to deleted manifest URL should yield 404 response, unless delete is
+                disallowed</h4>
+            <br>
+            <div>
+                <div id="output-box-50" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.452800 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 500 Internal Server Error
+RECEIVED AT  : 2020-05-25T11:40:49.452249045&#43;02:00
+TIME DURATION: 3.054225ms
+HEADERS      :
+	Content-Length: 197
+	Content-Type: application/json
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=Fp4m5Ts&#43;H6tdfcORfBGxEdTFXc8hIgsS2nRgV7Bz; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;INTERNAL&#34;,
+         &#34;message&#34;: &#34;HTTP status client error (400 Bad Request) for url (http://localhost:5984/users/application/vnd.oci.image.manifest.v1&#43;json:conformance/test)&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 500
+To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&amp;{404}) %!s(*matchers.EqualMatcher=&amp;{200})]</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-51-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-51')">+
+            </div>
+            <h4 style="display: inline;">GET request to tags list should reflect manifest deletion</h4>
+            <br>
+            <div>
+                <div id="output-box-51" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.454459 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/tags/list  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-05-25T11:40:49.45401172&#43;02:00
+TIME DURATION: 687.284µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=4VMB9oYA60I%2FQiZtNwf%2FC4&#43;%2FSSxYyZBssQIcawaW; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 404
+to equal
+    &lt;int&gt;: 200</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+        <h3>Blob delete</h3>
+
+
+        <div class="result red">
+            <div id="output-box-52-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-52')">+
+            </div>
+            <h4 style="display: inline;">DELETE request to blob URL should yield 202 response</h4>
+            <br>
+            <div>
+                <div id="output-box-52" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.455763 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.455527035&#43;02:00
+TIME DURATION: 529.585µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=ClLZ8uT&#43;%2Fdw1xFB3thuUJxeEO4CT&#43;RoI5g30knMj; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 202</pre>
+            <br>
+        </div>
+
+
+        <div class="result red">
+            <div id="output-box-53-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-53')">+
+            </div>
+            <h4 style="display: inline;">GET request to deleted blob URL should yield 404 response</h4>
+            <br>
+            <div>
+                <div id="output-box-53" style="display: none;">
+                          <pre class="pre-box">2020/05/25 11:40:49.456964 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 405 Method Not Allowed
+RECEIVED AT  : 2020-05-25T11:40:49.456559444&#43;02:00
+TIME DURATION: 499.147µs
+HEADERS      :
+	Content-Length: 0
+	Date: Mon, 25 May 2020 09:40:49 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=AXBzIUQqC2drt3&#43;y6UkutK0pq7HrrQFRWHdvek0w; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+                </div>
+            </div>
+            <pre class="fail-message">Expected
+    &lt;int&gt;: 405
+to equal
+    &lt;int&gt;: 404</pre>
+            <br>
+        </div>
+
+        <br>
+
+
+    </div>
+
+
+</div>
+</body>
+</html>
