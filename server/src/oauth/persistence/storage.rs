@@ -55,9 +55,19 @@ impl ClientStorage for CouchStorage {
     }
 
     async fn save_client(&self, client: Client) -> Result<Client> {
+        let id = ClientEntity::build_guid(client.client_id());
         let mut entity = ClientEntity::from(client.clone());
+        if let Some(rev) = self
+            .db
+            .get::<ClientEntity>(&id.to_string())
+            .await?
+            .as_ref()
+            .and_then(ClientEntity::rev)
+        {
+            entity.set_rev(rev.to_string());
+        }
         let res = self.db.put(&entity.id().to_string(), &entity).await?;
-        entity.set_rev(res.rev.clone());
+        entity.set_rev(res.rev);
         entity.try_into()
     }
 

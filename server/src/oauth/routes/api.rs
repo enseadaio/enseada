@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::{delete, get, post};
+use actix_web::{delete, get, post, put};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
@@ -131,6 +131,7 @@ pub async fn create_client(
 
     log::debug!("saving client");
     let client = storage.save_client(client).await?;
+    log::debug!("client saved");
     Ok(Json(ClientResponse::from(client)))
 }
 
@@ -161,7 +162,54 @@ pub async fn get_client(
     client
         .ok_or_else(|| ApiError::not_found(&format!("client '{}' not found", client_id)))
         .map(ClientResponse::from)
-        .map(|res| Json(res))
+        .map(Json)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateClientPayload {
+    pub client_secret: Option<String>,
+    pub allowed_scopes: Option<Scope>,
+    pub allowed_redirect_uris: Option<HashSet<url::Url>>,
+}
+
+#[put("/api/v1beta1/clients/{client_id}")]
+pub async fn update_client(
+    storage: Data<CouchStorage>,
+    enforcer: Data<RwLock<Enforcer>>,
+    scope: Scope,
+    current_user: CurrentUser,
+    path: Path<ClientPathParam>,
+    body: Json<UpdateClientPayload>,
+) -> ApiResult<Json<ClientResponse>> {
+    Scope::from("clients:manage").matches(&scope)?;
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Guid::simple("clients"), "update")?;
+
+    let client_id = &path.client_id;
+
+    log::debug!("updating client '{}'", client_id);
+
+    let mut client = storage
+        .get_client(client_id)
+        .await
+        .ok_or_else(|| ApiError::not_found(&format!("client '{}' not found", client_id)))?;
+
+    if let Some(client_secret) = &body.client_secret {
+        client.set_client_secret(client_secret.clone())?;
+    }
+
+    if let Some(allowed_scopes) = &body.allowed_scopes {
+        client.set_allowed_scopes(allowed_scopes.clone());
+    }
+
+    if let Some(allowed_redirect_uris) = &body.allowed_redirect_uris {
+        client.set_allowed_redirect_uris(allowed_redirect_uris.clone());
+    }
+
+    log::debug!("saving client");
+    let client = storage.save_client(client).await?;
+    log::debug!("client saved");
+    Ok(Json(ClientResponse::from(client)))
 }
 
 #[delete("/api/v1beta1/clients/{client_id}")]
@@ -181,10 +229,14 @@ pub async fn delete_client(
         "delete",
     )?;
 
-    let client = storage.get_client(client_id).await;
-    let client =
-        client.ok_or_else(|| ApiError::not_found(&format!("client '{}' not found", client_id)))?;
+    let client = storage
+        .get_client(client_id)
+        .await
+        .ok_or_else(|| ApiError::not_found(&format!("client '{}' not found", client_id)))?;
+
+    log::debug!("deleting client");
     storage.delete_client(&client).await?;
+    log::debug!("client deleted");
 
     Ok(Json(ClientResponse::from(client)))
 }

@@ -587,6 +587,182 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/APIError"
+  /api/v1beta1/clients:
+    get:
+      tags:
+        - clients
+      summary: List registered clients
+      operationId: client::list
+      x-required-permissions:
+        - object: clients
+          action: read
+      security:
+        - oauth:
+            - clients:read
+      parameters:
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        uniqueItems: true
+                        minItems: 0
+                        items:
+                          $ref: "#/components/schemas/Client"
+    post:
+      tags:
+        - clients
+      summary: Register a new client
+      operationId: client::register
+      x-required-permissions:
+        - object: clients
+          action: create
+      security:
+        - oauth:
+            - clients:manage
+      requestBody:
+        required: true
+        description: New client login information
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Client"
+      responses:
+        "200":
+          description: New client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "409":
+          description: A client with the given client ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+  "/api/v1beta1/clients/{client_id}":
+    parameters:
+      - name: client_id
+        in: path
+        description: Client ID of the desired client
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - clients
+      summary: Fetch a single client details
+      operationId: client::get
+      x-required-permissions:
+        - object: client:$client_id
+          action: read
+      security:
+        - oauth:
+            - clients:read
+      responses:
+        "200":
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A client with the given client ID doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    put:
+      tags:
+        - clients
+      summary: Edit a client
+      operationId: client::update
+      x-required-permissions:
+        - object: client:$client_id
+          action: update
+        - object: client:$client_id
+          action: disable
+          description: only required to change the `enabled` status
+      security:
+        - oauth:
+            - clients:manage
+      requestBody:
+        required: true
+        description: Client information to update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientEdit"
+      responses:
+        "200":
+          description: Updated client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A client with the given client ID doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+    delete:
+      tags:
+        - clients
+      summary: Delete a client
+      operationId: client::delete
+      x-required-permissions:
+        - object: client:$client_id
+          action: delete
+      security:
+        - oauth:
+            - clients:manage
+      responses:
+        "200":
+          description: Deleted client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
+        "404":
+          description: A client with the given client ID doesn't exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIError"
   /health:
     get:
       tags:
@@ -711,6 +887,41 @@ components:
           type: string
           description: The action that is permitted on the object
           example: read
+    Client:
+      type: object
+      required:
+        - client_id
+        - kind
+        - allowed_scopes
+        - allowed_redirect_uris
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+          description: Required for clients with kind 'confidential'
+        kind:
+          type: string
+          enum:
+            - public
+            - confidential
+        allowed_scopes:
+          type: string
+        allowed_redirect_uris:
+          type: array
+          items:
+            type: string
+    ClientEdit:
+      type: object
+      properties:
+        client_secret:
+          type: string
+        allowed_scopes:
+          type: string
+        allowed_redirect_uris:
+          type: array
+          items:
+            type: string
     HealthResponse:
       type: object
       required:

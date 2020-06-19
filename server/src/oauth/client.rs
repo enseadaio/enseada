@@ -93,4 +93,29 @@ impl Client {
     pub fn allowed_redirect_uris(&self) -> &HashSet<url::Url> {
         &self.allowed_redirect_uris
     }
+
+    pub fn set_client_secret(&mut self, secret: String) -> Result<()> {
+        if let ClientKind::Public = self.kind {
+            return Err(Error::new(
+                ErrorKind::InvalidClient,
+                "cannot set client secret for a public client".to_string(),
+            ));
+        }
+
+        let secret = secure::hash_password(&secret)
+            .map_err(|msg| Error::new(ErrorKind::InvalidClient, msg))?;
+
+        self.kind = Confidential { secret };
+        Ok(())
+    }
+
+    pub fn set_allowed_scopes(&mut self, scopes: Scope) -> &mut Self {
+        self.allowed_scopes = scopes;
+        self
+    }
+
+    pub fn set_allowed_redirect_uris(&mut self, uris: HashSet<url::Url>) -> &mut Self {
+        self.allowed_redirect_uris = uris;
+        self
+    }
 }

@@ -38,5 +38,6 @@ pub fn mount(cfg: &mut ServiceConfig) {
     cfg.service(api::list_clients);
     cfg.service(api::create_client);
     cfg.service(api::get_client);
+    cfg.service(api::update_client);
     cfg.service(api::delete_client);
 }
