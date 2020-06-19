@@ -5,7 +5,7 @@ use actix_web::error::{Error, InternalError, QueryPayloadError, UrlencodedError}
 use actix_web::http::header;
 use actix_web::web::{Data, Form, Json, Query};
 use actix_web::web::{FormConfig, QueryConfig};
-use actix_web::{get, post, FromRequest};
+use actix_web::{get, post};
 use actix_web::{HttpRequest, HttpResponse};
 use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,7 @@ use url::Url;
 
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
+use crate::http::responses;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::oauth::handler::{BasicAuth, RequestHandler};
 use crate::oauth::request::{
@@ -21,7 +22,6 @@ use crate::oauth::request::{
 use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use crate::oauth::session::Session;
 use crate::oauth::ConcreteOAuthHandler;
-use crate::responses;
 use crate::templates::oauth::LoginForm;
 use crate::user::UserService;
 

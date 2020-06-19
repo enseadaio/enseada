@@ -12,6 +12,7 @@ pub mod name {
     pub const OAUTH: &str = "oauth";
     pub const USERS: &str = "users";
     pub const RBAC: &str = "rbac";
+    pub const OCI: &str = "oci";
 }
 
 lazy_static! {

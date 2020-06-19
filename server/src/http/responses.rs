@@ -1,8 +1,9 @@
 use actix_web::http::header;
-use actix_web::HttpResponse;
 use actix_web::web::Json;
+use actix_web::HttpResponse;
 
-use crate::guid::Guid;
+use enseada::guid::Guid;
+
 use crate::http::error::ApiError;
 
 pub fn ok<T>(data: T) -> Result<Json<T>, ApiError> {
@@ -17,8 +18,12 @@ pub fn redirect_to(location: impl ToString) -> HttpResponse {
 }
 
 pub fn not_found<T>(id: &Guid) -> Result<Json<T>, ApiError> {
-    let kind = id.partition().unwrap_or_else(|| "resource".to_string());
-    Err(ApiError::NotFound(format!("{} '{}' not found", kind, id.id())))
+    let kind = id.partition().unwrap_or_else(|| "resource");
+    Err(ApiError::NotFound(format!(
+        "{} '{}' not found",
+        kind,
+        id.id()
+    )))
 }
 
 pub fn conflict<T>(msg: String) -> Result<Json<T>, ApiError> {

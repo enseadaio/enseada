@@ -5,6 +5,7 @@ use crate::http::error::ApiError;
 pub mod error;
 pub mod extractor;
 pub mod middleware;
+pub mod responses;
 
 pub type ApiResult<T> = Result<T, ApiError>;
 

@@ -8,7 +8,7 @@ use couchdb::status::Status;
 
 use crate::http::error::ApiError;
 use crate::http::error::ApiError::ServiceUnavailable;
-use crate::responses;
+use crate::http::responses;
 
 pub fn mount(cfg: &mut ServiceConfig) {
     cfg.service(get);

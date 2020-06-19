@@ -31,7 +31,11 @@ impl Client {
         }
     }
 
-    pub async fn get<Q: Serialize, T: DeserializeOwned>(&self, path: &str, query: Option<Q>) -> reqwest::Result<T> {
+    pub async fn get<Q: Serialize, T: DeserializeOwned>(
+        &self,
+        path: &str,
+        query: Option<Q>,
+    ) -> reqwest::Result<T> {
         self.request(Method::GET, path, None::<bool>, query).await
     }
 
@@ -54,7 +58,9 @@ impl Client {
     }
 
     pub async fn delete<Q: Serialize>(&self, path: &str, query: Option<Q>) -> reqwest::Result<()> {
-        self.request(Method::DELETE, path, None::<bool>, query).await.map(|_: Ok| ())
+        self.request(Method::DELETE, path, None::<bool>, query)
+            .await
+            .map(|_: Ok| ())
     }
 
     pub async fn exists(&self, path: &str) -> reqwest::Result<bool> {
@@ -75,7 +81,11 @@ impl Client {
         }
     }
 
-    pub async fn stream<Q: Serialize>(&self, path: &str, query: Option<Q>) -> reqwest::Result<impl futures::Stream<Item=reqwest::Result<Bytes>>> {
+    pub async fn stream<Q: Serialize>(
+        &self,
+        path: &str,
+        query: Option<Q>,
+    ) -> reqwest::Result<impl futures::Stream<Item = reqwest::Result<Bytes>>> {
         let req = self.build_req(Method::GET, path);
         let req = if let Some(query) = query {
             req.query::<Q>(&query)
@@ -113,13 +123,8 @@ impl Client {
         req.send().await?.error_for_status()?.json().await
     }
 
-    fn build_req(
-        &self,
-        method: Method,
-        path: &str,
-    ) -> RequestBuilder {
-        self
-            .client
+    fn build_req(&self, method: Method, path: &str) -> RequestBuilder {
+        self.client
             .request(method, self.build_url(path).unwrap())
             .basic_auth(&self.username, self.password.as_ref())
     }

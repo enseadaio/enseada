@@ -220,7 +220,7 @@ pub async fn delete_client(
     current_user: CurrentUser,
     path: Path<ClientPathParam>,
 ) -> ApiResult<Json<ClientResponse>> {
-    Scope::from("clients:manage").matches(&scope)?;
+    Scope::from("clients:delete").matches(&scope)?;
     let enforcer = enforcer.read().await;
     let client_id = &path.client_id;
     enforcer.check(
