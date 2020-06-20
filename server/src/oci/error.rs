@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 
+use actix_web::dev::ServiceResponse;
+use actix_web::middleware::errhandlers::ErrorHandlerResponse;
 use actix_web::{HttpResponse, ResponseError};
 use http::{header, StatusCode};
 use serde::{Deserialize, Serialize};
@@ -8,9 +10,7 @@ use serde::{Deserialize, Serialize};
 use couchdb::error::Error as CouchError;
 
 use crate::http::error::ApiError;
-use crate::oci::mime::v1::{
-    IMAGE_INDEX as OCI_IMAGE_INDEX_V1, IMAGE_MANIFEST as OCI_IMAGE_MANIFEST_V1,
-};
+use crate::oci::mime::MediaType;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Error {
@@ -53,6 +53,7 @@ impl From<ErrorCode> for Error {
             ErrorCode::Unauthorized => Self::new(code, "authentication required"),
             ErrorCode::Denied => Self::new(code, "requested access to the resource is denied"),
             ErrorCode::Unsupported => Self::new(code, "The operation is unsupported"),
+            ErrorCode::MediaTypeUnsupported => Self::new(code, "The media type is unsupported"),
             ErrorCode::NotFound => Self::new(code, "Not found"),
             ErrorCode::Internal => Self::new(code, "Internal server error"),
         }
@@ -110,12 +111,10 @@ impl ResponseError for Error {
         };
 
         let mut res = HttpResponse::build(self.status_code());
-        if let ErrorCode::Unsupported = &self.code {
-            res.header(
-                header::ACCEPT,
-                vec![OCI_IMAGE_INDEX_V1, OCI_IMAGE_MANIFEST_V1].join(","),
-            );
-        }
+        let mut accept = Vec::new();
+        accept.extend(MediaType::ImageIndex.compatible_types());
+        accept.extend(MediaType::ImageManifest.compatible_types());
+        res.header(header::ACCEPT, accept.join(","));
         res.json(body)
     }
 }
@@ -153,6 +152,9 @@ pub enum ErrorCode {
     Denied,
     /// The operation was unsupported due to a missing implementation or invalid set of parameters.
     Unsupported,
+    /// The media type was unsupported due to a missing implementation
+    MediaTypeUnsupported,
+    ///
     /// Not found
     NotFound,
     /// Internal server error.

@@ -111,14 +111,11 @@ impl UploadChunk {
     }
 
     pub fn from_request(headers: &HeaderMap, body: Bytes) -> Result<Self> {
-        let content_length = headers.get(header::CONTENT_LENGTH).ok_or_else(|| {
-            Error::new(ErrorCode::Unsupported, "Content-Length header is missing")
-        })?;
-
-        let content_length = content_length
-            .to_str()
-            .map_err(|_| Error::from(ErrorCode::Unsupported))?;
-        let content_length: usize = content_length.parse().unwrap();
+        let content_length = headers
+            .get(header::CONTENT_LENGTH)
+            .and_then(|h| h.to_str().ok())
+            .and_then(|h| h.parse().ok())
+            .unwrap_or_else(|| body.len());
 
         let content_range = headers.get(header::CONTENT_RANGE);
         let (start, end) = if let Some(hdr) = content_range {

@@ -1,10 +1,12 @@
 use actix::MailboxError;
+use actix_web::body::MessageBody;
 use actix_web::dev::ServiceResponse;
 use actix_web::error::BlockingError;
 use actix_web::http::StatusCode;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
 use actix_web::{Error as HttpError, HttpResponse, ResponseError};
 use derive_more::Display;
+use log::Level::Debug;
 use serde::{Deserialize, Serialize};
 use url::ParseError;
 
@@ -182,7 +184,7 @@ impl From<MailboxError> for ApiError {
     }
 }
 
-pub fn handle_bad_request<B>(
+pub fn handle_bad_request<B: MessageBody>(
     res: ServiceResponse<B>,
 ) -> actix_web::error::Result<ErrorHandlerResponse<B>> {
     let err = res.response().error();
@@ -191,6 +193,12 @@ pub fn handle_bad_request<B>(
         .unwrap_or_else(|| "unknown error".to_string());
     let err = ApiError::BadRequest(msg);
 
+    if log::log_enabled!(Debug) {
+        let req = res.request();
+        let res = res.response();
+        log::debug!("{:?}", req);
+        log::debug!("{:?}", res);
+    }
     log::error!("{}", &err);
     Ok(ErrorHandlerResponse::Response(res.error_response(err)))
 }

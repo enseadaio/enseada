@@ -217,7 +217,7 @@ impl Database {
                             if line.is_empty() {
                                 None
                             } else {
-                                log::debug!("Processing event: {}", &line);
+                                log::trace!("Processing event: {}", &line);
                                 let event: ChangeEvent = serde_json::from_str(&line).unwrap();
                                 Some(event)
                             }

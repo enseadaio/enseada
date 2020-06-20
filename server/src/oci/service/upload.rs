@@ -18,7 +18,7 @@ pub struct UploadService {
 
 impl UploadService {
     pub fn new(db: Arc<Database>, store: Arc<Provider>) -> Self {
-        UploadService { db, store }
+        Self { db, store }
     }
 
     pub async fn start_upload(&self, repo: &Repo) -> Result<Upload> {

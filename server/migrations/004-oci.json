@@ -5,6 +5,17 @@
             "kind": "create_database",
             "name": "oci",
             "partitioned": true
+        },
+        {
+            "kind": "create_index",
+            "name": "manifest_digest_idx",
+            "database": "oci",
+            "design_doc": "oci_indexes",
+            "index": {
+                "fields": [
+                    "manifest.config.digest"
+                ]
+            }
         }
     ]
 }

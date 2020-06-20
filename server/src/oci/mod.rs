@@ -4,6 +4,7 @@ mod digest;
 mod entity;
 mod error;
 mod header;
+mod manifest;
 mod mime;
 mod routes;
 mod service;

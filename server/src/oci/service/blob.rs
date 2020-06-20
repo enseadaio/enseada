@@ -16,7 +16,7 @@ pub struct BlobService {
 
 impl BlobService {
     pub fn new(db: Arc<Database>, store: Arc<Provider>) -> Self {
-        BlobService { db, store }
+        Self { db, store }
     }
 
     pub async fn fetch_content(&self, digest: &Digest) -> Result<Vec<u8>> {

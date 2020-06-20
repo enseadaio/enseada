@@ -1,5 +1,6 @@
 use actix_web::web::{Data, Path};
-use actix_web::{delete, get, HttpResponse};
+use actix_web::HttpResponse;
+use actix_web::{delete, get, head};
 
 use crate::couchdb::repository::Repository;
 use crate::oci::entity::Repo;
@@ -39,6 +40,36 @@ pub async fn get(
         .header(http::header::CONTENT_TYPE, "application/octet-stream")
         .header(header::CONTENT_DIGEST, digest_s)
         .body(content))
+}
+
+#[head("/{group}/{name}/blobs/{digest}")]
+pub async fn head(
+    blobs: Data<BlobService>,
+    repos: Data<RepoService>,
+    repo: Path<RepoPath>,
+    digest: Path<DigestParam>,
+) -> Result<HttpResponse> {
+    let group = &repo.group;
+    let name = &repo.name;
+    let digest = &digest.digest;
+
+    log::debug!("looking for repo {}/{}", group, name);
+    repos
+        .find(&Repo::build_id(group, name))
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
+
+    log::debug!("looking for blob {}", digest);
+    let digest_s = digest.to_string();
+    blobs
+        .find(&digest_s)
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::BlobUnknown))?;
+
+    Ok(HttpResponse::Ok()
+        .header(http::header::CONTENT_TYPE, "application/octet-stream")
+        .header(header::CONTENT_DIGEST, digest_s)
+        .finish())
 }
 
 #[delete("/{group}/{name}/blobs/{digest}")]

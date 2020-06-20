@@ -1,17 +1,47 @@
+use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use actix_web::http::header::IntoHeaderValue;
+use http::header::InvalidHeaderValue;
+use http::HeaderValue;
+use serde::{de::Error as SerdeError, Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::oci::error::{Error, ErrorCode};
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DigestAlgorithm {
+    Sha256,
+    Sha512,
+}
+
+impl Display for DigestAlgorithm {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            DigestAlgorithm::Sha256 => "sha256",
+            DigestAlgorithm::Sha512 => "sha512",
+        };
+        write!(f, "{}", s)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Digest {
-    algo: String,
+    algo: DigestAlgorithm,
     digest: String,
 }
 
 impl Digest {
     pub fn sha256(digest: String) -> Self {
         Digest {
-            algo: "sha256".to_string(),
+            algo: DigestAlgorithm::Sha256,
+            digest,
+        }
+    }
+
+    pub fn sha512(digest: String) -> Self {
+        Digest {
+            algo: DigestAlgorithm::Sha512,
             digest,
         }
     }
@@ -23,22 +53,31 @@ impl Display for Digest {
     }
 }
 
+impl TryFrom<String> for Digest {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let parts: Vec<&str> = value.split(':').collect();
+        let algo = parts.first().cloned().unwrap_or("");
+        let digest = parts.last().cloned().unwrap_or("");
+        match algo {
+            "sha256" => Ok(Digest::sha256(digest.to_string())),
+            "sha512" => Ok(Digest::sha512(digest.to_string())),
+            _ => Err(Error::new(
+                ErrorCode::DigestInvalid,
+                "provided digest algorithm not supported",
+            )),
+        }
+    }
+}
+
 impl<'de> Deserialize<'de> for Digest {
     fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let parts: Vec<&str> = s.split(':').collect();
-        let algo = parts.first().cloned().unwrap_or("");
-        let digest = parts.last().cloned().unwrap_or("");
-        match algo {
-            "sha256" => Ok(Digest::sha256(digest.to_string())),
-            _ => Err(D::Error::custom(format!(
-                "invalid digest algorithm '{}'",
-                algo
-            ))),
-        }
+        Self::try_from(s).map_err(|err| D::Error::custom(err.to_string()))
     }
 }
 

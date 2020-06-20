@@ -903,6 +903,7 @@ dependencies = [
  "actix-web-httpauth",
  "askama",
  "async-trait",
+ "base64 0.12.1",
  "bytes",
  "chrono",
  "config",

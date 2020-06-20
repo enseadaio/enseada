@@ -11,7 +11,7 @@ pub struct RepoService {
 
 impl RepoService {
     pub fn new(db: Arc<Database>) -> Self {
-        RepoService { db }
+        Self { db }
     }
 }
 

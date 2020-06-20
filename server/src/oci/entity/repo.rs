@@ -4,15 +4,15 @@ use enseada::guid::Guid;
 
 use crate::couchdb::repository::Entity;
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Repo {
     #[serde(rename = "_id")]
     id: Guid,
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
-
     group: String,
     name: String,
+    tags: Vec<String>,
 }
 
 impl Repo {
@@ -27,6 +27,7 @@ impl Repo {
             rev: None,
             group: group.to_string(),
             name: name.to_string(),
+            tags: Vec::new(),
         }
     }
 
@@ -40,6 +41,10 @@ impl Repo {
 
     pub fn full_name(&self) -> String {
         format!("{}/{}", &self.group, &self.name)
+    }
+
+    pub fn tags(&self) -> &Vec<String> {
+        &self.tags
     }
 }
 

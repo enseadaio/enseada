@@ -1,3 +1,3 @@
-conformance.test
-junit.xml
-report.html
+./conformance.test
+./junit.xml
+./report.html
