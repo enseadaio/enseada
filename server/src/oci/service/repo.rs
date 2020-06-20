@@ -1,14 +1,16 @@
+use std::sync::Arc;
+
 use couchdb::db::Database;
 
 use crate::couchdb::repository::Repository;
 use crate::oci::entity::Repo;
 
 pub struct RepoService {
-    db: Database,
+    db: Arc<Database>,
 }
 
 impl RepoService {
-    pub fn new(db: Database) -> Self {
+    pub fn new(db: Arc<Database>) -> Self {
         RepoService { db }
     }
 }

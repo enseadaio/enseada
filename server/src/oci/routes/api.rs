@@ -1,5 +1,5 @@
 use actix_web::web::{Data, Json, Path, Query};
-use actix_web::{delete, get, post, put};
+use actix_web::{delete, get, post};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
@@ -12,6 +12,7 @@ use crate::http::extractor::user::CurrentUser;
 use crate::http::{ApiResult, PaginationQuery};
 use crate::oauth::scope::Scope;
 use crate::oci::entity::Repo;
+use crate::oci::routes::RepoPath;
 use crate::oci::service::RepoService;
 use crate::rbac::Enforcer;
 
@@ -85,12 +86,6 @@ pub async fn create_repo(
     let repo = service.save(repo).await?;
 
     Ok(Json(RepoResponse::from(repo)))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RepoPath {
-    group: String,
-    name: String,
 }
 
 #[get("/api/oci/v1beta1/repositories/{group}/{name}")]

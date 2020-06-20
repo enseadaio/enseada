@@ -1,5 +1,12 @@
 pub use routes::mount;
 
-pub mod entity;
+mod digest;
+mod entity;
+mod error;
+mod header;
+mod mime;
 mod routes;
-pub mod service;
+mod service;
+mod storage;
+
+pub type Result<T> = std::result::Result<T, error::Error>;

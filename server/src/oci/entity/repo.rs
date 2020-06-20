@@ -37,6 +37,10 @@ impl Repo {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn full_name(&self) -> String {
+        format!("{}/{}", &self.group, &self.name)
+    }
 }
 
 impl Entity for Repo {

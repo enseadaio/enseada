@@ -13,6 +13,7 @@ mod oci;
 mod rbac;
 mod routes;
 mod server;
+mod storage;
 mod templates;
 mod ui;
 mod user;

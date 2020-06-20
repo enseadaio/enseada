@@ -1,56 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="OCI Distribution Conformance Tests" tests="52" failures="34" errors="0" time="0.374">
+<testsuite name="OCI Distribution Conformance Tests" tests="52" failures="43" errors="0" time="0.106">
     <testcase name="OCI Distribution Conformance Tests Pull Setup Populate registry with test blob"
-              classname="OCI Distribution Conformance Tests" time="0.029996114"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.005457489">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:19&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:31
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Setup Populate registry with test layer"
-              classname="OCI Distribution Conformance Tests" time="0.023296803"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.002996472">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:36&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:48
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Setup Populate registry with test manifest"
-              classname="OCI Distribution Conformance Tests" time="0.00269327">
+              classname="OCI Distribution Conformance Tests" time="0.00345406">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:53&#xA;Expected&#xA;
-            &lt;int&gt;: 400&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:63
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:63
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Setup Get the name of a tag"
-              classname="OCI Distribution Conformance Tests" time="0.001373116"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.001384436"></testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Setup Get tag name from environment"
-              classname="OCI Distribution Conformance Tests" time="0.000418164">
+              classname="OCI Distribution Conformance Tests" time="0.000382506">
         <skipped></skipped>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Pull Pull blobs GET nonexistent blob should result in 404 response"
-            classname="OCI Distribution Conformance Tests" time="0.002414942">
-        <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:84&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 404&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:90
-        </failure>
-    </testcase>
+            classname="OCI Distribution Conformance Tests" time="0.00177199"></testcase>
     <testcase
             name="OCI Distribution Conformance Tests Pull Pull blobs GET request to existing blob URL should yield 200"
-            classname="OCI Distribution Conformance Tests" time="0.001994995">
+            classname="OCI Distribution Conformance Tests" time="0.001814741">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:93&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:98
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:98
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Pull manifests GET nonexistent manifest should return 404"
-              classname="OCI Distribution Conformance Tests" time="0.00558138">
-        <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:103&#xA;Expected&#xA;
-            &lt;int&gt;: 500&#xA;to equal&#xA; &lt;int&gt;: 404&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:109
-        </failure>
-    </testcase>
+              classname="OCI Distribution Conformance Tests" time="0.001372142"></testcase>
     <testcase
             name="OCI Distribution Conformance Tests Pull Pull manifests GET request to manifest path (digest) should yield 200 response"
-            classname="OCI Distribution Conformance Tests" time="0.005870218">
+            classname="OCI Distribution Conformance Tests" time="0.001749217">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:112&#xA;Expected&#xA;
-            &lt;int&gt;: 500&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:118
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:118
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Pull Pull manifests GET request to manifest path (tag) should yield 200 response"
-            classname="OCI Distribution Conformance Tests" time="0.000359723">
+            classname="OCI Distribution Conformance Tests" time="0.000301442">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:121&#xA;Expected&#xA;
             &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:123
@@ -58,112 +58,197 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Pull Error codes 400 response body should contain OCI-conforming JSON message"
-            classname="OCI Distribution Conformance Tests" time="0.001951262">
-        <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:133&#xA;Expected&#xA;
-            &lt;*json.SyntaxError | 0xc00000e7e0&gt;: {&#xA; msg: &#34;unexpected end of JSON input&#34;,&#xA; Offset:
-            0,&#xA; }&#xA;to be nil&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:146
-        </failure>
-    </testcase>
+            classname="OCI Distribution Conformance Tests" time="0.001361231"></testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Teardown Delete config blob created in setup"
-              classname="OCI Distribution Conformance Tests" time="0.001874326">
+              classname="OCI Distribution Conformance Tests" time="0.001644629">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:155&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:161
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:161
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Teardown Delete layer blob created in setup"
-              classname="OCI Distribution Conformance Tests" time="0.001529883">
+              classname="OCI Distribution Conformance Tests" time="0.001968302">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:166&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:172
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:172
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Pull Teardown Delete manifest created in setup"
-              classname="OCI Distribution Conformance Tests" time="0.001595227">
+              classname="OCI Distribution Conformance Tests" time="0.002228316">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:177&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:183
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/01_pull_test.go:183
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Streamed PATCH request with blob in body should yield 202 response"
-            classname="OCI Distribution Conformance Tests" time="0.022002938"></testcase>
-    <testcase
-            name="OCI Distribution Conformance Tests Push Blob Upload Streamed PUT request to session URL with digest should yield 201 response"
-            classname="OCI Distribution Conformance Tests" time="0.015882785"></testcase>
-    <testcase
-            name="OCI Distribution Conformance Tests Push Blob Upload Monolithic GET nonexistent blob should result in 404 response"
-            classname="OCI Distribution Conformance Tests" time="0.001933118">
+            classname="OCI Distribution Conformance Tests" time="0.001792439">
         <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:54&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 404&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:60
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:22&#xA;Expected&#xA;
+            &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:28
         </failure>
     </testcase>
     <testcase
+            name="OCI Distribution Conformance Tests Push Blob Upload Streamed PUT request to session URL with digest should yield 201 response"
+            classname="OCI Distribution Conformance Tests" time="0.000202374">
+        <failure type="Panic">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:39&#xA;Test
+            Panicked&#xA;/usr/lib/go/src/runtime/panic.go:212&#xA;&#xA;Panic: runtime error: invalid memory address or
+            nil pointer dereference&#xA;&#xA;Full stack:&#xA;github.com/bloodorangeio/reggie.(*Response).GetRelativeLocation(0x0,
+            0x73, 0x9092b3)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/bloodorangeio/reggie@v0.4.0/response.go:22 +0x3a&#xA;github.com/opencontainers/distribution-spec/conformance.glob..func2.1.2.2()&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:41
+            +0x65&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).runSync(0xc000033920, 0x0, 0x0, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:113
+            +0xa3&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).run(0xc000033920, 0x7f20b0df09a929ee, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:64
+            +0xcf&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*ItNode).Run(0xc0002701a0, 0x9c4e00, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/it_node.go:26
+            +0x64&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).runSample(0xc0001f6f00, 0x0, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:215
+            +0x638&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).Run(0xc0001f6f00, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:138
+            +0xf2&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpec(0xc00031fcc0, 0xc0001f6f00, 0x0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:200
+            +0x10f&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpecs(0xc00031fcc0, 0x1)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:170
+            +0x120&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).Run(0xc00031fcc0, 0xc000223fd0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:66
+            +0x117&#xA;github.com/onsi/ginkgo/internal/suite.(*Suite).Run(0xc000088370, 0x7f5b3e7c5170, 0xc0000b5560,
+            0x91b372, 0x22, 0xc00032a720, 0x3, 0x3, 0x9cf240, 0xc00007eb40, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/suite/suite.go:62
+            +0x42b&#xA;github.com/onsi/ginkgo.RunSpecsWithCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372, 0x22,
+            0xc000263c80, 0x3, 0x4, 0x4)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:226
+            +0x217&#xA;github.com/onsi/ginkgo.RunSpecsWithDefaultAndCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372,
+            0x22, 0xc000185f50, 0x2, 0x2, 0x255ef641)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:214
+            +0xad&#xA;github.com/opencontainers/distribution-spec/conformance.TestConformance(0xc0000b5560)&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/00_conformance_suite_test.go:21
+            +0x18b&#xA;testing.tRunner(0xc0000b5560, 0x93a1e8)&#xA;&#x9;/usr/lib/go/src/testing/testing.go:991 +0xdc&#xA;created
+            by testing.(*T).Run&#xA;&#x9;/usr/lib/go/src/testing/testing.go:1042 +0x357
+        </failure>
+    </testcase>
+    <testcase
+            name="OCI Distribution Conformance Tests Push Blob Upload Monolithic GET nonexistent blob should result in 404 response"
+            classname="OCI Distribution Conformance Tests" time="0.001816475"></testcase>
+    <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic POST request with digest and blob should yield a 201"
-            classname="OCI Distribution Conformance Tests" time="0.006230862">
+            classname="OCI Distribution Conformance Tests" time="0.002213468">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:63&#xA;Expected&#xA;
-            &lt;int&gt;: 202&#xA;to equal&#xA; &lt;int&gt;: 201&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:74
+            &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:73
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic GET request to blob URL from prior request should yield 200"
-            classname="OCI Distribution Conformance Tests" time="0.001673826">
+            classname="OCI Distribution Conformance Tests" time="0.001792739">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:77&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:82
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:82
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic POST request should yield a session ID"
-            classname="OCI Distribution Conformance Tests" time="0.006346121"></testcase>
+            classname="OCI Distribution Conformance Tests" time="0.001598421">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:85&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 202&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:90
+        </failure>
+    </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic PUT upload of a blob should yield a 201 Response"
-            classname="OCI Distribution Conformance Tests" time="0.012199477"></testcase>
+            classname="OCI Distribution Conformance Tests" time="0.000188298">
+        <failure type="Panic">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:94&#xA;Test
+            Panicked&#xA;/usr/lib/go/src/runtime/panic.go:212&#xA;&#xA;Panic: runtime error: invalid memory address or
+            nil pointer dereference&#xA;&#xA;Full stack:&#xA;github.com/bloodorangeio/reggie.(*Response).GetRelativeLocation(0x0,
+            0x73, 0x9092b3)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/bloodorangeio/reggie@v0.4.0/response.go:22 +0x3a&#xA;github.com/opencontainers/distribution-spec/conformance.glob..func2.1.3.5()&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:96
+            +0x65&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).runSync(0xc000033e00, 0x0, 0x0, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:113
+            +0xa3&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).run(0xc000033e00, 0x125bd9381d5b2e9e, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:64
+            +0xcf&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*ItNode).Run(0xc000270560, 0x9c4e00, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/it_node.go:26
+            +0x64&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).runSample(0xc0001f73b0, 0x0, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:215
+            +0x638&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).Run(0xc0001f73b0, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:138
+            +0xf2&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpec(0xc00031fcc0, 0xc0001f73b0, 0x0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:200
+            +0x10f&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpecs(0xc00031fcc0, 0x1)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:170
+            +0x120&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).Run(0xc00031fcc0, 0xc000223fd0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:66
+            +0x117&#xA;github.com/onsi/ginkgo/internal/suite.(*Suite).Run(0xc000088370, 0x7f5b3e7c5170, 0xc0000b5560,
+            0x91b372, 0x22, 0xc00032a720, 0x3, 0x3, 0x9cf240, 0xc00007eb40, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/suite/suite.go:62
+            +0x42b&#xA;github.com/onsi/ginkgo.RunSpecsWithCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372, 0x22,
+            0xc000263c80, 0x3, 0x4, 0x4)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:226
+            +0x217&#xA;github.com/onsi/ginkgo.RunSpecsWithDefaultAndCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372,
+            0x22, 0xc000185f50, 0x2, 0x2, 0x255ef641)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:214
+            +0xad&#xA;github.com/opencontainers/distribution-spec/conformance.TestConformance(0xc0000b5560)&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/00_conformance_suite_test.go:21
+            +0x18b&#xA;testing.tRunner(0xc0000b5560, 0x93a1e8)&#xA;&#x9;/usr/lib/go/src/testing/testing.go:991 +0xdc&#xA;created
+            by testing.(*T).Run&#xA;&#x9;/usr/lib/go/src/testing/testing.go:1042 +0x357
+        </failure>
+    </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic GET request to existing blob should yield 200 response"
-            classname="OCI Distribution Conformance Tests" time="0.001302792">
+            classname="OCI Distribution Conformance Tests" time="0.001592841">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:108&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:113
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:113
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic PUT upload of a layer blob should yield a 201 Response"
-            classname="OCI Distribution Conformance Tests" time="0.019958178"></testcase>
+            classname="OCI Distribution Conformance Tests" time="0.003085841">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:116&#xA;Expected&#xA;
+            &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:129
+        </failure>
+    </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Monolithic GET request to existing layer should yield 200 response"
-            classname="OCI Distribution Conformance Tests" time="0.001616808">
+            classname="OCI Distribution Conformance Tests" time="0.001956771">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:133&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:138
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:138
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Chunked Out-of-order blob upload should return 416"
-            classname="OCI Distribution Conformance Tests" time="0.02037035">
+            classname="OCI Distribution Conformance Tests" time="0.001660429">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:143&#xA;Expected&#xA;
-            &lt;int&gt;: 202&#xA;to equal&#xA; &lt;int&gt;: 416&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:159
+            &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:150
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Blob Upload Chunked PATCH request with first chunk should return 202"
-            classname="OCI Distribution Conformance Tests" time="0.023453951"></testcase>
-    <testcase
-            name="OCI Distribution Conformance Tests Push Blob Upload Chunked PUT request with final chunk should return 201"
-            classname="OCI Distribution Conformance Tests" time="0.023314927"></testcase>
-    <testcase name="OCI Distribution Conformance Tests Push Manifest Upload GET nonexistent manifest should return 404"
-              classname="OCI Distribution Conformance Tests" time="0.004650424">
+            classname="OCI Distribution Conformance Tests" time="0.001960678">
         <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:199&#xA;Expected&#xA;
-            &lt;int&gt;: 500&#xA;to equal&#xA; &lt;int&gt;: 404&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:205
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:162&#xA;Expected&#xA;
+            &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:169
         </failure>
     </testcase>
+    <testcase
+            name="OCI Distribution Conformance Tests Push Blob Upload Chunked PUT request with final chunk should return 201"
+            classname="OCI Distribution Conformance Tests" time="0.00019522">
+        <failure type="Panic">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:182&#xA;Test
+            Panicked&#xA;/usr/lib/go/src/runtime/panic.go:212&#xA;&#xA;Panic: runtime error: invalid memory address or
+            nil pointer dereference&#xA;&#xA;Full stack:&#xA;github.com/bloodorangeio/reggie.(*Response).GetRelativeLocation(0x0,
+            0x73, 0x9092b3)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/bloodorangeio/reggie@v0.4.0/response.go:22 +0x3a&#xA;github.com/opencontainers/distribution-spec/conformance.glob..func2.1.4.3()&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:184
+            +0x65&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).runSync(0xc0002ac300, 0x0, 0x0, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:113
+            +0xa3&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).run(0xc0002ac300, 0xf46726c011f214bd, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:64
+            +0xcf&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*ItNode).Run(0xc0002709c0, 0x9c4e00, 0x0, 0x0, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/it_node.go:26
+            +0x64&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).runSample(0xc0001f7950, 0x0, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:215
+            +0x638&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).Run(0xc0001f7950, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:138
+            +0xf2&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpec(0xc00031fcc0, 0xc0001f7950, 0x0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:200
+            +0x10f&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpecs(0xc00031fcc0, 0x1)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:170
+            +0x120&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).Run(0xc00031fcc0, 0xc000223fd0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:66
+            +0x117&#xA;github.com/onsi/ginkgo/internal/suite.(*Suite).Run(0xc000088370, 0x7f5b3e7c5170, 0xc0000b5560,
+            0x91b372, 0x22, 0xc00032a720, 0x3, 0x3, 0x9cf240, 0xc00007eb40, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/suite/suite.go:62
+            +0x42b&#xA;github.com/onsi/ginkgo.RunSpecsWithCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372, 0x22,
+            0xc000263c80, 0x3, 0x4, 0x4)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:226
+            +0x217&#xA;github.com/onsi/ginkgo.RunSpecsWithDefaultAndCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372,
+            0x22, 0xc000185f50, 0x2, 0x2, 0x255ef641)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:214
+            +0xad&#xA;github.com/opencontainers/distribution-spec/conformance.TestConformance(0xc0000b5560)&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/00_conformance_suite_test.go:21
+            +0x18b&#xA;testing.tRunner(0xc0000b5560, 0x93a1e8)&#xA;&#x9;/usr/lib/go/src/testing/testing.go:991 +0xdc&#xA;created
+            by testing.(*T).Run&#xA;&#x9;/usr/lib/go/src/testing/testing.go:1042 +0x357
+        </failure>
+    </testcase>
+    <testcase name="OCI Distribution Conformance Tests Push Manifest Upload GET nonexistent manifest should return 404"
+              classname="OCI Distribution Conformance Tests" time="0.001368605"></testcase>
     <testcase name="OCI Distribution Conformance Tests Push Manifest Upload PUT should accept a manifest upload"
-              classname="OCI Distribution Conformance Tests" time="0.002264146">
+              classname="OCI Distribution Conformance Tests" time="0.001913008">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:208&#xA;Expected&#xA;
             &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:219
@@ -171,7 +256,7 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Manifest Upload Registry should accept a manifest upload with no layers"
-            classname="OCI Distribution Conformance Tests" time="0.001789445">
+            classname="OCI Distribution Conformance Tests" time="0.002122836">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:224&#xA;Expected&#xA;
             &lt;string&gt;: &#xA;not to be empty&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:234
@@ -179,37 +264,65 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Push Manifest Upload GET request to manifest URL (digest) should yield 200 response"
-            classname="OCI Distribution Conformance Tests" time="0.004972364">
+            classname="OCI Distribution Conformance Tests" time="0.002020311">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:238&#xA;Expected&#xA;
-            &lt;int&gt;: 500&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:244
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:244
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Push Teardown Delete config blob created in tests"
-              classname="OCI Distribution Conformance Tests" time="0.001641074"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.00185116">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:249&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0002e84b0
+            0xc0002e84e0] 0xc0002e84e0}) %!s(*matchers.EqualMatcher=&amp;{405})]&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:255
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Push Teardown Delete layer blob created in setup"
-              classname="OCI Distribution Conformance Tests" time="0.001696148"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.002344986">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:264&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0001ed110
+            0xc0001ed140] 0xc0001ed140}) %!s(*matchers.EqualMatcher=&amp;{405})]&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:270
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Push Teardown Delete manifest created in tests"
-              classname="OCI Distribution Conformance Tests" time="0.001778274"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.001954777">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:279&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc000095200
+            0xc000095320] 0xc000095320}) %!s(*matchers.EqualMatcher=&amp;{405})]&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/02_push_test.go:285
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Discovery Setup Populate registry with test blob"
-              classname="OCI Distribution Conformance Tests" time="0.022219729"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.003741686">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:22&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:35
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Discovery Setup Populate registry with test layer"
-              classname="OCI Distribution Conformance Tests" time="0.021428928"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.003339513">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:40&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:53
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Discovery Setup Populate registry with test tags"
-              classname="OCI Distribution Conformance Tests" time="0.002090175">
+              classname="OCI Distribution Conformance Tests" time="0.001978352">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:58&#xA;Expected&#xA;
-            &lt;int&gt;: 400&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:70
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:70
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Discovery Setup Populate registry with test tags (no push)"
-            classname="OCI Distribution Conformance Tests" time="0.000190081">
+            classname="OCI Distribution Conformance Tests" time="0.000314356">
         <skipped></skipped>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints GET request to list tags should yield 200 response"
-            classname="OCI Distribution Conformance Tests" time="0.00174979">
+            classname="OCI Distribution Conformance Tests" time="0.001954637">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:88&#xA;Expected&#xA;
             &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:93
@@ -217,7 +330,7 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints GET number of tags should be limitable by `n` query parameter"
-            classname="OCI Distribution Conformance Tests" time="0.001237708">
+            classname="OCI Distribution Conformance Tests" time="0.001806115">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:97&#xA;Expected&#xA;
             &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:104
@@ -225,69 +338,79 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints GET start of tag is set by `last` query parameter"
-            classname="OCI Distribution Conformance Tests" time="0.001301289">
+            classname="OCI Distribution Conformance Tests" time="0.001707668">
         <failure type="Panic">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:110&#xA;Test
             Panicked&#xA;/usr/lib/go/src/runtime/panic.go:88&#xA;&#xA;Panic: runtime error: index out of range [1] with
             length 0&#xA;&#xA;Full stack:&#xA;github.com/opencontainers/distribution-spec/conformance.glob..func3.1.2.3()&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:120
-            +0xd7b&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).runSync(0xc0002ab140, 0x0, 0x0, 0x0, 0x0,
+            +0xd7b&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).runSync(0xc0002ad140, 0x0, 0x0, 0x0, 0x0,
             0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:113
-            +0xa3&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).run(0xc0002ab140, 0x378ba3d9a0b84e1, 0x0, 0x0,
-            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:64
-            +0xcf&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*ItNode).Run(0xc000269680, 0x9c4e00, 0x0, 0x0, 0x0,
+            +0xa3&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*runner).run(0xc0002ad140, 0x76dcf58dfc1c473f, 0x0,
+            0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/runner.go:64
+            +0xcf&#xA;github.com/onsi/ginkgo/internal/leafnodes.(*ItNode).Run(0xc000271640, 0x9c4e00, 0x0, 0x0, 0x0,
             0x0, 0x0, 0x0, 0x0, 0x0, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/leafnodes/it_node.go:26
-            +0x64&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).runSample(0xc00037e690, 0x0, 0x9c4e00, 0xc000080b40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:215
-            +0x638&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).Run(0xc00037e690, 0x9c4e00, 0xc000080b40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:138
-            +0xf2&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpec(0xc00031dcc0, 0xc00037e690, 0x0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:200
-            +0x10f&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpecs(0xc00031dcc0, 0x1)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:170
-            +0x120&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).Run(0xc00031dcc0, 0xc000221fd0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:66
-            +0x117&#xA;github.com/onsi/ginkgo/internal/suite.(*Suite).Run(0xc00008a370, 0x7fed896b5170, 0xc0000b5680,
-            0x91b372, 0x22, 0xc000328720, 0x3, 0x3, 0x9cf240, 0xc000080b40, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/suite/suite.go:62
-            +0x42b&#xA;github.com/onsi/ginkgo.RunSpecsWithCustomReporters(0x9c54c0, 0xc0000b5680, 0x91b372, 0x22,
-            0xc000261c80, 0x3, 0x4, 0x4)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:226
-            +0x217&#xA;github.com/onsi/ginkgo.RunSpecsWithDefaultAndCustomReporters(0x9c54c0, 0xc0000b5680, 0x91b372,
-            0x22, 0xc000185f50, 0x2, 0x2, 0x49cd6e5)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:214
-            +0xad&#xA;github.com/opencontainers/distribution-spec/conformance.TestConformance(0xc0000b5680)&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/00_conformance_suite_test.go:21
-            +0x18b&#xA;testing.tRunner(0xc0000b5680, 0x93a1e8)&#xA;&#x9;/usr/lib/go/src/testing/testing.go:991 +0xdc&#xA;created
+            +0x64&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).runSample(0xc00037e690, 0x0, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:215
+            +0x638&#xA;github.com/onsi/ginkgo/internal/spec.(*Spec).Run(0xc00037e690, 0x9c4e00, 0xc00007eb40)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/spec/spec.go:138
+            +0xf2&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpec(0xc00031fcc0, 0xc00037e690, 0x0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:200
+            +0x10f&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).runSpecs(0xc00031fcc0, 0x1)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:170
+            +0x120&#xA;github.com/onsi/ginkgo/internal/specrunner.(*SpecRunner).Run(0xc00031fcc0, 0xc000223fd0)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/specrunner/spec_runner.go:66
+            +0x117&#xA;github.com/onsi/ginkgo/internal/suite.(*Suite).Run(0xc000088370, 0x7f5b3e7c5170, 0xc0000b5560,
+            0x91b372, 0x22, 0xc00032a720, 0x3, 0x3, 0x9cf240, 0xc00007eb40, ...)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/internal/suite/suite.go:62
+            +0x42b&#xA;github.com/onsi/ginkgo.RunSpecsWithCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372, 0x22,
+            0xc000263c80, 0x3, 0x4, 0x4)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:226
+            +0x217&#xA;github.com/onsi/ginkgo.RunSpecsWithDefaultAndCustomReporters(0x9c54c0, 0xc0000b5560, 0x91b372,
+            0x22, 0xc000185f50, 0x2, 0x2, 0x255ef641)&#xA;&#x9;/home/matteo/go/pkg/mod/github.com/onsi/ginkgo@v1.11.0/ginkgo_dsl.go:214
+            +0xad&#xA;github.com/opencontainers/distribution-spec/conformance.TestConformance(0xc0000b5560)&#xA;&#x9;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/00_conformance_suite_test.go:21
+            +0x18b&#xA;testing.tRunner(0xc0000b5560, 0x93a1e8)&#xA;&#x9;/usr/lib/go/src/testing/testing.go:991 +0xdc&#xA;created
             by testing.(*T).Run&#xA;&#x9;/usr/lib/go/src/testing/testing.go:1042 +0x357
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Discovery Teardown Delete config blob created in tests"
-              classname="OCI Distribution Conformance Tests" time="0.001503703">
+              classname="OCI Distribution Conformance Tests" time="0.001943866">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:131&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:137
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:137
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Discovery Teardown Delete layer blob created in setup"
-              classname="OCI Distribution Conformance Tests" time="0.001403564">
+              classname="OCI Distribution Conformance Tests" time="0.00189869">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:142&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:148
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:148
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Discovery Teardown Delete created manifest &amp; associated tags"
-            classname="OCI Distribution Conformance Tests" time="0.001590087">
+            classname="OCI Distribution Conformance Tests" time="0.001873102">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:153&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:159
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/03_discovery_test.go:159
         </failure>
     </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Management Setup Populate registry with test config blob"
-              classname="OCI Distribution Conformance Tests" time="0.024369519"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.002571937">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:20&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:33
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Management Setup Populate registry with test layer"
-              classname="OCI Distribution Conformance Tests" time="0.021700704"></testcase>
+              classname="OCI Distribution Conformance Tests" time="0.002807133">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:38&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:51
+        </failure>
+    </testcase>
     <testcase name="OCI Distribution Conformance Tests Content Management Setup Populate registry with test tag"
-              classname="OCI Distribution Conformance Tests" time="0.001858025">
+              classname="OCI Distribution Conformance Tests" time="0.001737674">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:56&#xA;Expected&#xA;
-            &lt;int&gt;: 400&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:66
+            &lt;int&gt;: 404&#xA;to be &lt;&#xA; &lt;int&gt;: 300&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:66
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Setup Check how many tags there are before anything gets deleted"
-            classname="OCI Distribution Conformance Tests" time="0.001260992">
+            classname="OCI Distribution Conformance Tests" time="0.00187723">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:71&#xA;Expected&#xA;
             &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:77
@@ -295,28 +418,22 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Manifest delete DELETE request to manifest tag should return 202, unless tag deletion is disallowed (400/405)"
-            classname="OCI Distribution Conformance Tests" time="0.001013573"></testcase>
+            classname="OCI Distribution Conformance Tests" time="0.002531">
+        <failure type="Failure">
+            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:87&#xA;Expected&#xA;
+            &lt;int&gt;: 404&#xA;To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&amp;{400})
+            %!s(*matchers.EqualMatcher=&amp;{202}) %!s(*matchers.EqualMatcher=&amp;{405})]&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:93
+        </failure>
+    </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Manifest delete DELETE request to manifest (digest) should yield 202 response unless already deleted"
-            classname="OCI Distribution Conformance Tests" time="0.00136506">
-        <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:105&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&amp;{202})
-            %!s(*matchers.EqualMatcher=&amp;{404})]&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:111
-        </failure>
-    </testcase>
+            classname="OCI Distribution Conformance Tests" time="0.001512738"></testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Manifest delete GET request to deleted manifest URL should yield 404 response, unless delete is disallowed"
-            classname="OCI Distribution Conformance Tests" time="0.004047309">
-        <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:117&#xA;Expected&#xA;
-            &lt;int&gt;: 500&#xA;To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&amp;{404})
-            %!s(*matchers.EqualMatcher=&amp;{200})]&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:122
-        </failure>
-    </testcase>
+            classname="OCI Distribution Conformance Tests" time="0.00129752"></testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Manifest delete GET request to tags list should reflect manifest deletion"
-            classname="OCI Distribution Conformance Tests" time="0.001571282">
+            classname="OCI Distribution Conformance Tests" time="0.001386289">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:128&#xA;Expected&#xA;
             &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 200&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:133
@@ -324,18 +441,13 @@
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Blob delete DELETE request to blob URL should yield 202 response"
-            classname="OCI Distribution Conformance Tests" time="0.001056043">
+            classname="OCI Distribution Conformance Tests" time="0.001570689">
         <failure type="Failure">
             /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:143&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 202&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:150
+            &lt;int&gt;: 404&#xA;to equal&#xA; &lt;int&gt;: 202&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:150
         </failure>
     </testcase>
     <testcase
             name="OCI Distribution Conformance Tests Content Management Blob delete GET request to deleted blob URL should yield 404 response"
-            classname="OCI Distribution Conformance Tests" time="0.001296259">
-        <failure type="Failure">
-            /home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:159&#xA;Expected&#xA;
-            &lt;int&gt;: 405&#xA;to equal&#xA; &lt;int&gt;: 404&#xA;/home/matteo/go/src/github.com/opencontainers/distribution-spec/conformance/04_management_test.go:165
-        </failure>
-    </testcase>
+            classname="OCI Distribution Conformance Tests" time="0.001121277"></testcase>
 </testsuite>
