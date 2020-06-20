@@ -16,7 +16,7 @@ pub struct DigestParam {
     pub digest: Digest,
 }
 
-#[post("/{group}/{name}/blobs/uploads")]
+#[post("/{group}/{name}/blobs/uploads/")]
 pub async fn start(
     uploads: Data<UploadService>,
     blobs: Data<BlobService>,
@@ -140,6 +140,13 @@ pub async fn push(
         .finish())
 }
 
+#[derive(Debug, Deserialize)]
+pub struct CompletePath {
+    group: String,
+    name: String,
+    upload_id: String,
+}
+
 #[put("/{group}/{name}/blobs/uploads/{upload_id}")]
 pub async fn complete(
     uploads: Data<UploadService>,
@@ -148,15 +155,14 @@ pub async fn complete(
     // enforcer: Data<RwLock<Enforcer>>,
     // scope: Scope,
     // current_user: CurrentUser,
-    repo: Path<RepoPath>,
-    upload: Path<UploadPath>,
+    path: Path<CompletePath>,
     digest: Query<DigestParam>,
     body: Option<Bytes>,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
-    let group = &repo.group;
-    let name = &repo.name;
-    let upload_id = upload.upload_id.as_str();
+    let group = &path.group;
+    let name = &path.name;
+    let upload_id = path.upload_id.as_str();
     let digest = &digest.digest;
 
     log::debug!("looking for repo {}/{}", group, name);
@@ -175,20 +181,21 @@ pub async fn complete(
 
     log::debug!("completing upload");
     // TODO: check digest matches chunk
-    let upload = uploads.complete_upload(upload_id, digest, chunk).await?;
+    let upload = uploads.complete_upload(upload_id, &digest, chunk).await?;
+    let digest_s = digest.to_string();
     let blob = Blob::new(digest.clone());
     blobs.save(blob).await?;
 
-    Ok(HttpResponse::NoContent()
+    Ok(HttpResponse::Created()
         .header(
             http::header::LOCATION,
-            format!("/v2/{}/blobs/{}", repo.full_name(), digest),
+            format!("/v2/{}/blobs/{}", repo.full_name(), digest_s),
         )
         .header(
             http::header::CONTENT_RANGE,
             format!("0-{}", upload.latest_offset()),
         )
-        .header(header::CONTENT_DIGEST, digest.to_string())
+        .header(header::CONTENT_DIGEST, digest_s)
         .finish())
 }
 

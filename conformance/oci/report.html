@@ -130,13 +130,13 @@
         .meter-green {
             height: 100%;
             background: green;
-            width: 17%;
+            width: 63%;
         }
 
         .meter-red {
             height: 100%;
             background: red;
-            width: 80%;
+            width: 33%;
         }
 
         .meter-grey {
@@ -179,7 +179,7 @@
 <div class="summary">
     <div class="summary-bullet">
         <div class="bullet-left">Summary:</div>
-        <div class="quick-summary"><span class="darkgreen">9 passed</span><span class="darkred">43 failed</span><span
+        <div class="quick-summary"><span class="darkgreen">34 passed</span><span class="darkred">18 failed</span><span
                 class="darkgrey">2 skipped</span>
             <div class="meter">
                 <div class="meter-green"></div>
@@ -190,15 +190,15 @@
     </div>
     <div class="summary-bullet">
         <div class="bullet-left">Start time:</div>
-        <div class="bullet-right">Jun 19 15:32:58.637 &#43;0200 CEST</div>
+        <div class="bullet-right">Jun 20 16:32:29.584 &#43;0200 CEST</div>
     </div>
     <div class="summary-bullet">
         <div class="bullet-left">End time:</div>
-        <div class="bullet-right">Jun 19 15:32:58.743 &#43;0200 CEST</div>
+        <div class="bullet-right">Jun 20 16:32:30.278 &#43;0200 CEST</div>
     </div>
     <div class="summary-bullet">
         <div class="bullet-left">Elapsed time:</div>
-        <div class="bullet-right">106.536804ms</div>
+        <div class="bullet-right">694.383231ms</div>
     </div>
     <div class="summary-bullet">
         <div class="bullet-left">Test version:</div>
@@ -233,15 +233,14 @@
         <h3>Setup</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-0-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-0')">+
             </div>
             <h4 style="display: inline;">Populate registry with test blob</h4>
             <br>
-            <div>
-                <div id="output-box-0" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.640981 DEBUG 
+            <div id="output-box-0" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.603576 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -252,22 +251,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.640468344&#43;02:00
-TIME DURATION: 3.113174ms
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.603193628&#43;02:00
+TIME DURATION: 18.713313ms
 HEADERS      :
+	Blob-Upload-Session-Id: b4dcd170-d3bb-4fd3-bbc4-7a0a2dccc7e4
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/b4dcd170-d3bb-4fd3-bbc4-7a0a2dccc7e4
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=XTdPWfdbQqI6JMBR2Iltp9DVQATs7eYP&#43;0SNGmK1; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=UCMbI2wiIRKLu276A0fwgBRTdV3qJw47NBel00EV; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.642275 DEBUG 
+2020/06/20 16:32:29.631387 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/b4dcd170-d3bb-4fd3-bbc4-7a0a2dccc7e4?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 113
@@ -277,38 +280,35 @@ BODY   :
 ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.641759783&#43;02:00
-TIME DURATION: 659.531µs
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.63065333&#43;02:00
+TIME DURATION: 26.984079ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
 	Server: Enseada
-	Set-Cookie: enseada_session=rwEfx8axvyCtS1gWlGTJjE&#43;KpN5x3EXjBusl88gK; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=18VQrPCMbAsS4g5gBwCDOpO1Rbqpr4Npm0%2FxLUkb; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-1-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-1')">+
             </div>
             <h4 style="display: inline;">Populate registry with test layer</h4>
             <br>
-            <div>
-                <div id="output-box-1" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.643848 DEBUG 
+            <div id="output-box-1" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.644830 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -319,22 +319,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.643564405&#43;02:00
-TIME DURATION: 625.807µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.644466684&#43;02:00
+TIME DURATION: 12.943393ms
 HEADERS      :
+	Blob-Upload-Session-Id: c546bd38-a7f4-4aec-8dbc-a86419e548ee
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/c546bd38-a7f4-4aec-8dbc-a86419e548ee
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=71lKA&#43;JWP1GE1simT5TTsNYbuuXxyIdPYBtqkete; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=gbAw042ySBYaUTsxZk2mjSBIrpOUTpwojvN3zKKD; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.645393 DEBUG 
+2020/06/20 16:32:29.677406 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/c546bd38-a7f4-4aec-8dbc-a86419e548ee?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 168
@@ -344,26 +348,24 @@ BODY   :
 H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.644820337&#43;02:00
-TIME DURATION: 902.802µs
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.676816506&#43;02:00
+TIME DURATION: 31.889989ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
 	Server: Enseada
-	Set-Cookie: enseada_session=QxUuxynyVDhURIOtcIP95986a6pKs%2Fv1ctfw1bXf; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=LpgLw6hnwZW0qgumoGqRSv%2FmTLbtBmIVzQb&#43;xzgi; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
@@ -375,7 +377,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-2" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.648075 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:29.679753 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 PUT  /v2/conformance/test/manifests/tagtest0  HTTP/1.1
@@ -389,13 +391,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.647285271&#43;02:00
-TIME DURATION: 1.157355ms
+RECEIVED AT  : 2020-06-20T16:32:29.679086955&#43;02:00
+TIME DURATION: 1.480319ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=QX9cQMfRLRVMc0xwbVyda5Ex4mlWYnsFuH5xblLI; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=fstz%2FiyT6jLFQ09o%2FvuYimm2ONB7y01kk1OHQVhB; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -418,7 +421,7 @@ to be &lt;
             <h4 style="display: inline;">Get the name of a tag</h4>
             <br>
             <div id="output-box-3" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.650896 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:29.681995 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/tags/list  HTTP/1.1
@@ -430,13 +433,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.650465331&#43;02:00
-TIME DURATION: 891.56µs
+RECEIVED AT  : 2020-06-20T16:32:29.681498552&#43;02:00
+TIME DURATION: 1.043941ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=noVYJalmeG6fHHeAjXm&#43;C01o1DtOq3Pzd8Asacyy; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=rvdWgpLdq7RAK&#43;Vo8nX55KK&#43;VidZ3HVNqs4B4lkL; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -470,7 +474,7 @@ BODY         :
             <h4 style="display: inline;">GET nonexistent blob should result in 404 response</h4>
             <br>
             <div id="output-box-5" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.653172 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:29.689985 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9  HTTP/1.1
@@ -482,15 +486,25 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.652701201&#43;02:00
-TIME DURATION: 1.226125ms
+RECEIVED AT  : 2020-06-20T16:32:29.689450743&#43;02:00
+TIME DURATION: 6.774206ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 85
+	Content-Type: application/json
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=KkOUz52542AKiOhylzm3pbpb&#43;DzapiObduD7tJ7D; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=AtAyTyU6XdMMTzxIrZrnaxLbSrGGH87gV3CyXr4G; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;BLOB_UNKNOWN&#34;,
+         &#34;message&#34;: &#34;blob unknown to registry&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
 ==============================================================================
 
 </pre>
@@ -498,15 +512,14 @@ BODY         :
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-6-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-6')">+
             </div>
             <h4 style="display: inline;">GET request to existing blob URL should yield 200</h4>
             <br>
-            <div>
-                <div id="output-box-6" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.654593 DEBUG 
+            <div id="output-box-6" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.700415 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -517,26 +530,31 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.654138757&#43;02:00
-TIME DURATION: 881.872µs
+STATUS       : 200 OK
+RECEIVED AT  : 2020-06-20T16:32:29.699967942&#43;02:00
+TIME DURATION: 9.869019ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=EKmUCFDN5yzEm6a5edn9GGXTLcOBTg3IY1f1fb%2F5; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=OaJTOKUmyYuzdIpiNon%2FuZBYbDWWPpUf&#43;3hi1wu5; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+{
+	&#34;architecture&#34;: &#34;amd64&#34;,
+	&#34;os&#34;: &#34;linux&#34;,
+	&#34;config&#34;: {},
+	&#34;rootfs&#34;: {
+		&#34;type&#34;: &#34;layers&#34;,
+		&#34;diff_ids&#34;: []
+	}
+}
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to equal
-    &lt;int&gt;: 200</pre>
-            <br>
         </div>
 
         <br>
@@ -552,7 +570,7 @@ to equal
             <h4 style="display: inline;">GET nonexistent manifest should return 404</h4>
             <br>
             <div id="output-box-7" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.656505 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:29.702087 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/manifests/.INVALID_MANIFEST_NAME  HTTP/1.1
@@ -564,13 +582,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.656051945&#43;02:00
-TIME DURATION: 854.019µs
+RECEIVED AT  : 2020-06-20T16:32:29.701594919&#43;02:00
+TIME DURATION: 1.078437ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=%2Ft1wiT3v2YExOgdLqVKgB2ledH5CzVmEZQWUmY54; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=7Q3iiEMCw7xTqiGY9xievg1LIxKA42rpW1fi%2F&#43;C%2F; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -588,7 +607,7 @@ BODY         :
             <br>
             <div>
                 <div id="output-box-8" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.657955 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:29.703766 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -601,13 +620,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.657629236&#43;02:00
-TIME DURATION: 995.488µs
+RECEIVED AT  : 2020-06-20T16:32:29.703464748&#43;02:00
+TIME DURATION: 1.221298ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=NLcnlg04rbOEQtukWoh8Tw8rshfrgZDD9KosWkIy; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=ns4HZYL6OpCVfVUpf&#43;mJhMYoXGl8dXnCogkScDY2; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -653,7 +673,7 @@ not to be empty</pre>
             <h4 style="display: inline;">400 response body should contain OCI-conforming JSON message</h4>
             <br>
             <div id="output-box-10" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.660101 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:29.707139 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 PUT  /v2/conformance/test/manifests/sha256:totallywrong  HTTP/1.1
@@ -667,13 +687,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.659805403&#43;02:00
-TIME DURATION: 983.215µs
+RECEIVED AT  : 2020-06-20T16:32:29.706577806&#43;02:00
+TIME DURATION: 1.253709ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=gLsjClBaoawPqGTMGvrmwI14W1t9U&#43;7EoktXhhmL; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=b7dXWru8nKhD5spri7A7CfRWpZIzDa%2FC4hlU4xfX; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -688,15 +709,14 @@ BODY         :
         <h3>Teardown</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-11-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-11')">+
             </div>
             <h4 style="display: inline;">Delete config blob created in setup</h4>
             <br>
-            <div>
-                <div id="output-box-11" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.661426 DEBUG 
+            <div id="output-box-11" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.721736 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -707,38 +727,33 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.661111289&#43;02:00
-TIME DURATION: 937.467µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.721458927&#43;02:00
+TIME DURATION: 14.196932ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=eAgAH4J&#43;YwyWD6YF6yJ1PYaNVElMP8qD4sVzroqp; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=T3nasIvrntqOv9d1RA11Z8KMz1tIfSGSHGOxO8Em; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-12-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-12')">+
             </div>
             <h4 style="display: inline;">Delete layer blob created in setup</h4>
             <br>
-            <div>
-                <div id="output-box-12" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.663345 DEBUG 
+            <div id="output-box-12" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.736336 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
@@ -749,26 +764,22 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.662829047&#43;02:00
-TIME DURATION: 924.564µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.736031282&#43;02:00
+TIME DURATION: 14.226178ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=iLTtzJpaaBXUGekM2FuQhFpYAi9wasB%2FksKGp%2FOj; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=ia9pjMcTX5jvP5zgPHnNwyRMSotJIkWKCgr7&#43;7bW; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
@@ -780,7 +791,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-13" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.665550 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:29.737639 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -792,13 +803,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.66501403&#43;02:00
-TIME DURATION: 1.037167ms
+RECEIVED AT  : 2020-06-20T16:32:29.737366866&#43;02:00
+TIME DURATION: 948.881µs
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=bW0ZnHIMZrzzSxQ8twHZpKhlSCiNxw4jkzBf4C&#43;f; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=rxnACZAda5M4po2qRSbaJswmq7SpJOH%2FFOo3Q1er; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -826,15 +838,14 @@ to be &lt;
         <h3>Blob Upload Streamed</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-14-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-14')">+
             </div>
             <h4 style="display: inline;">PATCH request with blob in body should yield 202 response</h4>
             <br>
-            <div>
-                <div id="output-box-14" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.667674 DEBUG 
+            <div id="output-box-14" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.748836 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -845,27 +856,94 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.667304453&#43;02:00
-TIME DURATION: 948.588µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.748457243&#43;02:00
+TIME DURATION: 10.430284ms
 HEADERS      :
+	Blob-Upload-Session-Id: a1a91402-a02b-4577-b242-572c4a43596b
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/a1a91402-a02b-4577-b242-572c4a43596b
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=z4XG5NuKPidZoMyZxRv34j6f7On3Yi4Kq6dScCc7; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=iVpZbfvGQQBDIXwon2coRlQDGXeQDhOSxyIPHyE2; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/06/20 16:32:29.764592 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/conformance/test/blobs/uploads/a1a91402-a02b-4577-b242-572c4a43596b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+TkJBIEphbSBvbiBteSBOQkEgdG9hc3Q=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.764167928&#43;02:00
+TIME DURATION: 15.23385ms
+HEADERS      :
+	Blob-Upload-Session-Id: a1a91402-a02b-4577-b242-572c4a43596b
+	Content-Length: 0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/a1a91402-a02b-4577-b242-572c4a43596b
+	Range: 0-23
+	Server: Enseada
+	Set-Cookie: enseada_session=7aFghOMIs8KlBaIym33%2F5vNq7RRirv%2F%2F8ZAXDwFI; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;string&gt;: 
-not to be empty</pre>
-            <br>
         </div>
 
+
+        <div class="result green">
+            <div id="output-box-15-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-15')">+
+            </div>
+            <h4 style="display: inline;">PUT request to session URL with digest should yield 201 response</h4>
+            <br>
+            <div id="output-box-15" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.789771 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/a1a91402-a02b-4577-b242-572c4a43596b?digest=sha256%3A852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 23
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.789426974&#43;02:00
+TIME DURATION: 24.712479ms
+HEADERS      :
+	Content-Length: 0
+	Content-Range: 0-23
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75
+	Server: Enseada
+	Set-Cookie: enseada_session=vAKs&#43;6rH0zKpklIUWeMAKqTLkuwbWlop6IbyGKGJ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
 
         <br>
 
@@ -880,7 +958,7 @@ not to be empty</pre>
             <h4 style="display: inline;">GET nonexistent blob should result in 404 response</h4>
             <br>
             <div id="output-box-16" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.670439 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:29.794681 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9  HTTP/1.1
@@ -892,15 +970,25 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.669962132&#43;02:00
-TIME DURATION: 1.260992ms
+RECEIVED AT  : 2020-06-20T16:32:29.794255898&#43;02:00
+TIME DURATION: 4.412754ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 85
+	Content-Type: application/json
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=kVZE7r8oeMWJbuAdX%2FZlpepm8bRSai%2FVK8BUsNFS; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=zqkNDAxIK%2Fjh7lrYin8b9LVa4CSZt%2Fxo2DOf33Zw; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;BLOB_UNKNOWN&#34;,
+         &#34;message&#34;: &#34;blob unknown to registry&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
 ==============================================================================
 
 </pre>
@@ -908,15 +996,14 @@ BODY         :
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-17-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-17')">+
             </div>
             <h4 style="display: inline;">POST request with digest and blob should yield a 201</h4>
             <br>
-            <div>
-                <div id="output-box-17" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.672280 DEBUG 
+            <div id="output-box-17" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.821079 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -929,37 +1016,34 @@ BODY   :
 ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.671751916&#43;02:00
-TIME DURATION: 1.169338ms
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.820240851&#43;02:00
+TIME DURATION: 25.44616ms
 HEADERS      :
+	Blob-Upload-Session-Id: e78177b5-44b7-4d65-aac2-c5aca52ae3f9
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
 	Server: Enseada
-	Set-Cookie: enseada_session=Vy1rIO3%2F91aLWef08EC%2FZeefYplDSLKYl3z&#43;hRi2; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=Y5qr2FMlRgLThfr44AMfyEMlEp2BeqiJSYt7DTIz; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;string&gt;: 
-not to be empty</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-18-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-18')">+
             </div>
             <h4 style="display: inline;">GET request to blob URL from prior request should yield 200</h4>
             <br>
-            <div>
-                <div id="output-box-18" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.674277 DEBUG 
+            <div id="output-box-18" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.830813 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -970,38 +1054,42 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.673983178&#43;02:00
-TIME DURATION: 1.129051ms
+STATUS       : 200 OK
+RECEIVED AT  : 2020-06-20T16:32:29.830220811&#43;02:00
+TIME DURATION: 8.880433ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=dFEzbKK3rfhYIjMqmXZJqz8ntlAkA6DrbfyH9Pm0; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=BAiQBNkkAVch%2FuEAGi6Qm1UIho5OixDPn0WVPBEG; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+{
+	&#34;architecture&#34;: &#34;amd64&#34;,
+	&#34;os&#34;: &#34;linux&#34;,
+	&#34;config&#34;: {},
+	&#34;rootfs&#34;: {
+		&#34;type&#34;: &#34;layers&#34;,
+		&#34;diff_ids&#34;: []
+	}
+}
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to equal
-    &lt;int&gt;: 200</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-19-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-19')">+
             </div>
             <h4 style="display: inline;">POST request should yield a session ID</h4>
             <br>
-            <div>
-                <div id="output-box-19" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.675840 DEBUG 
+            <div id="output-box-19" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.840595 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -1012,38 +1100,76 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.675472281&#43;02:00
-TIME DURATION: 772.214µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.840146808&#43;02:00
+TIME DURATION: 9.230167ms
 HEADERS      :
+	Blob-Upload-Session-Id: e2b571df-8edd-429c-9c9c-de685197b2b8
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/e2b571df-8edd-429c-9c9c-de685197b2b8
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=5m1AmC%2FFSC4jZnho0qNQt&#43;v%2FCMTNm8ArBADIff6P; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=aSPoy%2F6bGkNa7%2F7R56JOPBiRnmz&#43;teCWFbWzkoc0; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to equal
-    &lt;int&gt;: 202</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
+            <div id="output-box-20-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-20')">+
+            </div>
+            <h4 style="display: inline;">PUT upload of a blob should yield a 201 Response</h4>
+            <br>
+            <div id="output-box-20" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.863262 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/e2b571df-8edd-429c-9c9c-de685197b2b8?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.862613063&#43;02:00
+TIME DURATION: 21.879311ms
+HEADERS      :
+	Content-Length: 0
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Server: Enseada
+	Set-Cookie: enseada_session=4mj5&#43;0qJhoWKonCiS4yvPLTF06Z28cFgbCJFsmpA; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
+
+
+        <div class="result green">
             <div id="output-box-21-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-21')">+
             </div>
             <h4 style="display: inline;">GET request to existing blob should yield 200 response</h4>
             <br>
-            <div>
-                <div id="output-box-21" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.678062 DEBUG 
+            <div id="output-box-21" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.872187 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -1054,38 +1180,42 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.677768255&#43;02:00
-TIME DURATION: 935.323µs
+STATUS       : 200 OK
+RECEIVED AT  : 2020-06-20T16:32:29.871835536&#43;02:00
+TIME DURATION: 8.442072ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 113
+	Content-Type: application/octet-stream
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=uWKf2BqxhdoLntUela3RrmbgrHWS&#43;OGEdhzJGWuQ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=F0Nd19OH4ZsnzxW&#43;w0YouKoe5qvuVF4zI5nhbIqI; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+{
+	&#34;architecture&#34;: &#34;amd64&#34;,
+	&#34;os&#34;: &#34;linux&#34;,
+	&#34;config&#34;: {},
+	&#34;rootfs&#34;: {
+		&#34;type&#34;: &#34;layers&#34;,
+		&#34;diff_ids&#34;: []
+	}
+}
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to equal
-    &lt;int&gt;: 200</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-22-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-22')">+
             </div>
             <h4 style="display: inline;">PUT upload of a layer blob should yield a 201 Response</h4>
             <br>
-            <div>
-                <div id="output-box-22" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.679614 DEBUG 
+            <div id="output-box-22" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.883077 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -1096,22 +1226,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.679244435&#43;02:00
-TIME DURATION: 765.853µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.882590636&#43;02:00
+TIME DURATION: 10.322469ms
 HEADERS      :
+	Blob-Upload-Session-Id: 8e08248d-9626-40e7-960e-fbb6ab10e841
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/8e08248d-9626-40e7-960e-fbb6ab10e841
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=GJw11Ua45oEmWvvVxRFQII6pj5szM6seH8HFfmnX; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=tVUAK2JZOaYRChY5eTQi4v6lwIACXV9IU0byUKlv; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.681098 DEBUG 
+2020/06/20 16:32:29.903587 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/8e08248d-9626-40e7-960e-fbb6ab10e841?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 168
@@ -1121,37 +1255,35 @@ BODY   :
 H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.680511437&#43;02:00
-TIME DURATION: 820.195µs
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.903094898&#43;02:00
+TIME DURATION: 19.90252ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
 	Server: Enseada
-	Set-Cookie: enseada_session=Yp6HAEhbx%2FrZB65oATwtbnfJR70eWEoCUOn784lt; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=&#43;q3SnhXlr8&#43;oHfcgUhYlyesWkvTQK5zsp6ubNywM; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;string&gt;: 
-not to be empty</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-23-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-23')">+
             </div>
             <h4 style="display: inline;">GET request to existing layer should yield 200 response</h4>
             <br>
-            <div>
-                <div id="output-box-23" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.683213 DEBUG 
+            <div id="output-box-23" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.911652 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
@@ -1162,26 +1294,24 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.682829894&#43;02:00
-TIME DURATION: 1.13377ms
+STATUS       : 200 OK
+RECEIVED AT  : 2020-06-20T16:32:29.911054353&#43;02:00
+TIME DURATION: 7.370146ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 168
+	Content-Type: application/octet-stream
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=ZBPAxmrRBJXSDQvu0C8OuHsRQhrN3TNhXjbMCGCj; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=53wYgcmb0o3y2aj%2FsIrEnquLLT7tCiQcx1%2FSH0kH; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+���������A
+�0��=�xII���DmAi����EW�*&#34;��b���it�W-d&amp;�s�.}e^��wEikg���O��x[b�,�4z��|�o�&gt;�?�G�emc�,�.5�G�K����F�9���1h�Ӱ^}�;���������������;~���(��
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to equal
-    &lt;int&gt;: 200</pre>
-            <br>
         </div>
 
         <br>
@@ -1198,7 +1328,7 @@ to equal
             <br>
             <div>
                 <div id="output-box-24" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.684976 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:29.920943 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -1210,14 +1340,48 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.684616482&#43;02:00
-TIME DURATION: 895.669µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.920446197&#43;02:00
+TIME DURATION: 8.679893ms
 HEADERS      :
+	Blob-Upload-Session-Id: 811c4772-7598-4b6e-a267-6e42c9dce0b0
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/811c4772-7598-4b6e-a267-6e42c9dce0b0
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=nsV0m2FldAxtTaMhNd96DWz5EvqP2F0bnCOKpgte; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=44jFlugE0bwjjvm9ZqVD6DLBIWvQJ1d9WpbbF1IC; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/06/20 16:32:29.935058 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/conformance/test/blobs/uploads/811c4772-7598-4b6e-a267-6e42c9dce0b0  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.934615427&#43;02:00
+TIME DURATION: 13.566456ms
+HEADERS      :
+	Blob-Upload-Session-Id: 811c4772-7598-4b6e-a267-6e42c9dce0b0
+	Content-Length: 0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/811c4772-7598-4b6e-a267-6e42c9dce0b0
+	Range: 0-24
+	Server: Enseada
+	Set-Cookie: enseada_session=n&#43;5p5%2F&#43;%2F%2F9&#43;qLHmVA&#43;XW8YywpoSsXRaTKeW52o3D; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1226,21 +1390,21 @@ BODY         :
                 </div>
             </div>
             <pre class="fail-message">Expected
-    &lt;string&gt;: 
-not to be empty</pre>
+    &lt;int&gt;: 202
+to equal
+    &lt;int&gt;: 416</pre>
             <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-25-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-25')">+
             </div>
             <h4 style="display: inline;">PATCH request with first chunk should return 202</h4>
             <br>
-            <div>
-                <div id="output-box-25" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.686908 DEBUG 
+            <div id="output-box-25" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.947575 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -1252,27 +1416,97 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.686397449&#43;02:00
-TIME DURATION: 950.272µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.947154022&#43;02:00
+TIME DURATION: 11.595796ms
 HEADERS      :
+	Blob-Upload-Session-Id: e46a9752-5ae5-4112-9e20-94216cf52b4d
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/e46a9752-5ae5-4112-9e20-94216cf52b4d
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=W4TQrRydeXFcj1PI81Tj93ZUPdrWexyWseqSdvsU; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=HBjU43EW7I2by8aDjQqH&#43;lRfoT4l6W%2FQbCtTwl44; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/06/20 16:32:29.965248 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/conformance/test/blobs/uploads/e46a9752-5ae5-4112-9e20-94216cf52b4d  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 3
+	Content-Range: 0-2
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+SGVs
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:29.964753151&#43;02:00
+TIME DURATION: 17.078241ms
+HEADERS      :
+	Blob-Upload-Session-Id: e46a9752-5ae5-4112-9e20-94216cf52b4d
+	Content-Length: 0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/e46a9752-5ae5-4112-9e20-94216cf52b4d
+	Range: 0-2
+	Server: Enseada
+	Set-Cookie: enseada_session=zJr5oXiygtb3HqP0Yso4dTmtsdE6L7c64I1Qrpw5; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;string&gt;: 
-not to be empty</pre>
-            <br>
         </div>
 
+
+        <div class="result green">
+            <div id="output-box-26-button" class="toggle"
+                 onclick="javascript:toggleOutput('output-box-26')">+
+            </div>
+            <h4 style="display: inline;">PUT request with final chunk should return 201</h4>
+            <br>
+            <div id="output-box-26" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:29.996121 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/conformance/test/blobs/uploads/e46a9752-5ae5-4112-9e20-94216cf52b4d?digest=sha256%3A6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:29.995748011&#43;02:00
+TIME DURATION: 30.33582ms
+HEADERS      :
+	Content-Length: 0
+	Content-Range: 0-2
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48
+	Server: Enseada
+	Set-Cookie: enseada_session=SpMEXOCSBSZhgliYL4ZAbcC8zmLd8%2FFq&#43;V46lJvz; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+</pre>
+            </div>
+        </div>
 
         <br>
 
@@ -1287,7 +1521,7 @@ not to be empty</pre>
             <h4 style="display: inline;">GET nonexistent manifest should return 404</h4>
             <br>
             <div id="output-box-27" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.689263 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:29.997713 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/manifests/.INVALID_MANIFEST_NAME  HTTP/1.1
@@ -1299,13 +1533,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.688872893&#43;02:00
-TIME DURATION: 915.496µs
+RECEIVED AT  : 2020-06-20T16:32:29.997206439&#43;02:00
+TIME DURATION: 1.016759ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=aAlEHyi%2FZiRvYwHRGYkEBhtLNkwSU4RaTv2mn1ws; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=wGGfeqF0hO7pyjTskOQqYmgqgn7YCCVRr&#43;yr0Ch4; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1323,7 +1558,7 @@ BODY         :
             <br>
             <div>
                 <div id="output-box-28" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.690810 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:29.999219 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 PUT  /v2/conformance/test/manifests/test0  HTTP/1.1
@@ -1337,13 +1572,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.690212123&#43;02:00
-TIME DURATION: 833.521µs
+RECEIVED AT  : 2020-06-20T16:32:29.998862733&#43;02:00
+TIME DURATION: 1.015828ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=Z3QfJ1XQdQ5BeC3XwBN3AsQYFfD0EC3qiz5JUeWK; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=Tn19OkF&#43;bU4fjsb%2FP48ONtQV9&#43;4GlyWKKZA6ep6a; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1366,7 +1602,7 @@ not to be empty</pre>
             <br>
             <div>
                 <div id="output-box-29" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.693602 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.001156 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 PUT  /v2/conformance/test/manifests/emptylayer  HTTP/1.1
@@ -1380,13 +1616,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.692964151&#43;02:00
-TIME DURATION: 959.659µs
+RECEIVED AT  : 2020-06-20T16:32:30.000550365&#43;02:00
+TIME DURATION: 965.403µs
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=nJyoM&#43;fKhSWj1gKXuydVhtAHDHeS5ADXaRp4ULZt; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=Rt2KclXvFSQXC5cHo7s1uVuccVLonpdYHduxchQd; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1409,7 +1646,7 @@ not to be empty</pre>
             <br>
             <div>
                 <div id="output-box-30" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.695645 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.003369 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -1422,13 +1659,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.695179422&#43;02:00
-TIME DURATION: 1.040192ms
+RECEIVED AT  : 2020-06-20T16:32:30.002873854&#43;02:00
+TIME DURATION: 1.142809ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=9nMD8v88xfyxMNrgUDnuaiJ1P2zqiz1u66Bnq3%2F6; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=nzsAorq0R60W%2F2pEdp8ZCb1gIoaJBOQXtjEdgtMd; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1449,15 +1687,14 @@ to equal
         <h3>Teardown</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-31-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-31')">+
             </div>
             <h4 style="display: inline;">Delete config blob created in tests</h4>
             <br>
-            <div>
-                <div id="output-box-31" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.697614 DEBUG 
+            <div id="output-box-31" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.018881 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -1468,37 +1705,33 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.697220863&#43;02:00
-TIME DURATION: 984.006µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.018322583&#43;02:00
+TIME DURATION: 14.330106ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=euwcknfzLhFC6kLOXH8j6GQ&#43;25aWddI8YB8&#43;IE3S; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=5MqAfUFXLMQZJdyrZXJZXnZ71BZXPyNOhjqd&#43;Dgp; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0002e84b0 0xc0002e84e0] 0xc0002e84e0}) %!s(*matchers.EqualMatcher=&amp;{405})]</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-32-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-32')">+
             </div>
             <h4 style="display: inline;">Delete layer blob created in setup</h4>
             <br>
-            <div>
-                <div id="output-box-32" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.699767 DEBUG 
+            <div id="output-box-32" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.034510 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
@@ -1509,25 +1742,22 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.699171902&#43;02:00
-TIME DURATION: 993.093µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.033990817&#43;02:00
+TIME DURATION: 14.986721ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=VP77BmfE6R1LuRk%2FmZ09fQm5rFLFnj3usdo2SM63; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=dfs4PECp3F7C83B2sR6RbeGnmto5BoNIGSQrDdre; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0001ed110 0xc0001ed140] 0xc0001ed140}) %!s(*matchers.EqualMatcher=&amp;{405})]</pre>
-            <br>
         </div>
 
 
@@ -1539,7 +1769,7 @@ To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0
             <br>
             <div>
                 <div id="output-box-33" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.702089 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.036096 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -1551,13 +1781,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.701625786&#43;02:00
-TIME DURATION: 910.998µs
+RECEIVED AT  : 2020-06-20T16:32:30.035800862&#43;02:00
+TIME DURATION: 1.167035ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=NHRwNEsjzQZgSw9DYwl%2Fwo8SogKtKQXBHl6GlCE8; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=guP3Pj4%2FcvId7plq9ABirfJDmuFdVDcpvcXnQ1i9; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1567,7 +1798,7 @@ BODY         :
             </div>
             <pre class="fail-message">Expected
     &lt;int&gt;: 404
-To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc000095200 0xc000095320] 0xc000095320}) %!s(*matchers.EqualMatcher=&amp;{405})]</pre>
+To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0003d7c80 0xc0003d7cb0] 0xc0003d7cb0}) %!s(*matchers.EqualMatcher=&amp;{405})]</pre>
             <br>
         </div>
 
@@ -1584,15 +1815,14 @@ To satisfy at least one of these matchers: [%!s(*matchers.AndMatcher=&amp;{[0xc0
         <h3>Setup</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-34-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-34')">+
             </div>
             <h4 style="display: inline;">Populate registry with test blob</h4>
             <br>
-            <div>
-                <div id="output-box-34" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.704396 DEBUG 
+            <div id="output-box-34" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.048143 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -1603,22 +1833,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.703978657&#43;02:00
-TIME DURATION: 1.229151ms
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.047609682&#43;02:00
+TIME DURATION: 11.140773ms
 HEADERS      :
+	Blob-Upload-Session-Id: f66b9eb1-75cf-48ab-aaa9-79912c54187a
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/f66b9eb1-75cf-48ab-aaa9-79912c54187a
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=apJoMxJQ6qDM9i0scnVjeprkNx5r9b7XZjtlLAoL; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=6C1gVTrwUf9qS%2FSnLHTXep%2FSzfRRfIghaS8DWpYV; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.706028 DEBUG 
+2020/06/20 16:32:30.072735 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/f66b9eb1-75cf-48ab-aaa9-79912c54187a?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 113
@@ -1628,38 +1862,35 @@ BODY   :
 ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.70554085&#43;02:00
-TIME DURATION: 1.045723ms
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:30.07236416&#43;02:00
+TIME DURATION: 24.117829ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
 	Server: Enseada
-	Set-Cookie: enseada_session=gD9KBXFL9VrRbNtohhMM%2FCpisFXURh5D6hM%2FaNCa; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=Oxqj6uwP4jQgl&#43;&#43;p0gqTc2oYxGKhjYyvWAhScAf8; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-35-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-35')">+
             </div>
             <h4 style="display: inline;">Populate registry with test layer</h4>
             <br>
-            <div>
-                <div id="output-box-35" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.707992 DEBUG 
+            <div id="output-box-35" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.085956 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -1670,22 +1901,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.707629661&#43;02:00
-TIME DURATION: 1.016648ms
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.085457137&#43;02:00
+TIME DURATION: 12.648063ms
 HEADERS      :
+	Blob-Upload-Session-Id: 14d2eedb-229f-4f89-8fcf-65972dc685c2
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:29 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/14d2eedb-229f-4f89-8fcf-65972dc685c2
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=2%2Fom39RdqGcCLRB9lMn4OjPEFTeDQdDI8h5nFd1s; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=%2Fc2bAyZZInQX%2FvRwsjnxS220KGyZKrGx3Nf7b2Ri; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.709451 DEBUG 
+2020/06/20 16:32:30.114161 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/14d2eedb-229f-4f89-8fcf-65972dc685c2?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 168
@@ -1695,26 +1930,24 @@ BODY   :
 H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.708890502&#43;02:00
-TIME DURATION: 818.232µs
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:30.113765259&#43;02:00
+TIME DURATION: 27.699797ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
 	Server: Enseada
-	Set-Cookie: enseada_session=gVVxSfQ3uYKmnkmrJICzBDn7GhEFDogeDiax&#43;HZw; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=OV9tmevkEK0Khm8EVL1KpGROXDxLmDQKTl1mVzjO; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
@@ -1726,7 +1959,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-36" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.711587 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.116274 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 PUT  /v2/conformance/test/manifests/test0  HTTP/1.1
@@ -1740,13 +1973,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.711012987&#43;02:00
-TIME DURATION: 946.214µs
+RECEIVED AT  : 2020-06-20T16:32:30.11565753&#43;02:00
+TIME DURATION: 1.381091ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=OE0w4ZST&#43;5MHi8F9khrOCvWbkd6l98PMSXZz56P4; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=bCkON5zfk0abwtyGUyWunWVWaB46l8Lro%2FGyNOGV; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1787,7 +2021,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-38" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.713862 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.118850 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/tags/list  HTTP/1.1
@@ -1799,13 +2033,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.713368353&#43;02:00
-TIME DURATION: 856.153µs
+RECEIVED AT  : 2020-06-20T16:32:30.118581069&#43;02:00
+TIME DURATION: 1.220276ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=1PS9&#43;xBg1bKfYmvmNdTfLvgAtsMtusyNw7Qxof4p; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=hRhZdHkkSCqOkqEl&#43;4B&#43;gHTaGgaqVABzJZwT5wM3; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1829,7 +2064,7 @@ to equal
             <br>
             <div>
                 <div id="output-box-39" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.715898 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.121426 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/tags/list?n=2  HTTP/1.1
@@ -1841,13 +2076,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.715536635&#43;02:00
-TIME DURATION: 915.977µs
+RECEIVED AT  : 2020-06-20T16:32:30.121003085&#43;02:00
+TIME DURATION: 1.271563ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=6utRqKvBEX%2FZt4vEi2XFruV31aPId3jM1sP30Kb3; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=Mi76LurDqY8H%2FLaX8TYJmYU9h%2FZ3HvwDiXgw58UR; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -1869,15 +2105,14 @@ to equal
         <h3>Teardown</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-41-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-41')">+
             </div>
             <h4 style="display: inline;">Delete config blob created in tests</h4>
             <br>
-            <div>
-                <div id="output-box-41" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.719958 DEBUG 
+            <div id="output-box-41" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.138191 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -1888,38 +2123,33 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.71952051&#43;02:00
-TIME DURATION: 1.023772ms
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.137905061&#43;02:00
+TIME DURATION: 14.157407ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=ePMp%2FR6Y5mff7e0NUm5f2iajlEssVN1Kj%2Fn1V5Z9; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=&#43;%2F5E22bLPJDjbK7BrFyyXi&#43;mG1lXr7JTUG1TNDPt; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-42-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-42')">+
             </div>
             <h4 style="display: inline;">Delete layer blob created in setup</h4>
             <br>
-            <div>
-                <div id="output-box-42" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.721936 DEBUG 
+            <div id="output-box-42" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.155133 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
@@ -1930,26 +2160,22 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.721495906&#43;02:00
-TIME DURATION: 997.953µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.154759787&#43;02:00
+TIME DURATION: 16.499091ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=ZV44aRH4pMj241lYc14RQHGVgYuI9dKS8kkpGVDl; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=85mykwgeqigY8oT8Lc%2F&#43;3XKqn0N1DfuX1iyQAmh4; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
@@ -1961,7 +2187,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-43" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.723922 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.156602 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -1973,13 +2199,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.723529141&#43;02:00
-TIME DURATION: 1.038679ms
+RECEIVED AT  : 2020-06-20T16:32:30.156131771&#43;02:00
+TIME DURATION: 911.39µs
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=2q28j4mCsV1L64MJD2xpfoFyuJkPV5zFYRWLJZfB; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=8Nsk7nmLRQaZe%2FfK&#43;1oY9i8Ieh2Yz5SINaZA5JPl; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2007,15 +2234,14 @@ to be &lt;
         <h3>Setup</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-44-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-44')">+
             </div>
             <h4 style="display: inline;">Populate registry with test config blob</h4>
             <br>
-            <div>
-                <div id="output-box-44" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.725399 DEBUG 
+            <div id="output-box-44" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.169314 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -2026,22 +2252,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.72504199&#43;02:00
-TIME DURATION: 617.801µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.168795854&#43;02:00
+TIME DURATION: 11.598291ms
 HEADERS      :
+	Blob-Upload-Session-Id: 08297ba0-267e-4765-9e05-91f96fe5af6c
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/08297ba0-267e-4765-9e05-91f96fe5af6c
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=mpuPZESl7sJCMIoHPO63MSXViUaSJ&#43;4btMTL47uZ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=11122FEuHyZOZRdyW&#43;olaBr9mu9QSPBkOJXzuaUA; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.726563 DEBUG 
+2020/06/20 16:32:30.193893 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/08297ba0-267e-4765-9e05-91f96fe5af6c?digest=sha256%3A66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 113
@@ -2051,38 +2281,35 @@ BODY   :
 ewoJImFyY2hpdGVjdHVyZSI6ICJhbWQ2NCIsCgkib3MiOiAibGludXgiLAoJImNvbmZpZyI6IHt9LAoJInJvb3RmcyI6IHsKCQkidHlwZSI6ICJsYXllcnMiLAoJCSJkaWZmX2lkcyI6IFtdCgl9Cn0=
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.726098774&#43;02:00
-TIME DURATION: 620.867µs
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:30.193420876&#43;02:00
+TIME DURATION: 24.004385ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
 	Server: Enseada
-	Set-Cookie: enseada_session=&#43;O5HUaqneSjung95xZepCjrgwad6fRMK%2FqsYkk9m; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=5GK7RrKMiiHmRqhkcT&#43;eQ&#43;frdJBfjop&#43;FO0JQFcE; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-45-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-45')">+
             </div>
             <h4 style="display: inline;">Populate registry with test layer</h4>
             <br>
-            <div>
-                <div id="output-box-45" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.728265 DEBUG 
+            <div id="output-box-45" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.204327 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 POST  /v2/conformance/test/blobs/uploads/  HTTP/1.1
@@ -2093,22 +2320,26 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.72788413&#43;02:00
-TIME DURATION: 802.592µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.204049747&#43;02:00
+TIME DURATION: 10.054641ms
 HEADERS      :
+	Blob-Upload-Session-Id: 00300279-55c2-4333-bb7c-67928a3bb2ec
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/uploads/00300279-55c2-4333-bb7c-67928a3bb2ec
+	Range: 0-0
 	Server: Enseada
-	Set-Cookie: enseada_session=1DfldIFbP2iokCO3UJrlIq08V9qE7YxJDK3xEzbv; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=n0FGpJgdx34Q8qrPJo71SDGZWbemGd5RwjtZMlpl; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
-2020/06/19 15:32:58.729470 DEBUG 
+2020/06/20 16:32:30.229517 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
-PUT  /?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+PUT  /v2/conformance/test/blobs/uploads/00300279-55c2-4333-bb7c-67928a3bb2ec?digest=sha256%3A48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
 HOST   : containers.localhost:9623
 HEADERS:
 	Content-Length: 168
@@ -2118,26 +2349,24 @@ BODY   :
 H4sIAAAAAAAAA&#43;3OQQrCMBCF4a49xXgBSUnaHMCTRBptQRNpp6i3t0UEV7oqIv7fYgbmzeJpHHSjVy0WZCa1c/MufWVe94N3RWlrZ72x3k/30nhbFWKWLPU0Dhp6keJ8im//PuU/6pZH2WVtYx8b0Sz7LjWSR5VLG6YRBumSzOlGtjkd&#43;qDjMWiX07Befbs7AAAAAAAAAAAAAAAAAPyzO34MnqoAKAAA
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.728988784&#43;02:00
-TIME DURATION: 631.918µs
+STATUS       : 201 Created
+RECEIVED AT  : 2020-06-20T16:32:30.229015647&#43;02:00
+TIME DURATION: 24.623971ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Range: 0-0
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
 	Server: Enseada
-	Set-Cookie: enseada_session=n8LkHVDnI3LoaECd818xjp6phvvJkUu2LsaRQHWd; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=A%2Ftaq%2FM1QEANnOk&#43;3XevR9Vr4QavrdtWTrP3VPxO; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to be &lt;
-    &lt;int&gt;: 300</pre>
-            <br>
         </div>
 
 
@@ -2149,7 +2378,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-46" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.731296 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.231344 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 PUT  /v2/conformance/test/manifests/tagtest0  HTTP/1.1
@@ -2163,13 +2392,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.730720788&#43;02:00
-TIME DURATION: 719.945µs
+RECEIVED AT  : 2020-06-20T16:32:30.230992057&#43;02:00
+TIME DURATION: 1.361864ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=AXWD0KYjKJb14600DuvoRyJkHlrKGne4hTfimfyb; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=EF4D7w9edEWGUgQNoVAs%2FZHpYeFJlXfq8MPlmwIE; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2193,7 +2423,7 @@ to be &lt;
             <br>
             <div>
                 <div id="output-box-47" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.733022 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.233214 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/tags/list  HTTP/1.1
@@ -2205,13 +2435,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.732386256&#43;02:00
-TIME DURATION: 593.685µs
+RECEIVED AT  : 2020-06-20T16:32:30.232918263&#43;02:00
+TIME DURATION: 1.202382ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=pFHLnZbY9cNyvtjfY6SAkSWfynImRkKmfLHrmxE5; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=njULLK%2F7sxDiFI%2F%2FZVyOZen1zWDIc%2FV5b279Ntsm; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2241,7 +2472,7 @@ to equal
             <br>
             <div>
                 <div id="output-box-48" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.735384 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.235127 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/manifests/tagtest0  HTTP/1.1
@@ -2253,13 +2484,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.734943746&#43;02:00
-TIME DURATION: 1.094115ms
+RECEIVED AT  : 2020-06-20T16:32:30.234853145&#43;02:00
+TIME DURATION: 1.180711ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=GdF&#43;TRiLx1hV0mxd86JyBuNnF4KqtytB3v19xkaJ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=g133DZZH7TBWEsSOL%2F22REDXwkuIlsd6S9nhD8iD; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2282,7 +2514,7 @@ To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&amp;{400
                 deleted</h4>
             <br>
             <div id="output-box-49" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.738012 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:30.237138 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -2294,13 +2526,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.73762453&#43;02:00
-TIME DURATION: 1.007751ms
+RECEIVED AT  : 2020-06-20T16:32:30.23683217&#43;02:00
+TIME DURATION: 1.358728ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=mUbAtEiV3o1Wyf&#43;nJdvJbcyMJzFfjfsasXJY2Oi4; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=N6W7rltYV9RIYPkPzGr7BfDD5PTX6y71XEuqukEW; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2318,7 +2551,7 @@ BODY         :
                 disallowed</h4>
             <br>
             <div id="output-box-50" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.739335 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:30.238701 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/manifests/sha256:72602cdfe6c886d367e513b2c48c93e83dfe3993f2b87f481056a5117e3f7556  HTTP/1.1
@@ -2330,13 +2563,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.738801982&#43;02:00
-TIME DURATION: 687.564µs
+RECEIVED AT  : 2020-06-20T16:32:30.238405797&#43;02:00
+TIME DURATION: 1.209395ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=FEkCA9o2%2FvKR4N7Z4DYhgkEJr42ud&#43;cZUmIWnKT0; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=SUwseNZGazYIlYjfX32NnGFR2Ob8y5&#43;60AxXA3AB; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2354,7 +2588,7 @@ BODY         :
             <br>
             <div>
                 <div id="output-box-51" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.740387 DEBUG 
+                          <pre class="pre-box">2020/06/20 16:32:30.240063 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/tags/list  HTTP/1.1
@@ -2366,13 +2600,14 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.740043186&#43;02:00
-TIME DURATION: 610.858µs
+RECEIVED AT  : 2020-06-20T16:32:30.239848244&#43;02:00
+TIME DURATION: 1.101129ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=Z7OLM8e7XN3%2FhnE1SDzFPY9FKgXHkP1hO9AM9gqQ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=Xkumk7HI3m8xN%2FWNqPv6BXgOwG0YrkuItvuvpQQY; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
@@ -2393,15 +2628,14 @@ to equal
         <h3>Blob delete</h3>
 
 
-        <div class="result red">
+        <div class="result green">
             <div id="output-box-52-button" class="toggle"
                  onclick="javascript:toggleOutput('output-box-52')">+
             </div>
             <h4 style="display: inline;">DELETE request to blob URL should yield 202 response</h4>
             <br>
-            <div>
-                <div id="output-box-52" style="display: none;">
-                          <pre class="pre-box">2020/06/19 15:32:58.742044 DEBUG 
+            <div id="output-box-52" style="display: none;">
+                        <pre class="pre-box">2020/06/20 16:32:30.255838 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 DELETE  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -2412,26 +2646,47 @@ BODY   :
 ***** NO CONTENT *****
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
-STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.741675011&#43;02:00
-TIME DURATION: 771.353µs
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.255546436&#43;02:00
+TIME DURATION: 15.162285ms
 HEADERS      :
 	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=EXga0gapinQ9p20UF981s8MNp1lRFCN3KQhvHLme; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=2WxVyo4Z&#43;7QgUtb9GLbBgch0ICnqH2M32aUBlzea; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+BODY         :
+
+==============================================================================
+
+2020/06/20 16:32:30.271798 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/conformance/test/blobs/sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183  HTTP/1.1
+HOST   : containers.localhost:9623
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-06-20T16:32:30.271435449&#43;02:00
+TIME DURATION: 15.550601ms
+HEADERS      :
+	Content-Length: 0
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Content-Digest: sha256:48acff1d91752e957527c1b5416e7376d910bcacf01b9441175f8c270e35c183
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: Enseada
+	Set-Cookie: enseada_session=9Xy7qdDCmMZtvRiNqQpvvqlvyubIQcu5YWbhQx5q; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
 
 ==============================================================================
 
 </pre>
-                </div>
             </div>
-            <pre class="fail-message">Expected
-    &lt;int&gt;: 404
-to equal
-    &lt;int&gt;: 202</pre>
-            <br>
         </div>
 
 
@@ -2442,7 +2697,7 @@ to equal
             <h4 style="display: inline;">GET request to deleted blob URL should yield 404 response</h4>
             <br>
             <div id="output-box-53" style="display: none;">
-                        <pre class="pre-box">2020/06/19 15:32:58.743618 DEBUG 
+                        <pre class="pre-box">2020/06/20 16:32:30.278598 DEBUG 
 ==============================================================================
 ~~~ REQUEST ~~~
 GET  /v2/conformance/test/blobs/sha256:66ad98165d38f53ee73868f82bd4eed60556ddfee824810a4062c4f777b20a5b  HTTP/1.1
@@ -2454,15 +2709,25 @@ BODY   :
 ------------------------------------------------------------------------------
 ~~~ RESPONSE ~~~
 STATUS       : 404 Not Found
-RECEIVED AT  : 2020-06-19T15:32:58.743220742&#43;02:00
-TIME DURATION: 660.743µs
+RECEIVED AT  : 2020-06-20T16:32:30.278254109&#43;02:00
+TIME DURATION: 6.369107ms
 HEADERS      :
-	Content-Length: 0
-	Date: Fri, 19 Jun 2020 13:32:58 GMT
+	Content-Length: 85
+	Content-Type: application/json
+	Date: Sat, 20 Jun 2020 14:32:30 GMT
+	Docker-Distribution-Api-Version: registry/2.0
 	Server: Enseada
-	Set-Cookie: enseada_session=WtChrnoVVrZXDeBlEufQoFUo72Vl%2FwY79qUeW3JQ; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
+	Set-Cookie: enseada_session=HNbaiccarA8WNCCNslReNSqNBczQrkSTsWuxWxvo; HttpOnly; SameSite=Strict; Path=/; Domain=localhost
 BODY         :
-
+{
+   &#34;errors&#34;: [
+      {
+         &#34;code&#34;: &#34;BLOB_UNKNOWN&#34;,
+         &#34;message&#34;: &#34;blob unknown to registry&#34;,
+         &#34;detail&#34;: {}
+      }
+   ]
+}
 ==============================================================================
 
 </pre>

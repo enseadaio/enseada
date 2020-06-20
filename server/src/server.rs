@@ -7,7 +7,7 @@ use std::sync::Arc;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
-use actix_web::middleware::{DefaultHeaders, Logger};
+use actix_web::middleware::{DefaultHeaders, Logger, NormalizePath};
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
 use http::StatusCode;
@@ -38,6 +38,7 @@ pub async fn run() -> io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(NormalizePath)
             .wrap(Logger::default().exclude("/health"))
             .wrap(
                 CookieSession::private(secret_key.as_bytes())

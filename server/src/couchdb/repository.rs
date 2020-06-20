@@ -66,9 +66,12 @@ pub trait Repository<T> {
         Self: Sized,
         T: 'async_trait + Entity,
     {
-        let guid = entity.id().to_string();
-        let res = self.db().put(guid.as_str(), &entity).await?;
+        let id = entity.id().to_string();
         let mut entity = entity;
+        if let Some(rev) = self.db().get::<T>(&id).await?.as_ref().and_then(T::rev) {
+            entity.set_rev(rev.to_string());
+        }
+        let res = self.db().put(&id, &entity).await?;
         entity.set_rev(res.rev);
         Ok(entity)
     }
