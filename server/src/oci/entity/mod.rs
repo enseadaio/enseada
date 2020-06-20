@@ -1,3 +1,4 @@
+pub use blob::Blob;
 pub use repo::Repo;
 pub use upload::{Upload, UploadChunk};
 

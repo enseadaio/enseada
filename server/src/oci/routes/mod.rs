@@ -9,10 +9,11 @@ use serde::Deserialize;
 use crate::config::CONFIG;
 use crate::http::guard::subdomain;
 use crate::oci::header;
-use crate::oci::service::{RepoService, UploadService};
+use crate::oci::service::{BlobService, RepoService, UploadService};
 use crate::storage;
 
 mod api;
+mod blob;
 mod upload;
 
 pub fn mount(cfg: &mut ServiceConfig) {
@@ -26,6 +27,9 @@ pub fn mount(cfg: &mut ServiceConfig) {
     let repo = UploadService::new(db.clone(), provider.clone());
     cfg.data(repo);
 
+    let blob = BlobService::new(db, provider.clone());
+    cfg.data(blob);
+
     cfg.service(api::list_repos);
     cfg.service(api::create_repo);
     cfg.service(api::get_repo);
@@ -37,6 +41,10 @@ pub fn mount(cfg: &mut ServiceConfig) {
             .guard(subdomain(sub))
             .wrap(DefaultHeaders::new().header(header::DISTRIBUTION_API_VERSION, "registry/2.0"))
             .service(root)
+            // Blobs
+            .service(blob::get)
+            .service(blob::delete)
+            // Uploads
             .service(upload::start)
             .service(upload::get)
             .service(upload::push)

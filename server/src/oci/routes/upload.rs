@@ -1,25 +1,25 @@
 use actix_web::web::{Bytes, Data, Path, Query};
 use actix_web::{delete, get, patch, post, put, HttpRequest, HttpResponse};
-use http::StatusCode;
 use serde::Deserialize;
 
 use crate::couchdb::repository::{Entity, Repository};
 use crate::oci::digest::Digest;
-use crate::oci::entity::{Repo, UploadChunk};
+use crate::oci::entity::{Blob, Repo, UploadChunk};
 use crate::oci::error::{Error, ErrorCode};
 use crate::oci::header;
 use crate::oci::routes::RepoPath;
-use crate::oci::service::{RepoService, UploadService};
+use crate::oci::service::{BlobService, RepoService, UploadService};
 use crate::oci::Result;
 
 #[derive(Debug, Deserialize)]
 pub struct DigestParam {
-    digest: Digest,
+    pub digest: Digest,
 }
 
 #[post("/{group}/{name}/blobs/uploads")]
 pub async fn start(
     uploads: Data<UploadService>,
+    blobs: Data<BlobService>,
     repos: Data<RepoService>,
     // enforcer: Data<RwLock<Enforcer>>,
     // scope: Scope,
@@ -46,6 +46,8 @@ pub async fn start(
             uploads
                 .complete_upload(upload_id, digest, Some(chunk))
                 .await?;
+            let blob = Blob::new(digest.clone());
+            blobs.save(blob).await?;
             Ok(HttpResponse::Created()
                 .header(
                     http::header::LOCATION,
@@ -141,6 +143,7 @@ pub async fn push(
 #[put("/{group}/{name}/blobs/uploads/{upload_id}")]
 pub async fn complete(
     uploads: Data<UploadService>,
+    blobs: Data<BlobService>,
     repos: Data<RepoService>,
     // enforcer: Data<RwLock<Enforcer>>,
     // scope: Scope,
@@ -173,6 +176,9 @@ pub async fn complete(
     log::debug!("completing upload");
     // TODO: check digest matches chunk
     let upload = uploads.complete_upload(upload_id, digest, chunk).await?;
+    let blob = Blob::new(digest.clone());
+    blobs.save(blob).await?;
+
     Ok(HttpResponse::NoContent()
         .header(
             http::header::LOCATION,

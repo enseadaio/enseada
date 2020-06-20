@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use hold::blob::Blob;
+use hold::blob::Blob as StorageBlob;
 
 use couchdb::db::Database;
 
@@ -27,7 +27,7 @@ impl UploadService {
     }
 
     pub async fn push_chunk(&self, upload_id: &str, chunk: UploadChunk) -> Result<Upload> {
-        let body = chunk.content().drain(..).collect();
+        let body = chunk.content();
         let mut upload = self
             .find(upload_id)
             .await?
@@ -38,7 +38,7 @@ impl UploadService {
         let chunks = upload.chunks();
         let chunk = chunks.last().unwrap();
         let key = chunk.storage_key().unwrap();
-        let blob = Blob::new(key.to_string(), body);
+        let blob = StorageBlob::new(key.to_string(), body);
         self.store.store_blob(blob).await?;
 
         Ok(upload)
@@ -52,7 +52,7 @@ impl UploadService {
     ) -> Result<Upload> {
         log::debug!("Completing upload {} with digest {}", upload_id, digest);
 
-        let mut upload = self
+        let upload = self
             .find(upload_id)
             .await?
             .ok_or_else(|| Error::from(ErrorCode::BlobUploadUnknown))?;
@@ -79,7 +79,7 @@ impl UploadService {
 
         let blob_key = storage::blob_key(digest);
         log::debug!("Storing blob {}", blob_key);
-        let blob = Blob::new(blob_key, buf);
+        let blob = StorageBlob::new(blob_key, buf);
         self.store.store_blob(blob).await?;
         self.delete(&upload).await?;
 

@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Digest {
     algo: String,
     digest: String,
