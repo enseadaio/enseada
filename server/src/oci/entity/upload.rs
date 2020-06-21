@@ -1,3 +1,5 @@
+use std::fmt::{self, Debug, Formatter};
+
 use actix_web::http::HeaderMap;
 use bytes::Bytes;
 use http::header;
@@ -79,7 +81,7 @@ impl Entity for Upload {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct UploadChunk {
     start_range: usize,
     end_range: usize,
@@ -136,5 +138,15 @@ impl UploadChunk {
             storage_key: None,
             content: body.to_vec(),
         })
+    }
+}
+
+impl Debug for UploadChunk {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UploadChunk")
+            .field("start_range", &self.start_range)
+            .field("end_range", &self.end_range)
+            .field("storage_key", &self.storage_key)
+            .finish()
     }
 }

@@ -1,6 +1,6 @@
 use std::cmp::{max, min};
 
-use actix_web::web::{Data, Json, Path, Query};
+use actix_web::web::{Data, Path, Query};
 use actix_web::{get, HttpResponse};
 use serde::{Deserialize, Serialize};
 

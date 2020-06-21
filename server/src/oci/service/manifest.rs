@@ -9,6 +9,7 @@ use crate::oci::entity::Manifest;
 use crate::oci::error::Error;
 use crate::oci::Result;
 
+#[derive(Debug)]
 pub struct ManifestService {
     db: Arc<Database>,
 }

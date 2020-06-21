@@ -13,8 +13,8 @@ path = "src/main.rs"
 # Project
 couchdb = { path = "../couchdb" }
 enseada = { path = "../libenseada" }
-hold = "0.1.0-alpha.1"
-hold_s3 = "0.1.0-alpha.1"
+hold = "0.1.0-alpha.4"
+hold_s3 = "0.1.0-alpha.4"
 
 # Actix
 actix = "0.9"
@@ -45,6 +45,11 @@ rustls = "0.16"
 derive_more = "0.99"
 derivative = "1.0.3"
 lazy_static = "1.4"
+
+# Observability
+tracing = { version = "0.1.15", features = ["log-always"] }
+tracing-subscriber = { version = "0.2.6", default-features = false, features = ["env-filter", "smallvec", "fmt", "ansi", "chrono", "json"]}
+tracing-futures = "0.2.4"
 
 # Miscellaneous
 bytes = "0.5.4"

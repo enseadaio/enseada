@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 
-use actix_web::dev::ServiceResponse;
-use actix_web::middleware::errhandlers::ErrorHandlerResponse;
 use actix_web::{HttpResponse, ResponseError};
 use http::{header, StatusCode};
 use serde::{Deserialize, Serialize};
@@ -53,6 +51,9 @@ impl From<ErrorCode> for Error {
             ErrorCode::Unauthorized => Self::new(code, "authentication required"),
             ErrorCode::Denied => Self::new(code, "requested access to the resource is denied"),
             ErrorCode::Unsupported => Self::new(code, "The operation is unsupported"),
+            ErrorCode::RequestedRangeNotSatisfiable(_) => {
+                Self::new(code, "The requested range is invalid")
+            }
             ErrorCode::MediaTypeUnsupported => Self::new(code, "The media type is unsupported"),
             ErrorCode::NotFound => Self::new(code, "Not found"),
             ErrorCode::Internal => Self::new(code, "Internal server error"),
@@ -98,6 +99,7 @@ impl ResponseError for Error {
             | ErrorCode::ManifestBlobUnknown
             | ErrorCode::NotFound
             | ErrorCode::NameUnknown => StatusCode::NOT_FOUND,
+            ErrorCode::RequestedRangeNotSatisfiable(_) => StatusCode::RANGE_NOT_SATISFIABLE,
             ErrorCode::Unauthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::Denied => StatusCode::FORBIDDEN,
             ErrorCode::Internal => StatusCode::INTERNAL_SERVER_ERROR,
@@ -115,6 +117,9 @@ impl ResponseError for Error {
         accept.extend(MediaType::ImageIndex.compatible_types());
         accept.extend(MediaType::ImageManifest.compatible_types());
         res.header(header::ACCEPT, accept.join(","));
+        if let ErrorCode::RequestedRangeNotSatisfiable(range) = self.code {
+            res.header(header::RANGE, format!("0-{}", range));
+        }
         res.json(body)
     }
 }
@@ -152,9 +157,10 @@ pub enum ErrorCode {
     Denied,
     /// The operation was unsupported due to a missing implementation or invalid set of parameters.
     Unsupported,
+    /// The requested range is invalid
+    RequestedRangeNotSatisfiable(#[serde(skip)] usize),
     /// The media type was unsupported due to a missing implementation
     MediaTypeUnsupported,
-    ///
     /// Not found
     NotFound,
     /// Internal server error.

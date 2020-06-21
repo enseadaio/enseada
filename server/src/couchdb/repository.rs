@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -7,7 +9,7 @@ use couchdb::error::Error;
 use enseada::guid::Guid;
 use enseada::pagination::{Cursor, Page};
 
-pub trait Entity: Clone + Serialize + DeserializeOwned + Send + Sync {
+pub trait Entity: Clone + Debug + Serialize + DeserializeOwned + Send + Sync {
     fn build_guid(id: &str) -> Guid;
 
     fn id(&self) -> &Guid;
@@ -18,9 +20,10 @@ pub trait Entity: Clone + Serialize + DeserializeOwned + Send + Sync {
 }
 
 #[async_trait]
-pub trait Repository<T> {
+pub trait Repository<T>: Debug {
     fn db(&self) -> &Database;
 
+    #[tracing::instrument]
     async fn list(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<T>, Error>
     where
         Self: Sized,
@@ -42,6 +45,7 @@ pub trait Repository<T> {
         Ok(Page::from_rows_response(res, limit))
     }
 
+    #[tracing::instrument]
     async fn find(&self, id: &str) -> Result<Option<T>, Error>
     where
         Self: Sized,
@@ -51,6 +55,7 @@ pub trait Repository<T> {
         self.db().get(guid.as_str()).await.map_err(Error::from)
     }
 
+    #[tracing::instrument]
     async fn get(&self, id: &str) -> Result<T, Error>
     where
         Self: Sized,
@@ -61,6 +66,7 @@ pub trait Repository<T> {
             .ok_or_else(|| Error::not_found(format!("entity {} not found", id)))
     }
 
+    #[tracing::instrument]
     async fn save(&self, entity: T) -> Result<T, Error>
     where
         Self: Sized,
@@ -76,6 +82,7 @@ pub trait Repository<T> {
         Ok(entity)
     }
 
+    #[tracing::instrument]
     async fn delete(&self, entity: &T) -> Result<(), Error>
     where
         Self: Sized,

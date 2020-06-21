@@ -6,6 +6,7 @@ use enseada::secure;
 use crate::couchdb::repository::Repository;
 use crate::user::User;
 
+#[derive(Debug)]
 pub struct UserService {
     db: Database,
 }
@@ -22,6 +23,7 @@ impl UserService {
         UserService { db }
     }
 
+    #[tracing::instrument]
     pub async fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error> {
         log::debug!("Authenticating user {}", username);
         let user = match self.find(username).await? {

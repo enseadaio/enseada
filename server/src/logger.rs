@@ -10,7 +10,7 @@ use log4rs::encode::Encode;
 use crate::config::CONFIG;
 
 fn encoder() -> Box<dyn Encode> {
-    let fmt = CONFIG.log().format().to_lowercase();
+    let fmt = CONFIG.log().format();
     match fmt.as_str() {
         "json" => Box::new(JsonEncoder::new()),
         _ => Box::new(PatternEncoder::default()),
@@ -29,12 +29,34 @@ pub fn init() {
 
     let stdout = ConsoleAppender::builder().encoder(encoder()).build();
 
-    let config = Config::builder()
+    match Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
-        .logger(Logger::builder().build("enseada_server", level(lvl)))
-        .logger(Logger::builder().build("couchdb", level(lvl)))
+        .logger(primary(lvl))
+        .logger(couchdb(lvl))
+        .logger(tracing())
         .build(Root::builder().appender("stdout").build(level(root_lvl)))
-        .unwrap();
+    {
+        Ok(config) => {
+            if let Err(error) = log4rs::init_config(config) {
+                panic!("{}", error);
+            }
+        }
+        Err(error) => panic!("{}", error),
+    }
+}
 
-    log4rs::init_config(config).unwrap();
+fn primary(lvl: &str) -> Logger {
+    Logger::builder().build("enseada_server", level(lvl))
+}
+
+fn couchdb(lvl: &str) -> Logger {
+    Logger::builder().build("couchdb", level(lvl))
+}
+
+fn tracing() -> Logger {
+    if CONFIG.tracing().log() {
+        Logger::builder().build("tracing", LevelFilter::Info)
+    } else {
+        Logger::builder().build("tracing", LevelFilter::Off)
+    }
 }

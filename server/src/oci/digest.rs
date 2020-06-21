@@ -1,9 +1,6 @@
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 
-use actix_web::http::header::IntoHeaderValue;
-use http::header::InvalidHeaderValue;
-use http::HeaderValue;
 use serde::{de::Error as SerdeError, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::oci::error::{Error, ErrorCode};

@@ -19,6 +19,7 @@ mod model;
 mod routes;
 pub mod watcher;
 
+#[derive(Debug)]
 pub struct Enforcer {
     db: Arc<Database>,
     model: Model,
@@ -32,6 +33,7 @@ impl Enforcer {
         }
     }
 
+    #[tracing::instrument]
     pub async fn load_rules(&mut self) -> Result<(), Error> {
         log::info!("Loading RBAC rules from CouchDB");
         let model = &mut self.model;
@@ -95,6 +97,7 @@ impl Enforcer {
         Ok(())
     }
 
+    #[tracing::instrument]
     pub fn check(&self, sub: &Guid, obj: &Guid, act: &str) -> Result<(), EvaluationError> {
         let sub = &sub.to_string();
         let obj = &obj.to_string();
@@ -116,6 +119,7 @@ impl Enforcer {
         }
     }
 
+    #[tracing::instrument]
     pub async fn add_permission(&self, sub: Guid, obj: Guid, act: &str) -> Result<(), Error> {
         let sub_name = sub.to_string();
         let rule = Rule::new(sub, obj, act.to_string());
@@ -132,6 +136,7 @@ impl Enforcer {
         }
     }
 
+    #[tracing::instrument]
     pub async fn remove_permission(&self, sub: &Guid, obj: Guid, act: &str) -> Result<(), Error> {
         let sub_name = sub.to_string();
         log::debug!("Removing permission form sub {}", &sub_name);
@@ -148,6 +153,7 @@ impl Enforcer {
         Ok(())
     }
 
+    #[tracing::instrument]
     pub async fn list_principal_permissions(
         &self,
         sub: &Guid,
@@ -179,6 +185,7 @@ impl Enforcer {
         Ok(Page::from_find_response(response, limit))
     }
 
+    #[tracing::instrument]
     pub async fn add_role_to_principal(&self, sub: Guid, role: &str) -> Result<(), Error> {
         let sub_name = sub.to_string();
         let assignment = RoleAssignment::new(sub, role.to_string());
@@ -194,6 +201,7 @@ impl Enforcer {
         }
     }
 
+    #[tracing::instrument]
     pub async fn remove_role_from_principal(&self, sub: &Guid, role: &str) -> Result<(), Error> {
         if let Some(assignment) = self
             .db
@@ -208,6 +216,7 @@ impl Enforcer {
         Ok(())
     }
 
+    #[tracing::instrument]
     pub async fn list_principal_roles(
         &self,
         sub: &Guid,

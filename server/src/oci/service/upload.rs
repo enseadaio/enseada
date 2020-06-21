@@ -11,6 +11,7 @@ use crate::oci::error::{Error, ErrorCode};
 use crate::oci::{storage, Result};
 use crate::storage::Provider;
 
+#[derive(Debug)]
 pub struct UploadService {
     db: Arc<Database>,
     store: Arc<Provider>,
@@ -33,14 +34,27 @@ impl UploadService {
             .await?
             .ok_or_else(|| Error::from(ErrorCode::BlobUploadUnknown))?;
 
+        if chunk.start_range() != upload.latest_offset() {
+            log::debug!(
+                "chunk range {} is not compatible with current offset {}",
+                chunk.start_range(),
+                upload.latest_offset()
+            );
+            return Err(Error::from(ErrorCode::RequestedRangeNotSatisfiable(
+                upload.latest_offset(),
+            )));
+        }
+
         upload.add_chunk(chunk);
         let upload = self.save(upload).await?;
         let chunks = upload.chunks();
         let chunk = chunks.last().unwrap();
         let key = chunk.storage_key().unwrap();
-        let blob = StorageBlob::new(key.to_string(), body);
-        self.store.store_blob(blob).await?;
 
+        let blob = StorageBlob::new(key.to_string(), body);
+        log::debug!("storing blob {}", key);
+        self.store.store_blob(blob).await?;
+        log::debug!("blob stored");
         Ok(upload)
     }
 
@@ -50,7 +64,7 @@ impl UploadService {
         digest: &Digest,
         chunk: Option<UploadChunk>,
     ) -> Result<Upload> {
-        log::debug!("Completing upload {} with digest {}", upload_id, digest);
+        log::debug!("completing upload {} with digest {}", upload_id, digest);
 
         let upload = self
             .find(upload_id)
@@ -62,7 +76,7 @@ impl UploadService {
         chunks.sort_unstable_by_key(|c| c.start_range());
         for chunk in &chunks {
             let chunk_key = chunk.storage_key().unwrap();
-            log::debug!("Fetching chunk {}", chunk_key);
+            log::debug!("fetching chunk {}", chunk_key);
             let blob = self
                 .store
                 .get_blob(chunk_key)
@@ -78,10 +92,13 @@ impl UploadService {
         }
 
         let blob_key = storage::blob_key(digest);
-        log::debug!("Storing blob {}", blob_key);
+        log::debug!("storing blob {}", blob_key);
         let blob = StorageBlob::new(blob_key, buf);
         self.store.store_blob(blob).await?;
+        log::debug!("blob stored");
+        log::debug!("deleting upload");
         self.delete(&upload).await?;
+        log::debug!("upload deleted");
 
         for chunk in &chunks {
             let chunk_key = chunk.storage_key().unwrap();

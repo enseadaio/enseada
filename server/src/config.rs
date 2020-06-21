@@ -13,6 +13,7 @@ pub struct Configuration {
     root: Root,
     storage: Storage,
     oci: OCI,
+    tracing: Tracing,
 }
 
 #[derive(Debug, Deserialize)]
@@ -72,6 +73,11 @@ pub struct OCI {
     subdomain: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Tracing {
+    log: bool,
+    level: String,
+}
 
 impl Configuration {
     pub fn new() -> Result<Self, ConfigError> {
@@ -88,24 +94,33 @@ impl Configuration {
         c.set_default("tls.key.path", None::<String>)?;
 
         let port = c.get_int("port")?;
-        let proto = if c.get_bool("tls.enabled")? { "https" } else { "http" };
+        let proto = if c.get_bool("tls.enabled")? {
+            "https"
+        } else {
+            "http"
+        };
         c.set_default("public.host", format!("{}://localhost:{}", proto, port))?;
 
         c.set_default("log.level", "info")?;
         c.set_default("log.rootlevel", "warn")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
         c.set_default("oci.subdomain", "containers")?;
-
+        c.set_default("tracing.log", false)?;
+        c.set_default("tracing.level", "info")?;
 
         // Validations
         let secret_key = c.get_str("secret.key")?;
         if secret_key.len() < 32 {
-            return Err(ConfigError::Message("insecure secret key, must be at least 32 bytes".to_string()));
+            return Err(ConfigError::Message(
+                "insecure secret key, must be at least 32 bytes".to_string(),
+            ));
         }
 
         let root_pwd = c.get_str("root.password")?;
         if root_pwd.len() < 8 {
-            return Err(ConfigError::Message("insecure root password, must be at least 8 characters".to_string()));
+            return Err(ConfigError::Message(
+                "insecure root password, must be at least 8 characters".to_string(),
+            ));
         }
 
         // Deserialize
@@ -147,6 +162,10 @@ impl Configuration {
     pub fn oci(&self) -> &OCI {
         &self.oci
     }
+
+    pub fn tracing(&self) -> &Tracing {
+        &self.tracing
+    }
 }
 
 impl Logging {
@@ -159,7 +178,10 @@ impl Logging {
     }
 
     pub fn format(&self) -> String {
-        self.format.as_ref().unwrap_or(&"text".to_owned()).clone()
+        self.format
+            .as_deref()
+            .unwrap_or_else(|| "text")
+            .to_lowercase()
     }
 }
 
@@ -204,9 +226,27 @@ impl OCI {
     }
 }
 
+impl Tracing {
+    pub fn log(&self) -> bool {
+        self.log
+    }
+
+    pub fn level(&self) -> tracing::Level {
+        match self.level.to_lowercase().as_str() {
+            "error" => tracing::Level::ERROR,
+            "warn" => tracing::Level::WARN,
+            "info" => tracing::Level::INFO,
+            "debug" => tracing::Level::DEBUG,
+            "trace" => tracing::Level::TRACE,
+            _ => tracing::Level::INFO,
+        }
+    }
+}
+
 // Throw the Config struct into a CONFIG lazy_static to avoid multiple processing
 lazy_static! {
-    pub static ref CONFIG: Configuration = Configuration::new().expect("failed to load configuration");
+    pub static ref CONFIG: Configuration =
+        Configuration::new().expect("failed to load configuration");
 }
 
 #[cfg(debug_assertions)]

@@ -1,3 +1,4 @@
+use std::fmt::{self, Debug, Formatter};
 use std::io::{BufRead, Cursor};
 use std::str::from_utf8;
 use std::sync::Arc;
@@ -232,6 +233,15 @@ impl Database {
             })
             .flatten();
         Ok(stream)
+    }
+}
+
+impl Debug for Database {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Database")
+            .field("name", &self.name)
+            .field("partitioned", &self.partitioned)
+            .finish()
     }
 }
 

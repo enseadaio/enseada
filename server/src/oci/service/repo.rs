@@ -5,6 +5,7 @@ use couchdb::db::Database;
 use crate::couchdb::repository::Repository;
 use crate::oci::entity::Repo;
 
+#[derive(Debug)]
 pub struct RepoService {
     db: Arc<Database>,
 }

@@ -9,6 +9,7 @@ use crate::oci::error::{Error, ErrorCode};
 use crate::oci::{storage, Result};
 use crate::storage::Provider;
 
+#[derive(Debug)]
 pub struct BlobService {
     db: Arc<Database>,
     store: Arc<Provider>,

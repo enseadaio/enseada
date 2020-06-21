@@ -15,12 +15,15 @@ mod routes;
 mod server;
 mod storage;
 mod templates;
+mod tracing;
 mod ui;
 mod user;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
     logger::init();
+
+    tracing::init();
 
     couchdb::migrate().await?;
 
