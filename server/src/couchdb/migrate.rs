@@ -48,7 +48,7 @@ async fn run(couch: &Couch, cfg: &'static Configuration) -> Result<()> {
         Client::public(
             "enseada".to_string(),
             Scope::from("*"),
-            HashSet::from_iter(vec![public_host.join("/ui/auth/callback").unwrap()]),
+            HashSet::from_iter(vec![public_host.join("/dashboard/auth/callback").unwrap()]),
         ),
     )
     .await?;

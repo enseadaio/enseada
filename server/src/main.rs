@@ -5,6 +5,7 @@ extern crate lazy_static;
 
 mod config;
 mod couchdb;
+mod dashboard;
 mod http;
 mod logger;
 mod oauth;
@@ -14,9 +15,8 @@ mod rbac;
 mod routes;
 mod server;
 mod storage;
-mod templates;
+mod template;
 mod tracing;
-mod ui;
 mod user;
 
 #[actix_rt::main]

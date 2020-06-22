@@ -15,7 +15,7 @@ use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
 use crate::responses::{
-    FindResponse, JsonIndexResponse, JsonIndexResultStatus, PutResponse, RowsResponse,
+    FindResponse, JsonIndexResponse, JsonIndexResultStatus, Partition, PutResponse, RowsResponse,
 };
 use crate::Result;
 
@@ -73,6 +73,26 @@ impl Database {
             JsonIndexResultStatus::Created => Ok(true),
             JsonIndexResultStatus::Exists => Ok(false),
         }
+    }
+
+    pub async fn count_partitioned(&self, partition: &str) -> Result<usize> {
+        log::debug!(
+            "counting all docs in partition {} of {}",
+            partition,
+            &self.name
+        );
+        let path = format!("{}/_partition/{}", &self.name, partition);
+        let part = self
+            .client
+            .get::<bool, Partition>(&path, None::<bool>)
+            .await?;
+        Ok(part.doc_count)
+    }
+
+    pub async fn count(&self) -> Result<usize> {
+        log::debug!("counting all docs in {}", &self.name);
+        let db = self.get_self().await?;
+        Ok(db.doc_count)
     }
 
     pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {

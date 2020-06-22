@@ -24,6 +24,21 @@ pub trait Repository<T>: Debug {
     fn db(&self) -> &Database;
 
     #[tracing::instrument]
+    async fn count(&self) -> Result<usize, Error>
+    where
+        Self: Sized,
+        T: 'async_trait + Entity,
+    {
+        let guid = T::build_guid("");
+        let db = self.db();
+        match guid.partition() {
+            Some(partition) => db.count_partitioned(partition).await,
+            None => db.count().await,
+        }
+        .map_err(Error::from)
+    }
+
+    #[tracing::instrument]
     async fn list(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<T>, Error>
     where
         Self: Sized,

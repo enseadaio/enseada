@@ -21,8 +21,8 @@ use crate::oauth::request::{
 };
 use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use crate::oauth::session::Session;
+use crate::oauth::template::LoginForm;
 use crate::oauth::ConcreteOAuthHandler;
-use crate::templates::oauth::LoginForm;
 use crate::user::UserService;
 
 #[get("/authorize")]

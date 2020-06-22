@@ -1,4 +1,3 @@
-use actix::MailboxError;
 use actix_web::body::MessageBody;
 use actix_web::dev::ServiceResponse;
 use actix_web::error::BlockingError;
@@ -13,6 +12,8 @@ use url::ParseError;
 use couchdb::error::Error as CouchError;
 use enseada::error::Error;
 
+use crate::dashboard::error::DashboardError;
+use crate::http::header::accept;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::rbac::EvaluationError;
 
@@ -178,16 +179,40 @@ impl From<EvaluationError> for ApiError {
     }
 }
 
-impl From<MailboxError> for ApiError {
-    fn from(err: MailboxError) -> Self {
-        ApiError::InternalServerError(err.to_string())
+pub fn handle_unauthorized<B: MessageBody>(
+    res: ServiceResponse<B>,
+) -> actix_web::error::Result<ErrorHandlerResponse<B>> {
+    let req = res.request();
+    if req.path() == "/dashboard/auth/callback" {
+        // Authentication failed, we don't want to be stuck in a loop
+        return Ok(ErrorHandlerResponse::Response(res));
     }
+
+    let response = res.response();
+    let err = response.error();
+    let msg = err
+        .map(ToString::to_string)
+        .unwrap_or_else(|| "unknown error".to_string());
+
+    let err = if accept(req).filter(|h| h.contains("html")).is_some() {
+        DashboardError::Unauthorized.error_response()
+    } else {
+        ApiError::Unauthorized(msg).error_response()
+    };
+
+    if log::log_enabled!(Debug) {
+        let res = response;
+        log::debug!("{:?}", req);
+        log::debug!("{:?}", res);
+    }
+    Ok(ErrorHandlerResponse::Response(res.error_response(err)))
 }
 
 pub fn handle_bad_request<B: MessageBody>(
     res: ServiceResponse<B>,
 ) -> actix_web::error::Result<ErrorHandlerResponse<B>> {
-    let err = res.response().error();
+    let response = res.response();
+    let err = response.error();
     let msg = err
         .map(ToString::to_string)
         .unwrap_or_else(|| "unknown error".to_string());
@@ -195,7 +220,6 @@ pub fn handle_bad_request<B: MessageBody>(
 
     if log::log_enabled!(Debug) {
         let req = res.request();
-        let res = res.response();
         log::debug!("{:?}", req);
         log::debug!("{:?}", res);
     }

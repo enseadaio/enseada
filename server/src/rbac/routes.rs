@@ -125,8 +125,8 @@ pub struct Permission {
     action: String,
 }
 
-impl From<&Rule> for Permission {
-    fn from(rule: &Rule) -> Self {
+impl From<Rule> for Permission {
+    fn from(rule: Rule) -> Self {
         Permission {
             subject: Some(rule.subject().clone()),
             object: rule.object().clone(),
@@ -161,7 +161,7 @@ pub async fn get_user_permissions(
     let page = enforcer
         .list_principal_permissions(&sub, limit, cursor.as_ref())
         .await?;
-    let permissions = page.map(|rule| Permission::from(rule));
+    let permissions = page.map(Permission::from);
     Ok(Json(permissions))
 }
 

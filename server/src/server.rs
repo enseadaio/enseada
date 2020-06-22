@@ -17,11 +17,11 @@ use tokio::sync::RwLock;
 use url::Url;
 
 use crate::config::CONFIG;
-use crate::couchdb::{add_couch_client, name as dbname, SINGLETON};
+use crate::couchdb::{name as dbname, SINGLETON};
 use crate::http::error;
 use crate::rbac::watcher::Watcher;
 use crate::rbac::Enforcer;
-use crate::{oauth, observability, oci, rbac, routes, ui, user};
+use crate::{dashboard, oauth, observability, oci, rbac, routes, user};
 
 pub async fn run() -> io::Result<()> {
     let address = format!("0.0.0.0:{}", CONFIG.port());
@@ -50,13 +50,15 @@ pub async fn run() -> io::Result<()> {
                     .same_site(SameSite::Strict),
             )
             .wrap(ErrorHandlers::new().handler(StatusCode::BAD_REQUEST, error::handle_bad_request))
+            .wrap(
+                ErrorHandlers::new().handler(StatusCode::UNAUTHORIZED, error::handle_unauthorized),
+            )
             .wrap(default_headers())
             .app_data(enforcer.clone())
-            .configure(add_couch_client)
             .configure(user::mount)
             .configure(rbac::mount)
             .configure(oauth::mount)
-            .configure(ui::mount)
+            .configure(dashboard::mount)
             .configure(observability::mount)
             .configure(oci::mount)
             .configure(routes::mount)

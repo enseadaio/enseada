@@ -11,8 +11,7 @@
     "docs:build": "speccy resolve docs/openapi.yml -o $OUT_DIR/openapi.yml",
     "docs:serve": "redoc-cli serve docs/openapi.yml --watch --options.showExtensions",
     "clean": "rimraf dist",
-    "snyk-protect": "snyk protect",
-    "prepare": "yarn run snyk-protect"
+    "snyk-protect": "snyk protect"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.4",
@@ -25,5 +24,5 @@
   "dependencies": {
     "bulma": "^0.8.1"
   },
-  "snyk": true
+    "snyk": false
 }

@@ -1,0 +1,8 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}{{ reason }}{% endblock %}
+
+{% block main %}
+    <h1 class="title has-text-danger">{{ reason }}</h1>
+    <p>{{ message }}</p>
+{% endblock %}

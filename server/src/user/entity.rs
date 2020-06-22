@@ -33,7 +33,7 @@ impl User {
     pub fn username(&self) -> &str {
         self.id.id()
     }
-    
+
     pub(super) fn password_hash(&self) -> &str {
         &self.password_hash
     }
@@ -60,6 +60,9 @@ impl Entity for User {
 
 impl Debug for User {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "User {{ id: {:?}, rev: {:?} }}", &self.id, &self.rev)
+        f.debug_struct("User")
+            .field("id", &self.id)
+            .field("rev", &self.rev)
+            .finish()
     }
 }

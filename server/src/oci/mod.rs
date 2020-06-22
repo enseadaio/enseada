@@ -7,7 +7,7 @@ mod header;
 mod manifest;
 mod mime;
 mod routes;
-mod service;
+pub mod service;
 mod storage;
 
 pub type Result<T> = std::result::Result<T, error::Error>;

@@ -3,14 +3,18 @@ use actix_web::web::ServiceConfig;
 use actix_web::web::{Data, Json};
 use serde::Serialize;
 
-use couchdb;
-use couchdb::status::Status;
-
+use crate::couchdb;
 use crate::http::error::ApiError;
 use crate::http::error::ApiError::ServiceUnavailable;
 use crate::http::responses;
+use crate::observability::entity::Status;
+use crate::observability::service::StatusService;
 
 pub fn mount(cfg: &mut ServiceConfig) {
+    let couch = couchdb::from_global_config();
+    let status = StatusService::new(couch);
+    cfg.data(status);
+
     cfg.service(get);
 }
 
@@ -20,14 +24,14 @@ pub struct HealthResponse {
 }
 
 #[get("/health")]
-pub async fn get(couch: Data<couchdb::Couch>) -> Result<Json<HealthResponse>, ApiError> {
-    match couch.status().await {
-        Ok(Status { status }) => responses::ok(HealthResponse { status }),
-        Err(err) => {
-            log::error!("{}", err);
-            Err(ServiceUnavailable(
-                "database connection refused".to_string(),
-            ))
+pub async fn get(svc: Data<StatusService>) -> Result<Json<HealthResponse>, ApiError> {
+    match svc.status().await {
+        Status::Healty => responses::ok(HealthResponse {
+            status: "ok".to_string(),
+        }),
+        Status::Unhealthy(err) => {
+            log::error!("{}", &err);
+            Err(ServiceUnavailable(err))
         }
     }
 }

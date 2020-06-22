@@ -5,9 +5,9 @@ pub struct DBInfo {
     pub cluster: DBClusterInfo,
     pub compact_running: bool,
     pub db_name: String,
-    pub disk_format_version: i32,
-    pub doc_count: i64,
-    pub doc_del_count: i64,
+    pub disk_format_version: usize,
+    pub doc_count: usize,
+    pub doc_del_count: usize,
     pub instance_start_time: String,
     pub purge_seq: String,
     pub sizes: DBSizes,
@@ -17,9 +17,9 @@ pub struct DBInfo {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DBSizes {
-    active: i32,
-    external: i32,
-    file: i32,
+    active: usize,
+    external: usize,
+    file: usize,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -66,7 +66,7 @@ pub struct RawDocResponse<T: Clone> {
     pub id: String,
     pub key: String,
     pub value: RawDocValue,
-    pub doc: T,
+    pub doc: Option<T>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -86,4 +86,12 @@ pub struct JsonIndexResponse {
     pub result: JsonIndexResultStatus,
     pub id: String,
     pub name: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Partition {
+    pub db_name: String,
+    pub partition: String,
+    pub doc_count: usize,
+    pub doc_del_count: usize,
 }

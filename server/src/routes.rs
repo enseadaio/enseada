@@ -1,7 +1,8 @@
 use actix_files as fs;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 
-use crate::templates::ReDoc;
+use crate::http::header::accept;
+use crate::template::ReDoc;
 
 pub fn mount(cfg: &mut web::ServiceConfig) {
     cfg.service(home);
@@ -13,14 +14,9 @@ pub fn mount(cfg: &mut web::ServiceConfig) {
 
 #[get("/")]
 pub async fn home(req: HttpRequest) -> HttpResponse {
-    let accept = req
-        .headers()
-        .get(http::header::ACCEPT)
-        .and_then(|accept| accept.to_str().ok())
-        .map(str::to_lowercase)
-        .filter(|accept| (*accept).contains("html"));
+    let accept = accept(&req).filter(|accept| accept.contains("html"));
     let redirect = match accept {
-        Some(_) => "/ui",
+        Some(_) => "/dashboard",
         None => "/health",
     };
     HttpResponse::SeeOther()

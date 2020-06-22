@@ -17,6 +17,7 @@ mod routes;
 pub mod scope;
 pub mod session;
 pub mod storage;
+mod template;
 pub mod token;
 
 pub type ConcreteOAuthHandler =

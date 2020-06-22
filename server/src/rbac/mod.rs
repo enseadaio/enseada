@@ -43,7 +43,7 @@ impl Enforcer {
         log::debug!("Loading rules");
         let rules = self.db.list_all_partitioned::<Rule>("rule").await?;
         for row in rules.rows {
-            let rule = &row.doc;
+            let rule = &row.doc.unwrap();
             log::debug!("Processing rule {:?}", rule);
             let permission = Permission::new(&rule.obj.to_string(), &rule.act);
             let sub = rule.sub.id().to_string();
@@ -71,7 +71,7 @@ impl Enforcer {
             .list_all_partitioned::<RoleAssignment>("role")
             .await?;
         for row in role_assignments.rows {
-            let assignment = &row.doc;
+            let assignment = &row.doc.unwrap();
 
             log::debug!("Processing role assignment {:?}", assignment);
             let sub = assignment.subject.to_string();

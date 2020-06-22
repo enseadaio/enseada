@@ -19,14 +19,10 @@ lazy_static! {
     pub static ref SINGLETON: Couch = from_global_config();
 }
 
-fn from_global_config() -> Couch {
+pub fn from_global_config() -> Couch {
     let couch = CONFIG.couchdb();
     let url = couch.url();
     let username = couch.username();
     let password = couch.password();
     Couch::new(url, username, password)
-}
-
-pub fn add_couch_client(app: &mut web::ServiceConfig) {
-    app.data(from_global_config());
 }

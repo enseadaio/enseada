@@ -27,12 +27,20 @@ impl<T: Clone> Page<T> {
 
     pub fn from_rows_response(res: RowsResponse<T>, limit: usize) -> Self {
         if res.rows.len() <= limit {
-            let items = res.rows.iter().map(|raw| raw.doc.clone()).collect();
+            let items = res
+                .rows
+                .into_iter()
+                .map(|raw| raw.doc.expect("RowResponse does not contain docs"))
+                .collect();
             Page::from_slice(items, None)
         } else {
             let mut res = res;
             let last = res.rows.remove(res.rows.len() - 1);
-            let items = res.rows.iter().map(|raw| raw.doc.clone()).collect();
+            let items = res
+                .rows
+                .into_iter()
+                .map(|raw| raw.doc.expect("RowResponse does not contain docs"))
+                .collect();
             Page::from_slice(
                 items,
                 Some(Cursor::b64_encoded(
@@ -54,12 +62,12 @@ impl<T: Clone> Page<T> {
 
     pub fn map<B, F>(self, f: F) -> Page<B>
     where
-        F: FnMut(&T) -> B,
+        F: FnMut(T) -> B,
     {
         Page {
             count: self.count,
             next_cursor: self.next_cursor,
-            items: self.items.iter().map(f).collect(),
+            items: self.items.into_iter().map(f).collect(),
         }
     }
 }
