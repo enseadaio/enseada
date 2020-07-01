@@ -8,7 +8,7 @@ use couchdb::db::Database;
 use couchdb::migrator::Migrator;
 use couchdb::{Couch, Result};
 
-use crate::config::{Configuration, CONFIG};
+use crate::config::Configuration;
 use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
@@ -17,15 +17,15 @@ use crate::user::User;
 
 static MIGRATION_DIR: Dir = include_dir!("./migrations");
 
-pub async fn migrate() -> std::io::Result<()> {
-    let couch = &crate::couchdb::SINGLETON;
+pub async fn migrate(cfg: &Configuration) -> std::io::Result<()> {
+    let couch = &crate::couchdb::from_config(cfg);
 
-    run(couch, &CONFIG)
+    run(couch, cfg)
         .await
         .map_err(|err| Error::new(ErrorKind::Other, err.to_string()))
 }
 
-async fn run(couch: &Couch, cfg: &'static Configuration) -> Result<()> {
+async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     log::info!("Running CouchDB migrations");
     let migs: Vec<String> = MIGRATION_DIR
         .files()

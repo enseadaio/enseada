@@ -36,7 +36,7 @@ impl ManifestService {
                         "manifest.config.digest": digest.to_string()
                     }),
                     1,
-                    None,
+                    0,
                 )
                 .await?;
             if let Some(warn) = &res.warning {

@@ -2,9 +2,8 @@ use std::convert::TryInto;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use couchdb;
 use couchdb::db::Database;
-use enseada::pagination::{Cursor, Page};
+use enseada::pagination::Page;
 
 use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
@@ -29,12 +28,13 @@ impl CouchStorage {
 
 #[async_trait]
 impl ClientStorage for CouchStorage {
-    async fn list_clients(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<Client>> {
+    async fn list_clients(&self, limit: usize, offset: usize) -> Result<Page<Client>> {
         let res = self
             .db
-            .list_partitioned::<ClientEntity>("client", limit, cursor.map(Cursor::to_string))
+            .list_partitioned::<ClientEntity>("client", limit, offset)
             .await?;
-        Ok(Page::from_rows_response(res, limit)
+        let count = self.db.count_partitioned("client").await?;
+        Ok(Page::from_rows_response(res, limit, offset, count)
             .map(|entity| ClientEntity::try_into(entity.clone()).unwrap()))
     }
 

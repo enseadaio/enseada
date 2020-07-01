@@ -11,18 +11,28 @@ pub mod responses;
 
 pub type ApiResult<T> = Result<T, ApiError>;
 
+fn default_limit() -> usize {
+    20
+}
+
+fn default_offset() -> usize {
+    0
+}
+
 #[derive(Debug, Deserialize)]
 pub struct PaginationQuery {
-    limit: Option<usize>,
-    cursor: Option<String>,
+    #[serde(default = "default_limit")]
+    limit: usize,
+    #[serde(default = "default_offset")]
+    offset: usize,
 }
 
 impl PaginationQuery {
     pub fn limit(&self) -> usize {
-        self.limit.unwrap_or(20)
+        self.limit
     }
 
-    pub fn cursor(&self) -> Option<&String> {
-        self.cursor.as_ref()
+    pub fn offset(&self) -> usize {
+        self.offset
     }
 }

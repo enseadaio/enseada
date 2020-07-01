@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use enseada::guid::Guid;
-use enseada::pagination::{Cursor, Page};
+use enseada::pagination::Page;
 
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
@@ -59,22 +59,16 @@ pub async fn list(
     let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &Guid::simple("users"), "read")?;
     let limit = list.limit();
-    let cursor = list.cursor();
+    let offset = list.offset();
 
     log::info!(
-        "Listing users with limit {} and cursor {:?}",
+        "Listing users with limit {} and offset {:?}",
         &limit,
-        &cursor
+        &offset
     );
 
-    let cursor = if let Some(cursor) = cursor {
-        Some(Cursor::from_b64(cursor)?)
-    } else {
-        None
-    };
-
     let page = service
-        .list(limit, cursor.as_ref())
+        .list(limit, offset)
         .await?
         .map(|user| UserResponse::from(user));
     Ok(Json(page))

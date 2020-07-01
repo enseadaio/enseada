@@ -2,7 +2,7 @@ use config::{Config, ConfigError, Environment};
 use serde::Deserialize;
 use url::Url;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Configuration {
     port: i16,
     log: Logging,
@@ -16,48 +16,48 @@ pub struct Configuration {
     tracing: Tracing,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Logging {
     level: String,
     rootlevel: String,
     format: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CouchDB {
     url: Option<String>,
     username: Option<String>,
     password: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct TLS {
     enabled: bool,
     cert: WithOptionalPath,
     key: WithOptionalPath,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct WithOptionalPath {
     path: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct Public {
     host: Url,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct Secret {
     key: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct Root {
     password: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "kebab-case", tag = "provider")]
 pub enum Storage {
     S3 {
@@ -68,12 +68,12 @@ pub enum Storage {
     Unknown,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OCI {
     subdomain: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Tracing {
     log: bool,
     level: String,

@@ -1,9 +1,7 @@
-use actix_web::web;
-
 use couchdb::Couch;
 pub use migrate::migrate;
 
-use crate::config::CONFIG;
+use crate::config::{Configuration, CONFIG};
 
 mod migrate;
 pub mod repository;
@@ -20,7 +18,11 @@ lazy_static! {
 }
 
 pub fn from_global_config() -> Couch {
-    let couch = CONFIG.couchdb();
+    from_config(&CONFIG)
+}
+
+pub fn from_config(cfg: &Configuration) -> Couch {
+    let couch = cfg.couchdb();
     let url = couch.url();
     let username = couch.username();
     let password = couch.password();

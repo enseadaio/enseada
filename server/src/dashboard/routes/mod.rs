@@ -8,9 +8,13 @@ use crate::dashboard::template::{ErrorPage, Index};
 use crate::http::extractor::user::DashboardUser;
 use crate::oci::service::RepoService;
 
+mod oci;
+
 pub fn mount(cfg: &mut ServiceConfig) {
     cfg.service(index);
     cfg.service(auth_callback);
+    // OCI
+    cfg.service(oci::index);
 }
 
 #[derive(Debug, Deserialize)]

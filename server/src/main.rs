@@ -3,6 +3,8 @@ extern crate include_dir;
 #[macro_use]
 extern crate lazy_static;
 
+use crate::config::CONFIG;
+
 mod config;
 mod couchdb;
 mod dashboard;
@@ -21,15 +23,15 @@ mod user;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    logger::init();
+    logger::init(&CONFIG);
 
-    tracing::init();
+    tracing::init(&CONFIG);
 
-    couchdb::migrate().await?;
+    couchdb::migrate(&CONFIG).await?;
 
     log::info!("Starting Enseada...");
 
-    server::run().await?;
+    server::run(&CONFIG).await?;
 
     log::info!("Stopping Enseada...");
 

@@ -15,14 +15,15 @@
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.4",
+    "redoc-cli": "^0.9.7",
     "rimraf": "^3.0.2",
     "sass": "^1.26.3",
-    "speccy": "^0.11.0",
-    "redoc-cli": "^0.9.7",
-    "snyk": "^1.320.1"
+    "snyk": "^1.320.1",
+    "speccy": "^0.11.0"
   },
   "dependencies": {
-    "bulma": "^0.8.1"
+    "bulma": "^0.8.1",
+    "turbolinks": "^5.2.0"
   },
-    "snyk": false
+  "snyk": false
 }

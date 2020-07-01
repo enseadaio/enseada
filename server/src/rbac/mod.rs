@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use couchdb::db::Database;
 use enseada::error::Error;
 use enseada::guid::Guid;
-use enseada::pagination::{Cursor, Page};
+use enseada::pagination::Page;
 pub use routes::*;
 
 use crate::rbac::model::{EvaluationResult, Model, Permission, Principal, Role};
@@ -158,13 +158,13 @@ impl Enforcer {
         &self,
         sub: &Guid,
         limit: usize,
-        cursor: Option<&Cursor>,
+        offset: usize,
     ) -> Result<Page<Rule>, Error> {
         log::debug!(
-            "Listing principal permissions for sub {} with limit: {} and cursor: {:?}",
+            "Listing principal permissions for sub {} with limit: {} and offset: {}",
             &sub,
             limit,
-            &cursor
+            offset,
         );
         let response = self
             .db
@@ -174,15 +174,17 @@ impl Enforcer {
                     "sub": sub.to_string(),
                 }),
                 limit,
-                cursor.map(Cursor::to_string),
+                offset,
             )
             .await?;
+
+        let total = self.db.count_partitioned("rule").await?;
 
         if let Some(warning) = &response.warning {
             log::warn!("{}", warning);
         }
 
-        Ok(Page::from_find_response(response, limit))
+        Ok(Page::from_find_response(response, limit, offset, total))
     }
 
     #[tracing::instrument]
@@ -221,7 +223,7 @@ impl Enforcer {
         &self,
         sub: &Guid,
         limit: usize,
-        cursor: Option<&Cursor>,
+        offset: usize,
     ) -> Result<Page<String>, Error> {
         let response = self
             .db
@@ -231,16 +233,18 @@ impl Enforcer {
                     "subject": sub.to_string()
                 }),
                 limit,
-                cursor.map(Cursor::to_string),
+                offset,
             )
             .await?;
+
+        let total = self.db.count_partitioned("role").await?;
 
         if let Some(warning) = &response.warning {
             log::warn!("{}", warning);
         }
 
-        let page =
-            Page::from_find_response(response, limit).map(|assignment| assignment.role.clone());
+        let page = Page::from_find_response(response, limit, offset, total)
+            .map(|assignment| assignment.role.clone());
         Ok(page)
     }
 }

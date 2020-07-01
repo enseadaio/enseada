@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use enseada::guid::Guid;
-use enseada::pagination::{Cursor, Page};
+use enseada::pagination::Page;
 
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
@@ -51,17 +51,9 @@ pub async fn get_user_roles(
     }
 
     let limit = list.limit();
-    let cursor = list.cursor();
+    let offset = list.offset();
 
-    let cursor = if let Some(cursor) = cursor {
-        Some(Cursor::from_b64(cursor)?)
-    } else {
-        None
-    };
-
-    let page = enforcer
-        .list_principal_roles(&sub, limit, cursor.as_ref())
-        .await?;
+    let page = enforcer.list_principal_roles(&sub, limit, offset).await?;
     Ok(Json(page))
 }
 
@@ -150,16 +142,10 @@ pub async fn get_user_permissions(
     enforcer.check(current_user.id(), sub, "read_permissions")?;
 
     let limit = list.limit();
-    let cursor = list.cursor();
-
-    let cursor = if let Some(cursor) = cursor {
-        Some(Cursor::from_b64(cursor)?)
-    } else {
-        None
-    };
+    let offset = list.offset();
 
     let page = enforcer
-        .list_principal_permissions(&sub, limit, cursor.as_ref())
+        .list_principal_permissions(&sub, limit, offset)
         .await?;
     let permissions = page.map(Permission::from);
     Ok(Json(permissions))
@@ -231,16 +217,10 @@ pub async fn get_role_permissions(
     enforcer.check(current_user.id(), sub, "read_permissions")?;
 
     let limit = list.limit();
-    let cursor = list.cursor();
-
-    let cursor = if let Some(cursor) = cursor {
-        Some(Cursor::from_b64(cursor)?)
-    } else {
-        None
-    };
+    let offset = list.offset();
 
     let rules = enforcer
-        .list_principal_permissions(&sub, limit, cursor.as_ref())
+        .list_principal_permissions(&sub, limit, offset)
         .await?;
     let permissions = rules.map(|rule| Permission::from(rule));
     Ok(Json(permissions))

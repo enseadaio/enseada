@@ -7,11 +7,10 @@ use log4rs::encode::json::JsonEncoder;
 use log4rs::encode::pattern::PatternEncoder;
 use log4rs::encode::Encode;
 
-use crate::config::CONFIG;
+use crate::config::Configuration;
 
-fn encoder() -> Box<dyn Encode> {
-    let fmt = CONFIG.log().format();
-    match fmt.as_str() {
+fn encoder(fmt: &str) -> Box<dyn Encode> {
+    match fmt {
         "json" => Box::new(JsonEncoder::new()),
         _ => Box::new(PatternEncoder::default()),
     }
@@ -23,17 +22,19 @@ fn level(lvl: &str) -> LevelFilter {
         .to_level_filter()
 }
 
-pub fn init() {
-    let lvl = &CONFIG.log().level();
-    let root_lvl = &CONFIG.log().root_level();
+pub fn init(cfg: &Configuration) {
+    let fmt = cfg.log().format();
+    let lvl = &cfg.log().level();
+    let root_lvl = &cfg.log().root_level();
 
-    let stdout = ConsoleAppender::builder().encoder(encoder()).build();
+    let stdout = ConsoleAppender::builder().encoder(encoder(&fmt)).build();
 
     match Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
         .logger(primary(lvl))
+        .logger(lib(lvl))
         .logger(couchdb(lvl))
-        .logger(tracing())
+        .logger(tracing(cfg))
         .build(Root::builder().appender("stdout").build(level(root_lvl)))
     {
         Ok(config) => {
@@ -49,12 +50,16 @@ fn primary(lvl: &str) -> Logger {
     Logger::builder().build("enseada_server", level(lvl))
 }
 
+fn lib(lvl: &str) -> Logger {
+    Logger::builder().build("enseada", level(lvl))
+}
+
 fn couchdb(lvl: &str) -> Logger {
     Logger::builder().build("couchdb", level(lvl))
 }
 
-fn tracing() -> Logger {
-    if CONFIG.tracing().log() {
+fn tracing(cfg: &Configuration) -> Logger {
+    if cfg.tracing().log() {
         Logger::builder().build("tracing", LevelFilter::Info)
     } else {
         Logger::builder().build("tracing", LevelFilter::Off)

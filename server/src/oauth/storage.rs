@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use enseada::pagination::{Cursor, Page};
+use enseada::pagination::Page;
 
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
@@ -8,7 +8,7 @@ use crate::oauth::Result;
 
 #[async_trait]
 pub trait ClientStorage: Send + Sync {
-    async fn list_clients(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<Client>>;
+    async fn list_clients(&self, limit: usize, offset: usize) -> Result<Page<Client>>;
     async fn get_client(&self, id: &str) -> Option<Client>;
     async fn save_client(&self, client: Client) -> Result<Client>;
     async fn delete_client(&self, client: &Client) -> Result<()>;

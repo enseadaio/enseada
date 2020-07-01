@@ -9,27 +9,28 @@ use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::middleware::{DefaultHeaders, Logger, NormalizePath};
 use actix_web::web::Data;
-use actix_web::{App, HttpServer};
+use actix_web::{web, App, HttpServer};
 use http::StatusCode;
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use tokio::sync::RwLock;
 use url::Url;
 
-use crate::config::CONFIG;
-use crate::couchdb::{name as dbname, SINGLETON};
+use crate::config::Configuration;
+use crate::couchdb::{self, name as dbname};
 use crate::http::error;
 use crate::rbac::watcher::Watcher;
 use crate::rbac::Enforcer;
 use crate::{dashboard, oauth, observability, oci, rbac, routes, user};
 
-pub async fn run() -> io::Result<()> {
-    let address = format!("0.0.0.0:{}", CONFIG.port());
-    let public_host: &Url = CONFIG.public_host();
-    let secret_key = CONFIG.secret_key();
-    let tls = CONFIG.tls();
+pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
+    let address = format!("0.0.0.0:{}", cfg.port());
+    let public_host: &Url = cfg.public_host();
+    let secret_key = cfg.secret_key();
+    let tls = cfg.tls();
+    let couch = &couchdb::from_config(cfg);
 
-    let rbac_db = Arc::new(SINGLETON.database(dbname::RBAC, true));
+    let rbac_db = Arc::new(couch.database(dbname::RBAC, true));
     let mut enforcer = Enforcer::new(rbac_db.clone());
     enforcer.load_rules().await.expect("enforcer.load_rules()");
     let enforcer = Data::new(RwLock::new(enforcer));
@@ -53,7 +54,7 @@ pub async fn run() -> io::Result<()> {
             .wrap(
                 ErrorHandlers::new().handler(StatusCode::UNAUTHORIZED, error::handle_unauthorized),
             )
-            .wrap(default_headers())
+            .wrap(default_headers(cfg))
             .app_data(enforcer.clone())
             .configure(user::mount)
             .configure(rbac::mount)
@@ -62,6 +63,7 @@ pub async fn run() -> io::Result<()> {
             .configure(observability::mount)
             .configure(oci::mount)
             .configure(routes::mount)
+            .default_service(web::route().to(routes::not_found))
     });
 
     let server = if let Some(host) = public_host.host() {
@@ -106,10 +108,10 @@ fn get_rsa_key(key: &mut File) -> PrivateKey {
         .clone()
 }
 
-fn default_headers() -> DefaultHeaders {
+fn default_headers(cfg: &Configuration) -> DefaultHeaders {
     let h = DefaultHeaders::new().header("Server", "Enseada");
 
-    if CONFIG.tls().enabled() {
+    if cfg.tls().enabled() {
         h.header(
             "Strict-Transport-Security",
             "max-age=31536000;includeSubDomains",

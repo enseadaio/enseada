@@ -111,31 +111,31 @@ impl Database {
         &self,
         partition: &str,
         limit: usize,
-        start_key: Option<String>,
+        skip: usize,
     ) -> Result<RowsResponse<R>> {
         let path = format!("{}/_partition/{}/_all_docs", &self.name, partition);
-        self.do_list(&path, limit, start_key).await
+        self.do_list(&path, limit, skip).await
     }
 
     pub async fn list<R: DeserializeOwned + Clone>(
         &self,
         limit: usize,
-        start_key: Option<String>,
+        skip: usize,
     ) -> Result<RowsResponse<R>> {
         let path = format!("{}/_all_docs", &self.name);
-        self.do_list(&path, limit, start_key).await
+        self.do_list(&path, limit, skip).await
     }
 
     async fn do_list<R: DeserializeOwned + Clone>(
         &self,
         path: &str,
         limit: usize,
-        start_key: Option<String>,
+        skip: usize,
     ) -> Result<RowsResponse<R>> {
         let query = Some(ListQuery {
             include_docs: true,
             limit,
-            start_key,
+            skip,
         });
         self.client.get(path, query).await.map_err(Error::from)
     }
@@ -170,10 +170,10 @@ impl Database {
         &self,
         selector: serde_json::Value,
         limit: usize,
-        bookmark: Option<String>,
+        skip: usize,
     ) -> Result<FindResponse<R>> {
         let path = format!("{}/_find", &self.name);
-        self.do_find(&path, selector, limit, bookmark).await
+        self.do_find(&path, selector, limit, skip).await
     }
 
     pub async fn find_partitioned<R: DeserializeOwned>(
@@ -181,10 +181,10 @@ impl Database {
         partition: &str,
         selector: serde_json::Value,
         limit: usize,
-        bookmark: Option<String>,
+        skip: usize,
     ) -> Result<FindResponse<R>> {
         let path = format!("{}/_partition/{}/_find", &self.name, partition);
-        self.do_find(&path, selector, limit, bookmark).await
+        self.do_find(&path, selector, limit, skip).await
     }
 
     async fn do_find<R: DeserializeOwned>(
@@ -192,12 +192,12 @@ impl Database {
         path: &str,
         selector: serde_json::Value,
         limit: usize,
-        bookmark: Option<String>,
+        skip: usize,
     ) -> Result<FindResponse<R>> {
         let body = serde_json::json!({
             "selector": selector,
             "limit": limit,
-            "bookmark": bookmark
+            "skip": skip,
         });
 
         log::debug!("Finding from {} with query {}", &self.name, &body);
@@ -269,5 +269,5 @@ impl Debug for Database {
 struct ListQuery {
     pub include_docs: bool,
     pub limit: usize,
-    pub start_key: Option<String>,
+    pub skip: usize,
 }

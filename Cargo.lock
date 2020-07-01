@@ -463,6 +463,7 @@ dependencies = [
  "humansize",
  "num-traits 0.2.11",
  "serde 1.0.111",
+ "serde_json",
  "toml 0.5.6",
 ]
 

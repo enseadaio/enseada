@@ -1,55 +1,50 @@
 {% extends "layouts/dashboard.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block main %}
     <section class="section">
         <div class="columns is-multiline">
             <div class="column">
-                <div class="box has-background-oci">
-                    <article class="media">
-                        <div class="media-left">
-                            <figure class="image is-64x64 has-background-white">
-                                <img src="/images/oci-logo.png" alt="OCI Logo">
-                            </figure>
-                        </div>
-                        <div class="media-content">
-                            <div class="">
-                                <h2 class="title has-text-white">{{ oci_repos_count }}</h2>
-                                <h3 class="subtitle has-text-white">
-                                    Container {% if oci_repos_count == 1 %}
-                                    image
-                                {% else %}
-                                    images
-                                {% endif %}
-                                </h3>
+                <a href="/dashboard/containers">
+                    <div class="box has-background-oci">
+                        <article class="media">
+                            <div class="media-left">
+                                <figure class="image is-64x64 has-background-white">
+                                    <img src="/images/oci-logo.png" alt="OCI Logo">
+                                </figure>
                             </div>
-                        </div>
-                    </article>
-                </div>
+                            <div class="media-content">
+                                <div class="">
+                                    <h2 class="title has-text-white">Container images</h2>
+                                    <h3 class="subtitle has-text-white">
+                                        {{ oci_repos_count }} available
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </a>
             </div>
             <div class="column">
-                <div class="box has-background-maven">
-                    <article class="media">
-                        <div class="media-left">
-                            <figure class="image is-64x64 has-background-white">
-                                <img class="is-rounded" src="/images/maven-logo.png" alt="Maven Logo">
-                            </figure>
-                        </div>
-                        <div class="media-content">
-                            <div>
-                                <h2 class="title has-text-white">{{ maven_repos_count }}</h2>
-                                <h3 class="subtitle has-text-white">
-                                    Maven {% if maven_repos_count == 1 %}
-                                    repository
-                                {% else %}
-                                    repositories
-                                {% endif %}
-                                </h3>
+                <a href="#">
+                    <div class="box has-background-maven">
+                        <article class="media">
+                            <div class="media-left">
+                                <figure class="image is-64x64 has-background-white">
+                                    <img class="is-rounded" src="/images/maven-logo.png" alt="Maven Logo">
+                                </figure>
                             </div>
-                        </div>
-                    </article>
-                </div>
+                            <div class="media-content">
+                                <div>
+                                    <h2 class="title has-text-white">Maven packages</h2>
+                                    <h3 class="subtitle has-text-white">
+                                        {{ maven_repos_count }} available
+                                    </h3>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </a>
             </div>
         </div>
     </section>

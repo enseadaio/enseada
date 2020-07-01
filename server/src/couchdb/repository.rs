@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use couchdb::db::Database;
 use couchdb::error::Error;
 use enseada::guid::Guid;
-use enseada::pagination::{Cursor, Page};
+use enseada::pagination::Page;
 
 pub trait Entity: Clone + Debug + Serialize + DeserializeOwned + Send + Sync {
     fn build_guid(id: &str) -> Guid;
@@ -39,7 +39,7 @@ pub trait Repository<T>: Debug {
     }
 
     #[tracing::instrument]
-    async fn list(&self, limit: usize, cursor: Option<&Cursor>) -> Result<Page<T>, Error>
+    async fn list(&self, limit: usize, offset: usize) -> Result<Page<T>, Error>
     where
         Self: Sized,
         T: 'async_trait + Entity,
@@ -47,17 +47,19 @@ pub trait Repository<T>: Debug {
         let id = T::build_guid("");
         let partition = id.partition();
         let db = self.db();
-        let res = match partition {
+        let (list, count) = match partition {
             Some(partition) => {
-                db.list_partitioned::<T>(partition, limit + 1, cursor.map(Cursor::to_string))
-                    .await?
+                let list = db.list_partitioned::<T>(partition, limit, offset).await?;
+                let count = db.count_partitioned(partition).await?;
+                (list, count)
             }
             None => {
-                db.list::<T>(limit + 1, cursor.map(Cursor::to_string))
-                    .await?
+                let list = db.list::<T>(limit, offset).await?;
+                let count = list.total_rows;
+                (list, count)
             }
         };
-        Ok(Page::from_rows_response(res, limit))
+        Ok(Page::from_rows_response(list, limit, offset, count))
     }
 
     #[tracing::instrument]

@@ -1,6 +1,8 @@
 use actix_files as fs;
-use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, web, HttpRequest, HttpResponse, Responder, ResponseError};
 
+use crate::dashboard::error::DashboardError;
+use crate::http::error::ApiError;
 use crate::http::header::accept;
 use crate::template::ReDoc;
 
@@ -35,5 +37,14 @@ pub async fn open_api() -> HttpResponse {
 pub async fn redoc() -> impl Responder {
     ReDoc {
         spec_url: "/api/docs/openapi.yml".to_string(),
+    }
+}
+
+pub async fn not_found(req: HttpRequest) -> HttpResponse {
+    let msg = format!("Route {} not found", req.path());
+    if accept(&req).filter(|h| h.contains("html")).is_some() {
+        DashboardError::NotFound { msg }.error_response()
+    } else {
+        ApiError::Unauthorized(msg).error_response()
     }
 }

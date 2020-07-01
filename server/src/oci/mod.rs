@@ -1,7 +1,7 @@
 pub use routes::mount;
 
 mod digest;
-mod entity;
+pub mod entity;
 mod error;
 mod header;
 mod manifest;
