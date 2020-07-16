@@ -12,6 +12,7 @@ pub struct Repo {
     rev: Option<String>,
     group: String,
     name: String,
+    description: Option<String>,
     tags: Vec<String>,
 }
 
@@ -20,13 +21,14 @@ impl Repo {
         format!("{}-{}", group, name)
     }
 
-    pub fn new(group: &str, name: &str) -> Self {
+    pub fn new(group: &str, name: &str, description: Option<String>) -> Self {
         let id = Self::build_guid(&Self::build_id(group, name));
         Self {
             id,
             rev: None,
             group: group.to_string(),
             name: name.to_string(),
+            description,
             tags: Vec::new(),
         }
     }
@@ -43,8 +45,17 @@ impl Repo {
         format!("{}/{}", &self.group, &self.name)
     }
 
+    pub fn description(&self) -> Option<&str> {
+        self.description.as_deref()
+    }
+
     pub fn tags(&self) -> &Vec<String> {
         &self.tags
+    }
+
+    pub fn push_tag(&mut self, tag: String) -> &mut Self {
+        self.tags.push(tag);
+        self
     }
 }
 

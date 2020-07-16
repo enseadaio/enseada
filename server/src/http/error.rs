@@ -12,7 +12,6 @@ use url::ParseError;
 use couchdb::error::Error as CouchError;
 use enseada::error::Error;
 
-use crate::dashboard::error::DashboardError;
 use crate::http::header::accept;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
 use crate::rbac::EvaluationError;
@@ -194,17 +193,13 @@ pub fn handle_unauthorized<B: MessageBody>(
         .map(ToString::to_string)
         .unwrap_or_else(|| "unknown error".to_string());
 
-    let err = if accept(req).filter(|h| h.contains("html")).is_some() {
-        DashboardError::Unauthorized.error_response()
-    } else {
-        ApiError::Unauthorized(msg).error_response()
-    };
-
     if log::log_enabled!(Debug) {
         let res = response;
         log::debug!("{:?}", req);
         log::debug!("{:?}", res);
     }
+
+    let err = ApiError::Unauthorized(msg);
     Ok(ErrorHandlerResponse::Response(res.error_response(err)))
 }
 
@@ -216,13 +211,14 @@ pub fn handle_bad_request<B: MessageBody>(
     let msg = err
         .map(ToString::to_string)
         .unwrap_or_else(|| "unknown error".to_string());
-    let err = ApiError::BadRequest(msg);
 
     if log::log_enabled!(Debug) {
         let req = res.request();
         log::debug!("{:?}", req);
         log::debug!("{:?}", res);
     }
+
+    let err = ApiError::BadRequest(msg);
     log::error!("{}", &err);
     Ok(ErrorHandlerResponse::Response(res.error_response(err)))
 }

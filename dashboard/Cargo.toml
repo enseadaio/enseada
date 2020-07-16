@@ -1,0 +1,40 @@
+[package]
+name = "dashboard"
+version = "0.1.0"
+authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
+edition = "2018"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+log = "0.4"
+strum = "0.17"
+strum_macros = "0.17"
+serde = "1"
+serde_derive = "1"
+wasm-bindgen = "0.2.58"
+wasm-logger = "0.2"
+wee_alloc = "0.4.4"
+yew = "0.17"
+yew-router = "0.14"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'KeyboardEvent',
+]
+
+[profile.release]
+# less code to include into binary
+panic = 'abort'
+# optimization over all codebase ( better optimization, slower build )
+codegen-units = 1
+# optimization for size ( more aggressive )
+opt-level = 'z'
+# link time optimization using using whole-program analysis
+lto = true

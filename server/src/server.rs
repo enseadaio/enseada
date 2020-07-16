@@ -7,9 +7,9 @@ use std::sync::Arc;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
-use actix_web::middleware::{DefaultHeaders, Logger, NormalizePath};
+use actix_web::middleware::{Compress, DefaultHeaders, Logger, NormalizePath};
 use actix_web::web::Data;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer};
 use http::StatusCode;
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
@@ -41,6 +41,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
         App::new()
             .wrap(NormalizePath)
             .wrap(Logger::default().exclude("/health"))
+            .wrap(Compress::default())
             .wrap(
                 CookieSession::private(secret_key.as_bytes())
                     .domain(public_host.domain().expect("public_host.domain()"))
@@ -59,11 +60,11 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             .configure(user::mount)
             .configure(rbac::mount)
             .configure(oauth::mount)
-            .configure(dashboard::mount)
             .configure(observability::mount)
             .configure(oci::mount)
             .configure(routes::mount)
-            .default_service(web::route().to(routes::not_found))
+            .configure(dashboard::mount)
+            .default_service(dashboard::default_service())
     });
 
     let server = if let Some(host) = public_host.host() {

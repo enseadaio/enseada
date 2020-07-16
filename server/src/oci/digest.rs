@@ -50,10 +50,10 @@ impl Display for Digest {
     }
 }
 
-impl TryFrom<String> for Digest {
+impl TryFrom<&str> for Digest {
     type Error = Error;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
         let parts: Vec<&str> = value.split(':').collect();
         let algo = parts.first().cloned().unwrap_or("");
         let digest = parts.last().cloned().unwrap_or("");
@@ -65,6 +65,22 @@ impl TryFrom<String> for Digest {
                 "provided digest algorithm not supported",
             )),
         }
+    }
+}
+
+impl TryFrom<&String> for Digest {
+    type Error = Error;
+
+    fn try_from(value: &String) -> Result<Self, Self::Error> {
+        Self::try_from(value.as_str())
+    }
+}
+
+impl TryFrom<String> for Digest {
+    type Error = Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_from(value.as_str())
     }
 }
 

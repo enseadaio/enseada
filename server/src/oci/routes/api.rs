@@ -20,6 +20,7 @@ use crate::rbac::Enforcer;
 pub struct RepoResponse {
     group: String,
     name: String,
+    description: Option<String>,
 }
 
 impl From<&Repo> for RepoResponse {
@@ -27,6 +28,7 @@ impl From<&Repo> for RepoResponse {
         Self {
             group: repo.group().to_string(),
             name: repo.name().to_string(),
+            description: repo.description().map(str::to_string),
         }
     }
 }
@@ -51,10 +53,7 @@ pub async fn list_repos(
     let limit = list.limit();
     let offset = list.offset();
 
-    let page = service
-        .list(limit, offset)
-        .await?
-        .map(|repo| RepoResponse::from(repo));
+    let page = service.list(limit, offset).await?.map(RepoResponse::from);
     Ok(Json(page))
 }
 
@@ -62,6 +61,7 @@ pub async fn list_repos(
 pub struct CreateRepoPayload {
     group: String,
     name: String,
+    description: Option<String>,
 }
 
 #[post("/api/oci/v1beta1/repositories")]
@@ -76,7 +76,7 @@ pub async fn create_repo(
     let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &Guid::simple("oci_repos"), "create")?;
 
-    let repo = Repo::new(&body.group, &body.name);
+    let repo = Repo::new(&body.group, &body.name, body.description.clone());
     let repo = service.save(repo).await?;
 
     Ok(Json(RepoResponse::from(repo)))

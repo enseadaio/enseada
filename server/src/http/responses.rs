@@ -10,7 +10,7 @@ pub fn ok<T>(data: T) -> Result<Json<T>, ApiError> {
     Ok(Json(data))
 }
 
-pub fn redirect_to(location: impl ToString) -> HttpResponse {
+pub fn redirect_to<S: ToString>(location: S) -> HttpResponse {
     HttpResponse::Found()
         .header(header::LOCATION, location.to_string())
         .finish()

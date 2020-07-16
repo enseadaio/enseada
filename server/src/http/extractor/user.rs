@@ -1,15 +1,13 @@
 use std::pin::Pin;
 
-use actix_session::Session as HttpSession;
 use actix_web::dev::{Payload, PayloadStream};
 use actix_web::web::Data;
-use actix_web::{Error, FromRequest, HttpRequest};
+use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
 
 use enseada::guid::Guid;
 
 use crate::couchdb::repository::{Entity, Repository};
-use crate::dashboard::error::DashboardError;
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
 use crate::user::{User, UserService};
@@ -41,37 +39,6 @@ impl FromRequest for CurrentUser {
                     Ok(user)
                 }
                 None => Err(ApiError::Unauthorized("unauthorized".to_string())),
-            }
-        })
-    }
-}
-
-pub struct DashboardUser(pub User);
-
-impl FromRequest for DashboardUser {
-    type Error = DashboardError;
-    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
-    type Config = ();
-
-    fn from_request(req: &HttpRequest, payload: &mut Payload<PayloadStream>) -> Self::Future {
-        let service_fut = Data::<UserService>::from_request(req, payload);
-        let session_fut = HttpSession::from_request(req, payload);
-
-        Box::pin(async {
-            let service = service_fut.await?;
-            let session = session_fut.await?;
-            let username = match session.get::<String>("user_id") {
-                Ok(Some(user_id)) => user_id,
-                _ => return Err(DashboardError::Unauthorized),
-            };
-            let guid = Guid::from(username.clone());
-            let user = service.find(guid.id()).await?;
-            match user {
-                Some(user) => {
-                    log::debug!("Found user {}", user.id());
-                    Ok(DashboardUser(user))
-                }
-                None => Err(DashboardError::Unauthorized),
             }
         })
     }
