@@ -14,6 +14,7 @@ use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
 use crate::oauth::scope::Scope;
 use crate::user::User;
+use url::Url;
 
 static MIGRATION_DIR: Dir = include_dir!("./migrations");
 

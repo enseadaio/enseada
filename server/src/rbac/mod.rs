@@ -126,11 +126,7 @@ impl Enforcer {
         match self.db.put(&rule.id.to_string(), rule).await {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
-                StatusCode::CONFLICT => {
-                    let err =
-                        Error::conflict(format!("permission already assigned to {}", sub_name));
-                    Err(err)
-                }
+                StatusCode::CONFLICT => Ok(()),
                 _ => Err(Error::from(err)),
             },
         }
@@ -194,10 +190,7 @@ impl Enforcer {
         match self.db.put(&assignment.id.to_string(), assignment).await {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
-                StatusCode::CONFLICT => {
-                    let err = Error::conflict(format!("role already assigned to {}", sub_name));
-                    Err(err)
-                }
+                StatusCode::CONFLICT => Ok(()),
                 _ => Err(Error::from(err)),
             },
         }

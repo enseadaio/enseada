@@ -1,6 +1,7 @@
 use actix_files as fs;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder, ResponseError};
 
+use crate::assets;
 use crate::http::error::ApiError;
 use crate::http::header::accept;
 use crate::template::ReDoc;
@@ -20,6 +21,8 @@ pub async fn open_api() -> HttpResponse {
 #[get("/api/docs")]
 pub async fn redoc() -> impl Responder {
     ReDoc {
+        stylesheet_path: assets::stylesheet_path(),
+        favicon_path: assets::icon_path(),
         spec_url: "/api/docs/openapi.yml".to_string(),
     }
 }

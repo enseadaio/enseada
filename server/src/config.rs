@@ -1,8 +1,8 @@
-use config::{Config, ConfigError, Environment};
-use serde::Deserialize;
+use config::{Config, ConfigError, Environment, File, FileFormat};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Configuration {
     port: i16,
     log: Logging,
@@ -16,64 +16,66 @@ pub struct Configuration {
     tracing: Tracing,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Logging {
     level: String,
     rootlevel: String,
     format: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CouchDB {
     url: Option<String>,
     username: Option<String>,
     password: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TLS {
     enabled: bool,
     cert: WithOptionalPath,
     key: WithOptionalPath,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 struct WithOptionalPath {
     path: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 struct Public {
     host: Url,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 struct Secret {
     key: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 struct Root {
     password: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case", tag = "provider")]
 pub enum Storage {
     S3 {
         bucket: String,
         endpoint: Option<String>,
+        access_key_id: Option<String>,
+        secret_access_key: Option<String>,
     },
     #[serde(other)]
     Unknown,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OCI {
     subdomain: String,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Tracing {
     log: bool,
     level: String,
@@ -81,10 +83,9 @@ pub struct Tracing {
 
 impl Configuration {
     pub fn new() -> Result<Self, ConfigError> {
-        dotenv();
-
         let mut c = Config::new();
 
+        c.merge(File::with_name("enseada").required(false))?;
         c.merge(Environment::with_prefix("enseada").separator("_"))?;
 
         // Defaults
@@ -123,7 +124,7 @@ impl Configuration {
             ));
         }
 
-        // Deserialize
+        // Deserialize, Serialize
         c.try_into()
     }
 
@@ -247,14 +248,4 @@ impl Tracing {
 lazy_static! {
     pub static ref CONFIG: Configuration =
         Configuration::new().expect("failed to load configuration");
-}
-
-#[cfg(debug_assertions)]
-fn dotenv() {
-    dotenv::dotenv().expect("dotenv::dotenv()");
-}
-
-#[cfg(not(debug_assertions))]
-fn dotenv() {
-    // noop
 }

@@ -5,26 +5,15 @@
   "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
   "license": "MPL-2.0",
   "scripts": {
-    "watch": "parcel watch static/js/index.js --public-url='/static'",
-    "build": "parcel build static/js/index.js --public-url='/static' --no-content-hash",
     "docs:lint": "speccy lint docs/openapi.yml",
     "docs:build": "speccy resolve docs/openapi.yml -o $OUT_DIR/openapi.yml",
     "docs:serve": "redoc-cli serve docs/openapi.yml --watch --options.showExtensions",
-    "clean": "rimraf dist",
     "snyk-protect": "snyk protect"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.12.4",
     "redoc-cli": "^0.9.7",
-    "rimraf": "^3.0.2",
-    "sass": "^1.26.3",
     "snyk": "^1.320.1",
     "speccy": "^0.11.0"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.13.1",
-    "bulma": "^0.8.1",
-    "turbolinks": "^5.2.0"
   },
   "snyk": false
 }

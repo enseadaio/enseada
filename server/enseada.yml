@@ -1,0 +1,36 @@
+# Configuration
+
+## Generic
+port: 9623
+log:
+  format: text
+  level: debug
+  rootlevel: info
+
+secret.key: Y7o3UYJTdympbipV54to2e57r5bjTMcq
+public.host: http://localhost:9623
+root.password: supersecret
+
+tracing:
+  log: false
+  level: info
+
+couchdb:
+  url: http://localhost:5984
+  username: enseada
+  password: enseada
+
+storage:
+  provider: s3
+  bucket: enseada
+  endpoint: http://localhost:9000
+  access_key_id: enseada
+  secret_access_key: enseadaminio
+
+tls:
+  enabled: false
+  cert.path: examples/cert.pem
+  key.path: examples/key.pem
+
+oci:
+  subdomain: containers

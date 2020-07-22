@@ -5,8 +5,9 @@ extern crate lazy_static;
 #[macro_use]
 extern crate validator_derive;
 
-use crate::config::CONFIG;
+use crate::config::{Configuration, CONFIG};
 
+mod assets;
 mod config;
 mod couchdb;
 mod dashboard;

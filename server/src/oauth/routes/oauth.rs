@@ -11,6 +11,7 @@ use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::assets;
 use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::responses;
@@ -21,8 +22,9 @@ use crate::oauth::request::{
 };
 use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use crate::oauth::session::Session;
-use crate::oauth::template::LoginForm;
+use crate::oauth::template::{LoginForm, Logout};
 use crate::oauth::ConcreteOAuthHandler;
+use crate::oauth::Result as OAuthResult;
 use crate::user::UserService;
 
 #[get("/authorize")]
@@ -69,6 +71,9 @@ pub async fn login_form(
     }
 
     let form = LoginForm {
+        stylesheet_path: assets::stylesheet_path(),
+        favicon_path: assets::icon_path(),
+        logo_path: assets::logo_path(),
         response_type: auth.response_type.to_string(),
         client_id: auth.client_id.clone(),
         redirect_uri: auth.redirect_uri.clone(),
@@ -160,7 +165,7 @@ pub async fn token(
     handler: Data<ConcreteOAuthHandler>,
     form: Form<TokenRequest>,
     req: HttpRequest,
-) -> Result<Json<TokenResponse>, OAuthError> {
+) -> OAuthResult<Json<TokenResponse>> {
     let client_auth = get_basic_auth(&req);
     let client_auth = client_auth.as_ref();
     let req = form.into_inner();
@@ -177,7 +182,7 @@ pub async fn introspect(
     handler: Data<ConcreteOAuthHandler>,
     form: Form<IntrospectionRequest>,
     req: HttpRequest,
-) -> Result<Json<IntrospectionResponse>, OAuthError> {
+) -> OAuthResult<Json<IntrospectionResponse>> {
     let client_auth = get_basic_auth(&req);
     let client_auth = client_auth.as_ref();
     let req = form.into_inner();
@@ -194,7 +199,7 @@ pub async fn revoke(
     handler: Data<ConcreteOAuthHandler>,
     form: Form<RevocationRequest>,
     req: HttpRequest,
-) -> Result<Json<RevocationResponse>, OAuthError> {
+) -> OAuthResult<Json<RevocationResponse>> {
     let client_auth = get_basic_auth(&req);
     let client_auth = client_auth.as_ref();
     let req = form.into_inner();
@@ -204,6 +209,16 @@ pub async fn revoke(
     let session = &mut Session::for_client(client.client_id().to_string());
     let res = handler.handle(&req, session).await?;
     Ok(Json(res))
+}
+
+#[get("/logout")]
+pub async fn logout(http_session: HttpSession) -> Result<Logout, ApiError> {
+    if http_session.get::<String>("user_id")?.is_none() {
+        return Err(ApiError::not_found("no active session found"));
+    }
+
+    http_session.clear();
+    Ok(Logout::default())
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {

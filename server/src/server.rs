@@ -22,6 +22,7 @@ use crate::http::error;
 use crate::rbac::watcher::Watcher;
 use crate::rbac::Enforcer;
 use crate::{dashboard, oauth, observability, oci, rbac, routes, user};
+use actix_cors::Cors;
 
 pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let address = format!("0.0.0.0:{}", cfg.port());
@@ -51,6 +52,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
                     .http_only(true)
                     .same_site(SameSite::Strict),
             )
+            .wrap(Cors::default())
             .wrap(ErrorHandlers::new().handler(StatusCode::BAD_REQUEST, error::handle_bad_request))
             .wrap(
                 ErrorHandlers::new().handler(StatusCode::UNAUTHORIZED, error::handle_unauthorized),

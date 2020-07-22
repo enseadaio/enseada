@@ -32,7 +32,8 @@ pub fn mount(cfg: &mut ServiceConfig) {
             .service(oauth::login)
             .service(oauth::token)
             .service(oauth::introspect)
-            .service(oauth::revoke),
+            .service(oauth::revoke)
+            .service(oauth::logout),
     );
 
     cfg.service(api::list_clients);
