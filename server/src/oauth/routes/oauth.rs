@@ -11,8 +11,10 @@ use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use enseada::couchdb::repository::{Entity, Repository};
+use users::UserService;
+
 use crate::assets;
-use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::responses;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
@@ -25,7 +27,6 @@ use crate::oauth::session::Session;
 use crate::oauth::template::{LoginForm, Logout};
 use crate::oauth::ConcreteOAuthHandler;
 use crate::oauth::Result as OAuthResult;
-use crate::user::UserService;
 
 #[get("/authorize")]
 pub async fn login_form(

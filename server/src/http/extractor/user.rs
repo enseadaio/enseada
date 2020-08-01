@@ -5,14 +5,14 @@ use actix_web::web::Data;
 use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
 
+use enseada::couchdb::repository::{Entity, Repository};
 use enseada::guid::Guid;
+use users::{User, UserService};
 
-use crate::couchdb::repository::{Entity, Repository};
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
-use crate::user::{User, UserService};
 
-pub type CurrentUser = User;
+pub struct CurrentUser(pub User);
 
 impl FromRequest for CurrentUser {
     type Error = ApiError;
@@ -36,7 +36,7 @@ impl FromRequest for CurrentUser {
             match user {
                 Some(user) => {
                     log::debug!("Found user {}", user.id());
-                    Ok(user)
+                    Ok(CurrentUser(user))
                 }
                 None => Err(ApiError::Unauthorized("unauthorized".to_string())),
             }

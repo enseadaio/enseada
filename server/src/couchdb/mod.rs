@@ -4,7 +4,6 @@ pub use migrate::migrate;
 use crate::config::{Configuration, CONFIG};
 
 mod migrate;
-pub mod repository;
 
 pub mod name {
     pub const OAUTH: &str = "oauth";

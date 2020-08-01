@@ -11,10 +11,10 @@ use url::ParseError;
 
 use couchdb::error::Error as CouchError;
 use enseada::error::Error;
+use oci::error::Error as OCIError;
+use rbac::EvaluationError;
 
-use crate::http::header::accept;
 use crate::oauth::error::{Error as OAuthError, ErrorKind};
-use crate::rbac::EvaluationError;
 
 #[derive(Debug, Display, PartialEq, Eq)]
 #[allow(dead_code)]
@@ -175,6 +175,13 @@ impl From<EvaluationError> for ApiError {
         match err {
             EvaluationError::Denied => ApiError::Forbidden(err.to_string()),
         }
+    }
+}
+
+impl From<OCIError> for ApiError {
+    fn from(err: OCIError) -> Self {
+        let status = err.status_code();
+        ApiError::new(status, err.to_string())
     }
 }
 

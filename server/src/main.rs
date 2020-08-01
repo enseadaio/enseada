@@ -2,10 +2,8 @@
 extern crate include_dir;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate validator_derive;
 
-use crate::config::{Configuration, CONFIG};
+use crate::config::CONFIG;
 
 mod assets;
 mod config;

@@ -5,10 +5,11 @@ use actix_web::{delete, get, post, put};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
+use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 use enseada::pagination::Page;
+use rbac::Enforcer;
 
-use crate::couchdb::repository::Entity;
 use crate::http::error::ApiError;
 use crate::http::extractor::scope::Scope;
 use crate::http::extractor::user::CurrentUser;
@@ -17,7 +18,6 @@ use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
 use crate::oauth::persistence::CouchStorage;
 use crate::oauth::storage::ClientStorage;
-use crate::rbac::Enforcer;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct ClientResponse {
@@ -49,7 +49,7 @@ pub async fn list_clients(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
-    current_user: CurrentUser,
+    CurrentUser(current_user): CurrentUser,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<ClientResponse>>> {
     Scope::from("clients:read").matches(&scope)?;
@@ -87,7 +87,7 @@ pub async fn create_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
-    current_user: CurrentUser,
+    CurrentUser(current_user): CurrentUser,
     body: Json<CreateClientPayload>,
 ) -> ApiResult<Json<ClientResponse>> {
     Scope::from("clients:manage").matches(&scope)?;
@@ -139,7 +139,7 @@ pub async fn get_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
-    current_user: CurrentUser,
+    CurrentUser(current_user): CurrentUser,
     path: Path<ClientPathParam>,
 ) -> ApiResult<Json<ClientResponse>> {
     Scope::from("clients:read").matches(&scope)?;
@@ -171,7 +171,7 @@ pub async fn update_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
-    current_user: CurrentUser,
+    CurrentUser(current_user): CurrentUser,
     path: Path<ClientPathParam>,
     body: Json<UpdateClientPayload>,
 ) -> ApiResult<Json<ClientResponse>> {
@@ -211,7 +211,7 @@ pub async fn delete_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: Scope,
-    current_user: CurrentUser,
+    CurrentUser(current_user): CurrentUser,
     path: Path<ClientPathParam>,
 ) -> ApiResult<Json<ClientResponse>> {
     Scope::from("clients:delete").matches(&scope)?;

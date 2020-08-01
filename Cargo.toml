@@ -1,6 +1,13 @@
 [workspace]
 members = [
-    "server",
     "couchdb",
-    "libenseada"
+    "lib",
+    "users",
+    "observability",
+    "rbac",
+    "oci",
+    "server",
 ]
+
+[profile.release]
+lto = "thin"

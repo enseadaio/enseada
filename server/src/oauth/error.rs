@@ -24,11 +24,6 @@ impl Error {
         &self.error
     }
 
-    pub fn set_error_uri(&mut self, url: url::Url) -> &mut Self {
-        self.error_uri = Some(url.to_string());
-        self
-    }
-
     pub fn description(&self) -> &str {
         &self.error_description
     }
@@ -63,7 +58,7 @@ impl ResponseError for Error {
             ErrorKind::TemporarilyUnavailable => HttpResponse::ServiceUnavailable(),
             _ => HttpResponse::BadRequest(),
         }
-            .json(self)
+        .json(self)
     }
 }
 

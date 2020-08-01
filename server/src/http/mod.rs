@@ -5,7 +5,6 @@ use crate::http::error::ApiError;
 pub mod error;
 pub mod extractor;
 pub mod guard;
-pub mod header;
 pub mod middleware;
 pub mod responses;
 

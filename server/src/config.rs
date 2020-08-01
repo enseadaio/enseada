@@ -1,4 +1,4 @@
-use config::{Config, ConfigError, Environment, File, FileFormat};
+use config::{Config, ConfigError, Environment, File};
 use serde::{Deserialize, Serialize};
 use url::Url;
 

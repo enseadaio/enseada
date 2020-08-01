@@ -17,15 +17,6 @@ pub fn redirect_to<S: ToString>(location: S) -> HttpResponse {
         .into_body()
 }
 
-pub fn not_found<T>(id: &Guid) -> Result<Json<T>, ApiError> {
-    let kind = id.partition().unwrap_or_else(|| "resource");
-    Err(ApiError::NotFound(format!(
-        "{} '{}' not found",
-        kind,
-        id.id()
-    )))
-}
-
 pub fn conflict<T>(msg: String) -> Result<Json<T>, ApiError> {
     Err(ApiError::Conflict(msg))
 }

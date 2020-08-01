@@ -2,10 +2,10 @@ use chrono::serde::ts_seconds;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 use enseada::secure::SecureSecret;
 
-use crate::couchdb::repository::Entity;
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::session::Session;
 

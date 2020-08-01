@@ -1,0 +1,22 @@
+[package]
+name = "users"
+version = "0.1.0"
+authors = ["Matteo Joliveau <matteo.joliveau@mikamai.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Enseada
+enseada = { path = "../lib" }
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+
+# Async
+async-trait = "0.1"
+
+# Olly
+log = "0.4"
+tracing = "0.1.15"
+tracing-futures = "0.2.4"

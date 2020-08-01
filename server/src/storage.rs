@@ -1,10 +1,9 @@
 use hold_s3::{S3Config, S3Credentials, S3Provider};
 
 use enseada::error::Error;
+use enseada::storage::Provider;
 
 use crate::config::{Storage, CONFIG};
-
-pub type Provider = Box<dyn hold::provider::Provider + Send + Sync>;
 
 pub fn new_provider() -> Result<Provider, Error> {
     match CONFIG.storage() {

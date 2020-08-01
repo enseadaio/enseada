@@ -2,10 +2,11 @@ use std::convert::TryInto;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+
 use couchdb::db::Database;
+use enseada::couchdb::repository::Entity;
 use enseada::pagination::Page;
 
-use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::code::AuthorizationCode;
 use crate::oauth::error::{Error, ErrorKind};

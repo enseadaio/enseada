@@ -10,9 +10,14 @@ name = "enseada-server"
 path = "src/main.rs"
 
 [dependencies]
-# Project
+# Enseada
 couchdb = { path = "../couchdb" }
-enseada = { path = "../libenseada" }
+enseada = { path = "../lib" }
+users = { path = "../users" }
+observability = { path = "../observability" }
+rbac = { path = "../rbac" }
+oci = { path = "../oci" }
+
 hold = "0.1.0-alpha.4"
 hold_s3 = "0.1.0-alpha.4"
 

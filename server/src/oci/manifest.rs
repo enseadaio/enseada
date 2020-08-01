@@ -1,60 +1,118 @@
-use std::collections::HashMap;
+use std::convert::TryFrom;
 
-use serde::{Deserialize, Serialize};
-use url::Url;
+use actix_web::web::{Data, Json, Path};
+use actix_web::HttpResponse;
+use serde::Deserialize;
 
-use crate::oci::digest::Digest;
-use crate::oci::mime::MediaType;
+use enseada::couchdb::repository::Repository;
+use oci::digest::Digest;
+use oci::entity::{Manifest, Repo};
+use oci::error::{Error, ErrorCode};
+use oci::header;
+use oci::manifest::ImageManifest;
+use oci::mime::MediaType;
+use oci::service::{ManifestService, RepoService};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Descriptor {
-    media_type: MediaType,
-    digest: Digest,
-    #[serde(default)]
-    size: usize,
-    urls: Option<Vec<Url>>,
-    annotations: Option<HashMap<String, String>>,
+use crate::oci::{RepoPath, Result};
+
+#[derive(Debug, Deserialize)]
+pub struct ManifestRefParam {
+    reference: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImageManifest {
-    schema_version: u8,
-    config: Descriptor,
-    layers: Vec<Descriptor>,
-    annotations: Option<HashMap<String, String>>,
+pub async fn get(
+    manifests: Data<ManifestService>,
+    repos: Data<RepoService>,
+    repo: Path<RepoPath>,
+    reference: Path<ManifestRefParam>,
+) -> Result<HttpResponse> {
+    let group = &repo.group;
+    let name = &repo.name;
+    let reference = &reference.reference;
+
+    log::debug!("looking for repo {}/{}", group, name);
+    repos
+        .find(&Repo::build_id(group, name))
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
+
+    let manifest = manifests
+        .find_by_ref(reference)
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::ManifestUnknown))?;
+
+    let manifest = manifest.into_inner();
+    Ok(HttpResponse::Ok()
+        .header(
+            http::header::CONTENT_TYPE,
+            MediaType::ImageManifest.to_string(),
+        )
+        .header(header::CONTENT_DIGEST, manifest.digest().to_string())
+        .json(manifest))
 }
 
-impl ImageManifest {
-    pub fn new(digest: Digest, size: usize) -> Self {
-        Self {
-            schema_version: 2,
-            config: Descriptor {
-                media_type: MediaType::ImageConfig,
-                digest,
-                size,
-                urls: None,
-                annotations: None,
-            },
-            layers: Vec::new(),
-            annotations: None,
-        }
+pub async fn put(
+    manifests: Data<ManifestService>,
+    repos: Data<RepoService>,
+    repo: Path<RepoPath>,
+    reference: Path<ManifestRefParam>,
+    body: Json<ImageManifest>,
+) -> Result<HttpResponse> {
+    let group = &repo.group;
+    let name = &repo.name;
+    let reference = &reference.reference;
+
+    log::debug!("looking for repo {}/{}", group, name);
+    let repo = repos
+        .find(&Repo::build_id(group, name))
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
+
+    let manifest = Manifest::new(reference, body.into_inner());
+    let manifest = manifests.save(manifest).await?;
+
+    log::debug!("Checking if ref '{}' is a tag", reference);
+    if Digest::try_from(reference).is_err() {
+        log::debug!("Ref '{}' is indeed a tag", reference);
+        // Reference is a tag
+        let mut repo = repo;
+        repo.push_tag(reference.clone());
+        repos.save(repo).await?;
     }
 
-    pub fn digest(&self) -> &Digest {
-        &self.config.digest
-    }
+    let manifest = manifest.into_inner();
 
-    pub fn add_layer(&mut self, digest: Digest, size: usize) -> &mut Self {
-        let layer = Descriptor {
-            media_type: MediaType::ImageLayer,
-            digest,
-            size,
-            urls: None,
-            annotations: None,
-        };
-        self.layers.push(layer);
-        self
-    }
+    Ok(HttpResponse::Created()
+        .header(
+            http::header::LOCATION,
+            format!("/{}/{}/manifests/{}", group, name, reference),
+        )
+        .header(header::CONTENT_DIGEST, manifest.digest().to_string())
+        .finish())
+}
+
+pub async fn delete(
+    manifests: Data<ManifestService>,
+    repos: Data<RepoService>,
+    repo: Path<RepoPath>,
+    reference: Path<ManifestRefParam>,
+) -> Result<HttpResponse> {
+    let group = &repo.group;
+    let name = &repo.name;
+    let reference = &reference.reference;
+
+    log::debug!("looking for repo {}/{}", group, name);
+    repos
+        .find(&Repo::build_id(group, name))
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
+
+    let manifest = manifests
+        .find_by_ref(reference)
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::ManifestUnknown))?;
+
+    manifests.delete(&manifest).await?;
+
+    Ok(HttpResponse::Accepted().finish())
 }

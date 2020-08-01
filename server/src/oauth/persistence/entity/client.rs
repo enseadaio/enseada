@@ -4,9 +4,9 @@ use std::convert::TryInto;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 
-use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::client::ClientKind as ExtClientKind;
 use crate::oauth::error::Error;

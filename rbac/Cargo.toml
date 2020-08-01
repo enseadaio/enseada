@@ -1,0 +1,29 @@
+[package]
+name = "rbac"
+version = "0.1.0"
+authors = ["Matteo Joliveau <matteo.joliveau@mikamai.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Enseada
+enseada = { path = "../lib" }
+
+# Misc
+http = "0.2"
+glob = "0.3"
+
+# Async
+futures = "0.3"
+tokio = { version = "0.2", features = ["sync"] }
+actix-rt = "1.1"
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Olly
+log = "0.4"
+tracing = "0.1"
+tracing-futures = "0.2"

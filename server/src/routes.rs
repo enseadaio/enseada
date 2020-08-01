@@ -1,9 +1,7 @@
-use actix_files as fs;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder, ResponseError};
 
 use crate::assets;
 use crate::http::error::ApiError;
-use crate::http::header::accept;
 use crate::template::ReDoc;
 
 pub fn mount(cfg: &mut web::ServiceConfig) {

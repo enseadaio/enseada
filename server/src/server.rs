@@ -4,6 +4,7 @@ use std::io;
 use std::io::{Seek, SeekFrom};
 use std::sync::Arc;
 
+use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
@@ -16,13 +17,13 @@ use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use tokio::sync::RwLock;
 use url::Url;
 
+use ::rbac::{Enforcer, Watcher};
+
 use crate::config::Configuration;
 use crate::couchdb::{self, name as dbname};
 use crate::http::error;
-use crate::rbac::watcher::Watcher;
-use crate::rbac::Enforcer;
-use crate::{dashboard, oauth, observability, oci, rbac, routes, user};
-use actix_cors::Cors;
+use crate::oauth;
+use crate::{dashboard, observability, oci, routes, user};
 
 pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let address = format!("0.0.0.0:{}", cfg.port());
@@ -60,7 +61,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             .wrap(default_headers(cfg))
             .app_data(enforcer.clone())
             .configure(user::mount)
-            .configure(rbac::mount)
+            .configure(crate::rbac::mount)
             .configure(oauth::mount)
             .configure(observability::mount)
             .configure(oci::mount)

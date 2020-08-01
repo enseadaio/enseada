@@ -7,14 +7,13 @@ use include_dir::{Dir, File};
 use couchdb::db::Database;
 use couchdb::migrator::Migrator;
 use couchdb::{Couch, Result};
+use enseada::couchdb::repository::Entity;
+use users::User;
 
 use crate::config::Configuration;
-use crate::couchdb::repository::Entity;
 use crate::oauth::client::Client;
 use crate::oauth::persistence::client::ClientEntity;
 use crate::oauth::scope::Scope;
-use crate::user::User;
-use url::Url;
 
 static MIGRATION_DIR: Dir = include_dir!("./migrations");
 
