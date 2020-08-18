@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use enseada::pagination::Page;
 
-use crate::oauth::client::Client;
-use crate::oauth::code::AuthorizationCode;
-use crate::oauth::token::Token;
-use crate::oauth::Result;
+use crate::client::Client;
+use crate::code::AuthorizationCode;
+use crate::token::Token;
+use crate::Result;
 
 #[async_trait]
 pub trait ClientStorage: Send + Sync {

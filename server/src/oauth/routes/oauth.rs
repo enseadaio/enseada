@@ -12,21 +12,22 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use enseada::couchdb::repository::{Entity, Repository};
+use oauth::error::Error as OAuthError;
+use oauth::error::ErrorKind;
+use oauth::handler::{BasicAuth, RequestHandler};
+use oauth::request::{AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest};
+use oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
+use oauth::session::Session;
+use oauth::ConcreteOAuthHandler;
 use users::UserService;
 
 use crate::assets;
 use crate::http::error::ApiError;
 use crate::http::responses;
-use crate::oauth::error::{Error as OAuthError, ErrorKind};
-use crate::oauth::handler::{BasicAuth, RequestHandler};
-use crate::oauth::request::{
-    AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest,
-};
-use crate::oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
-use crate::oauth::session::Session;
 use crate::oauth::template::{LoginForm, Logout};
-use crate::oauth::ConcreteOAuthHandler;
-use crate::oauth::Result as OAuthResult;
+use crate::oauth::ErrorResponse;
+
+type OAuthResult<T> = Result<T, ErrorResponse>;
 
 #[get("/authorize")]
 pub async fn login_form(

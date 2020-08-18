@@ -6,14 +6,15 @@ use tokio::sync::RwLock;
 use enseada::couchdb::repository::{Entity, Repository};
 use enseada::guid::Guid;
 use enseada::pagination::Page;
+use oauth::scope::Scope;
 use oci::entity::Repo;
 use oci::service::RepoService;
 use rbac::Enforcer;
 
 use crate::http::error::ApiError;
+use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::{ApiResult, PaginationQuery};
-use crate::oauth::scope::Scope;
 use crate::oci::RepoPath;
 
 #[derive(Debug, Serialize)]
@@ -43,8 +44,8 @@ impl From<Repo> for RepoResponse {
 pub async fn list_repos(
     service: Data<RepoService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<RepoResponse>>> {
     Scope::from("oci:repos:read").matches(&scope)?;
@@ -68,8 +69,8 @@ pub struct CreateRepoPayload {
 pub async fn create_repo(
     service: Data<RepoService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     body: Json<CreateRepoPayload>,
 ) -> ApiResult<Json<RepoResponse>> {
     Scope::from("oci:repos:manage").matches(&scope)?;
@@ -86,8 +87,8 @@ pub async fn create_repo(
 pub async fn get_repo(
     service: Data<RepoService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<RepoPath>,
 ) -> ApiResult<Json<RepoResponse>> {
     Scope::from("oci:repos:read").matches(&scope)?;
@@ -108,8 +109,8 @@ pub async fn get_repo(
 pub async fn delete_repo(
     service: Data<RepoService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<RepoPath>,
 ) -> ApiResult<Json<RepoResponse>> {
     Scope::from("oci:repos:delete").matches(&scope)?;

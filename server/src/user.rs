@@ -6,11 +6,13 @@ use tokio::sync::RwLock;
 use enseada::couchdb::repository::{Entity, Repository};
 use enseada::guid::Guid;
 use enseada::pagination::Page;
+use oauth::scope::Scope;
 use rbac::Enforcer;
 use users::{User, UserService};
 
 use crate::http::error::ApiError;
-use crate::http::extractor::{scope::Scope, user::CurrentUser};
+use crate::http::extractor::scope::OAuthScope;
+use crate::http::extractor::user::CurrentUser;
 use crate::http::responses;
 use crate::http::{ApiResult, PaginationQuery};
 
@@ -51,8 +53,8 @@ impl From<&User> for UserResponse {
 pub async fn list(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<UserResponse>>> {
     Scope::from("users:read").matches(&scope)?;
@@ -83,8 +85,8 @@ pub struct UsernamePathParam {
 pub async fn get(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
 ) -> ApiResult<Json<UserResponse>> {
     Scope::from("users:read").matches(&scope)?;
@@ -103,8 +105,8 @@ pub async fn get(
 pub async fn delete(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
 ) -> ApiResult<HttpResponse> {
     Scope::from("users:manage").matches(&scope)?;
@@ -122,12 +124,9 @@ pub async fn delete(
 }
 
 #[get("/api/v1beta1/users/me")]
-pub async fn me(
-    CurrentUser(current_user): CurrentUser,
-    scope: Scope,
-) -> ApiResult<Json<UserResponse>> {
+pub async fn me(current_user: CurrentUser, scope: OAuthScope) -> ApiResult<Json<UserResponse>> {
     Scope::from("profile").matches(&scope)?;
-    Ok(Json(current_user.into()))
+    Ok(Json(current_user.0.into()))
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -141,9 +140,9 @@ pub struct Registration {
 pub async fn register(
     service: Data<UserService>,
     data: Json<Registration>,
-    scope: Scope,
+    scope: OAuthScope,
     enforcer: Data<RwLock<Enforcer>>,
-    CurrentUser(current_user): CurrentUser,
+    current_user: CurrentUser,
 ) -> Result<Json<UserResponse>, ApiError> {
     Scope::from("users:manage").matches(&scope)?;
     let enf = enforcer.read().await;

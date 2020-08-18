@@ -1,32 +1,41 @@
-use chrono::{DateTime, Utc};
+use std::fmt::{self, Display, Formatter};
 
+use actix_web::{HttpResponse, ResponseError};
+
+use actix::Response;
+use actix_web::body::Body;
+use http::StatusCode;
+use oauth::error::{Error, ErrorKind};
 pub use routes::mount;
 
-use crate::oauth::error::Error;
-use crate::oauth::handler::OAuthHandler;
-use crate::oauth::persistence::CouchStorage;
-
-pub mod client;
-pub mod code;
-pub mod error;
-pub mod handler;
-pub mod persistence;
-pub mod request;
-pub mod response;
 mod routes;
-pub mod scope;
-pub mod session;
-pub mod storage;
 mod template;
-pub mod token;
 
-pub type ConcreteOAuthHandler =
-    OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
+#[derive(Debug)]
+pub struct ErrorResponse(oauth::error::Error);
 
-pub type Result<T> = std::result::Result<T, Error>;
+impl From<Error> for ErrorResponse {
+    fn from(err: Error) -> Self {
+        ErrorResponse(err)
+    }
+}
 
-pub trait Expirable {
-    fn expiration(&self) -> &DateTime<Utc>;
-    fn expires_in(&self) -> i64;
-    fn is_expired(&self) -> bool;
+impl Display for ErrorResponse {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl ResponseError for ErrorResponse {
+    fn error_response(&self) -> HttpResponse {
+        let err = &self.0;
+        match err.kind() {
+            ErrorKind::AccessDenied => HttpResponse::Forbidden(),
+            ErrorKind::InvalidClient => HttpResponse::Unauthorized(),
+            ErrorKind::ServerError | ErrorKind::Unknown => HttpResponse::InternalServerError(),
+            ErrorKind::TemporarilyUnavailable => HttpResponse::ServiceUnavailable(),
+            _ => HttpResponse::BadRequest(),
+        }
+        .json2(err)
+    }
 }

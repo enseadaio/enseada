@@ -497,9 +497,9 @@ version = "0.1.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a265e3abeffdce30b2e26b7a11b222fe37c6067404001b434101457d0385eb92"
 dependencies = [
-    "proc-macro2 1.0.18",
-    "quote 1.0.7",
-    "syn 1.0.30",
+ "proc-macro2 1.0.18",
+ "quote 1.0.7",
+ "syn 1.0.30",
 ]
 
 [[package]]
@@ -905,21 +905,21 @@ dependencies = [
 name = "enseada"
 version = "0.1.0"
 dependencies = [
-    "async-trait",
-    "base64 0.12.1",
-    "couchdb",
-    "hex",
-    "hold",
-    "http",
-    "lazy_static 1.4.0",
-    "log",
-    "ring",
-    "rust-argon2 0.8.2",
-    "serde 1.0.111",
-    "serde_json",
-    "snafu",
-    "tracing",
-    "tracing-futures",
+ "async-trait",
+ "base64 0.12.1",
+ "couchdb",
+ "hex",
+ "hold",
+ "http",
+ "lazy_static 1.4.0",
+ "log",
+ "ring",
+ "rust-argon2 0.8.2",
+ "serde 1.0.111",
+ "serde_json",
+ "snafu",
+ "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -945,35 +945,36 @@ dependencies = [
  "derivative 1.0.4",
  "derive_more",
  "enseada",
-    "futures",
-    "glob",
-    "hold",
-    "hold_s3",
-    "http",
-    "include_dir",
-    "lazy_static 1.4.0",
-    "log",
-    "log4rs",
-    "mime_guess",
-    "observability",
-    "oci",
-    "rbac",
-    "reqwest",
-    "rust-embed",
-    "rustls 0.16.0",
-    "serde 1.0.111",
-    "serde_json",
-    "serde_urlencoded",
-    "snafu",
-    "tokio",
-    "tracing",
-    "tracing-futures",
-    "tracing-subscriber",
-    "url",
-    "users",
-    "uuid",
-    "validator",
-    "validator_derive",
+ "futures",
+ "glob",
+ "hold",
+ "hold_s3",
+ "http",
+ "include_dir",
+ "lazy_static 1.4.0",
+ "log",
+ "log4rs",
+ "mime_guess",
+ "oauth",
+ "observability",
+ "oci",
+ "rbac",
+ "reqwest",
+ "rust-embed",
+ "rustls 0.16.0",
+ "serde 1.0.111",
+ "serde_json",
+ "serde_urlencoded",
+ "snafu",
+ "tokio",
+ "tracing",
+ "tracing-futures",
+ "tracing-subscriber",
+ "url",
+ "users",
+ "uuid",
+ "validator",
+ "validator_derive",
 ]
 
 [[package]]
@@ -1796,8 +1797,25 @@ version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
 dependencies = [
-    "hermit-abi",
-    "libc",
+ "hermit-abi",
+ "libc",
+]
+
+[[package]]
+name = "oauth"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "enseada",
+ "glob",
+ "http",
+ "log",
+ "serde 1.0.111",
+ "serde_json",
+ "tracing",
+ "tracing-futures",
+ "url",
 ]
 
 [[package]]
@@ -1810,25 +1828,25 @@ checksum = "9cbca9424c482ee628fa549d9c812e2cd22f1180b9222c9200fdfa6eb31aecb2"
 name = "observability"
 version = "0.1.0"
 dependencies = [
-    "enseada",
-    "serde 1.0.111",
+ "enseada",
+ "serde 1.0.111",
 ]
 
 [[package]]
 name = "oci"
 version = "0.1.0"
 dependencies = [
-    "bytes",
-    "enseada",
-    "hold",
-    "http",
-    "log",
-    "serde 1.0.111",
-    "serde_json",
-    "tracing",
-    "tracing-futures",
-    "url",
-    "uuid",
+ "bytes",
+ "enseada",
+ "hold",
+ "http",
+ "log",
+ "serde 1.0.111",
+ "serde_json",
+ "tracing",
+ "tracing-futures",
+ "url",
+ "uuid",
 ]
 
 [[package]]
@@ -2051,24 +2069,24 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca3129af7b92a17112d59ad498c6f81eaf463253766b90396d39ea7a39d6613c"
 dependencies = [
-    "rand_core",
+ "rand_core",
 ]
 
 [[package]]
 name = "rbac"
 version = "0.1.0"
 dependencies = [
-    "actix-rt",
-    "enseada",
-    "futures",
-    "glob",
-    "http",
-    "log",
-    "serde 1.0.111",
-    "serde_json",
-    "tokio",
-    "tracing",
-    "tracing-futures",
+ "actix-rt",
+ "enseada",
+ "futures",
+ "glob",
+ "http",
+ "log",
+ "serde 1.0.111",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -2852,15 +2870,15 @@ version = "0.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d34ca54d84bf2b5b4d7d31e901a8464f7b60ac145a284fba25ceb801f2ddccd"
 dependencies = [
-    "bytes",
-    "fnv",
-    "futures-core",
-    "iovec",
-    "lazy_static 1.4.0",
-    "libc",
-    "memchr",
-    "mio",
-    "mio-named-pipes",
+ "bytes",
+ "fnv",
+ "futures-core",
+ "iovec",
+ "lazy_static 1.4.0",
+ "libc",
+ "memchr",
+ "mio",
+ "mio-named-pipes",
  "mio-uds",
  "pin-project-lite",
  "signal-hook-registry",
@@ -3169,22 +3187,22 @@ version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "829d4a8476c35c9bf0bbce5a3b23f4106f79728039b726d292bb93bc106787cb"
 dependencies = [
-    "idna",
-    "matches",
-    "percent-encoding",
-    "serde 1.0.111",
+ "idna",
+ "matches",
+ "percent-encoding",
+ "serde 1.0.111",
 ]
 
 [[package]]
 name = "users"
 version = "0.1.0"
 dependencies = [
-    "async-trait",
-    "enseada",
-    "log",
-    "serde 1.0.111",
-    "tracing",
-    "tracing-futures",
+ "async-trait",
+ "enseada",
+ "log",
+ "serde 1.0.111",
+ "tracing",
+ "tracing-futures",
 ]
 
 [[package]]
@@ -3193,7 +3211,7 @@ version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
 dependencies = [
-    "rand",
+ "rand",
 ]
 
 [[package]]

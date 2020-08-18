@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use enseada::secure::SecureSecret;
 
-use crate::oauth::scope::Scope;
-use crate::oauth::session::Session;
-use crate::oauth::Expirable;
+use crate::scope::Scope;
+use crate::session::Session;
+use crate::Expirable;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

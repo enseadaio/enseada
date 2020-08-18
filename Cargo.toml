@@ -6,6 +6,7 @@ members = [
     "observability",
     "rbac",
     "oci",
+    "oauth",
     "server",
 ]
 

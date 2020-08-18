@@ -11,6 +11,7 @@ use users::{User, UserService};
 
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
+use std::ops::Deref;
 
 pub struct CurrentUser(pub User);
 
@@ -26,7 +27,7 @@ impl FromRequest for CurrentUser {
         Box::pin(async move {
             let service = service_fut.await?;
             let session: TokenSession = session_fut.await?;
-            let username = match session.user_id() {
+            let username = match session.0.user_id() {
                 Some(username) => username,
                 None => return Err(ApiError::Unauthorized("unauthorized".to_string())),
             };
@@ -41,5 +42,13 @@ impl FromRequest for CurrentUser {
                 None => Err(ApiError::Unauthorized("unauthorized".to_string())),
             }
         })
+    }
+}
+
+impl Deref for CurrentUser {
+    type Target = User;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

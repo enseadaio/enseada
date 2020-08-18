@@ -10,10 +10,11 @@ use rbac::{Enforcer, Rule};
 use users::UserService;
 
 use crate::http::error::ApiError;
+use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::{ApiResult, PaginationQuery};
-use crate::oauth::scope::Scope;
 use crate::user::UsernamePathParam;
+use oauth::scope::Scope;
 
 pub fn mount(cfg: &mut ServiceConfig) {
     cfg.service(get_user_roles);
@@ -35,8 +36,8 @@ pub struct RoleResponse {
 pub async fn get_user_roles(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<String>>> {
@@ -67,8 +68,8 @@ pub struct UserRolesPathParams {
 pub async fn add_user_role(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UserRolesPathParams>,
 ) -> ApiResult<Json<RoleResponse>> {
     Scope::from(vec!["users:manage", "roles"]).matches_exactly(&scope)?;
@@ -90,8 +91,8 @@ pub async fn add_user_role(
 pub async fn remove_user_role(
     service: Data<UserService>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UserRolesPathParams>,
 ) -> ApiResult<Json<RoleResponse>> {
     Scope::from(vec!["users:manage", "roles"]).matches_exactly(&scope)?;
@@ -130,8 +131,8 @@ impl From<Rule> for Permission {
 #[get("/api/v1beta1/users/{username}/permissions")]
 pub async fn get_user_permissions(
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<Permission>>> {
@@ -154,8 +155,8 @@ pub async fn get_user_permissions(
 #[post("/api/v1beta1/users/{username}/permissions")]
 pub async fn add_user_permission(
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
     permission: Json<Permission>,
 ) -> ApiResult<Json<Permission>> {
@@ -177,8 +178,8 @@ pub async fn add_user_permission(
 #[delete("/api/v1beta1/users/{username}/permissions")]
 pub async fn remove_user_permission(
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<UsernamePathParam>,
     permission: Json<Permission>,
 ) -> ApiResult<Json<Permission>> {
@@ -205,8 +206,8 @@ pub struct RolePathParam {
 #[get("/api/v1beta1/roles/{role}/permissions")]
 pub async fn get_role_permissions(
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<RolePathParam>,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<Permission>>> {
@@ -229,8 +230,8 @@ pub async fn get_role_permissions(
 #[post("/api/v1beta1/roles/{role}/permissions")]
 pub async fn add_role_permission(
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<RolePathParam>,
     permission: Json<Permission>,
 ) -> ApiResult<Json<Permission>> {
@@ -252,8 +253,8 @@ pub async fn add_role_permission(
 #[delete("/api/v1beta1/roles/{role}/permissions")]
 pub async fn remove_role_permission(
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<RolePathParam>,
     permission: Json<Permission>,
 ) -> ApiResult<Json<Permission>> {

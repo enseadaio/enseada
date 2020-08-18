@@ -1,6 +1,6 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
-use actix_web::{HttpResponse, ResponseError};
+use enseada::couchdb;
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
@@ -46,19 +46,6 @@ impl From<String> for Error {
 impl From<couchdb::error::Error> for Error {
     fn from(err: couchdb::error::Error) -> Self {
         Self::from(err.to_string())
-    }
-}
-
-impl ResponseError for Error {
-    fn error_response(&self) -> HttpResponse {
-        match self.kind() {
-            ErrorKind::AccessDenied => HttpResponse::Forbidden(),
-            ErrorKind::InvalidClient => HttpResponse::Unauthorized(),
-            ErrorKind::ServerError | ErrorKind::Unknown => HttpResponse::InternalServerError(),
-            ErrorKind::TemporarilyUnavailable => HttpResponse::ServiceUnavailable(),
-            _ => HttpResponse::BadRequest(),
-        }
-        .json(self)
     }
 }
 

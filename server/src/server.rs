@@ -22,8 +22,8 @@ use ::rbac::{Enforcer, Watcher};
 use crate::config::Configuration;
 use crate::couchdb::{self, name as dbname};
 use crate::http::error;
-use crate::oauth;
 use crate::{dashboard, observability, oci, routes, user};
+use oauth;
 
 pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let address = format!("0.0.0.0:{}", cfg.port());
@@ -62,7 +62,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             .app_data(enforcer.clone())
             .configure(user::mount)
             .configure(crate::rbac::mount)
-            .configure(oauth::mount)
+            .configure(crate::oauth::mount)
             .configure(observability::mount)
             .configure(oci::mount)
             .configure(routes::mount)

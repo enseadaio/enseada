@@ -6,9 +6,9 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::oauth::code::AuthorizationCode;
-use crate::oauth::scope::Scope;
-use crate::oauth::token::{Token, TokenTypeHint};
+use crate::code::AuthorizationCode;
+use crate::scope::Scope;
+use crate::token::{Token, TokenTypeHint};
 
 #[derive(Debug, Serialize)]
 pub struct AuthorizationResponse {

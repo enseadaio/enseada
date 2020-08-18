@@ -14,7 +14,7 @@ use enseada::error::Error;
 use oci::error::Error as OCIError;
 use rbac::EvaluationError;
 
-use crate::oauth::error::{Error as OAuthError, ErrorKind};
+use oauth::error::{Error as OAuthError, ErrorKind};
 
 #[derive(Debug, Display, PartialEq, Eq)]
 #[allow(dead_code)]

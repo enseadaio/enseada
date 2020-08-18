@@ -8,12 +8,12 @@ use couchdb::db::Database;
 use couchdb::migrator::Migrator;
 use couchdb::{Couch, Result};
 use enseada::couchdb::repository::Entity;
+use oauth::client::Client;
+use oauth::persistence::client::ClientEntity;
+use oauth::scope::Scope;
 use users::User;
 
 use crate::config::Configuration;
-use crate::oauth::client::Client;
-use crate::oauth::persistence::client::ClientEntity;
-use crate::oauth::scope::Scope;
 
 static MIGRATION_DIR: Dir = include_dir!("./migrations");
 

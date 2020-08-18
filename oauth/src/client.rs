@@ -3,10 +3,10 @@ use std::fmt::{self, Display, Formatter};
 
 use enseada::secure;
 
-use crate::oauth::client::ClientKind::{Confidential, Public};
-use crate::oauth::error::{Error, ErrorKind};
-use crate::oauth::scope::Scope;
-use crate::oauth::Result;
+use crate::client::ClientKind::{Confidential, Public};
+use crate::error::{Error, ErrorKind};
+use crate::scope::Scope;
+use crate::Result;
 
 #[derive(Clone, Debug)]
 pub enum ClientKind {

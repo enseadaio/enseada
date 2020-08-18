@@ -6,12 +6,13 @@ use futures::Future;
 
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
-use crate::oauth::scope::Scope as OAuthScope;
-use crate::oauth::session::Session;
+use oauth::scope::Scope;
+use oauth::session::Session;
+use std::ops::Deref;
 
-pub type Scope = OAuthScope;
+pub struct OAuthScope(pub Scope);
 
-impl FromRequest for Scope {
+impl FromRequest for OAuthScope {
     type Error = ApiError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
     type Config = ();
@@ -20,9 +21,17 @@ impl FromRequest for Scope {
         log::debug!("Extracting token scope from request");
         let session_fut = TokenSession::from_request(req, payload);
         Box::pin(async move {
-            let session: Session = session_fut.await?;
+            let TokenSession(session): TokenSession = session_fut.await?;
             log::debug!("Extracted session: {:?}", &session);
-            Ok(session.scope().clone())
+            Ok(OAuthScope(session.scope().clone()))
         })
+    }
+}
+
+impl Deref for OAuthScope {
+    type Target = Scope;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

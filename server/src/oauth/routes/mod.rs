@@ -4,9 +4,11 @@ use actix_web::web;
 use actix_web::web::ServiceConfig;
 use actix_web::FromRequest;
 
-use crate::oauth::handler::OAuthHandler;
-use crate::oauth::persistence::CouchStorage;
-use crate::oauth::request::{AuthorizationRequest, TokenRequest};
+use ::oauth::handler::OAuthHandler;
+use ::oauth::persistence::CouchStorage;
+use ::oauth::request::{AuthorizationRequest, TokenRequest};
+
+use crate::config::CONFIG;
 
 mod api;
 mod oauth;
@@ -15,7 +17,13 @@ pub fn mount(cfg: &mut ServiceConfig) {
     let couch = &crate::couchdb::SINGLETON;
     let db = Arc::new(couch.database(crate::couchdb::name::OAUTH, true));
     let storage = Arc::new(CouchStorage::new(db.clone()));
-    let handler = OAuthHandler::new(storage.clone(), storage.clone(), storage.clone(), storage);
+    let handler = OAuthHandler::new(
+        storage.clone(),
+        storage.clone(),
+        storage.clone(),
+        storage,
+        CONFIG.secret_key(),
+    );
 
     cfg.data(CouchStorage::new(db.clone()));
     cfg.data(handler);

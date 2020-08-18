@@ -3,8 +3,8 @@ use std::vec::Vec;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::oauth::error::{Error, ErrorKind};
-use crate::oauth::Result;
+use crate::error::{Error, ErrorKind};
+use crate::Result;
 
 #[derive(Clone, Default, Debug)]
 pub struct Scope(HashSet<String>);

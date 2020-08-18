@@ -8,16 +8,17 @@ use tokio::sync::RwLock;
 use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 use enseada::pagination::Page;
+use oauth::client::Client;
+use oauth::persistence::client::ClientEntity;
+use oauth::persistence::CouchStorage;
+use oauth::scope::Scope;
+use oauth::storage::ClientStorage;
 use rbac::Enforcer;
 
 use crate::http::error::ApiError;
-use crate::http::extractor::scope::Scope;
+use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::{ApiResult, PaginationQuery};
-use crate::oauth::client::Client;
-use crate::oauth::persistence::client::ClientEntity;
-use crate::oauth::persistence::CouchStorage;
-use crate::oauth::storage::ClientStorage;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct ClientResponse {
@@ -48,8 +49,8 @@ impl From<&Client> for ClientResponse {
 pub async fn list_clients(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     list: Query<PaginationQuery>,
 ) -> ApiResult<Json<Page<ClientResponse>>> {
     Scope::from("clients:read").matches(&scope)?;
@@ -86,8 +87,8 @@ pub struct CreateClientPayload {
 pub async fn create_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     body: Json<CreateClientPayload>,
 ) -> ApiResult<Json<ClientResponse>> {
     Scope::from("clients:manage").matches(&scope)?;
@@ -138,8 +139,8 @@ pub struct ClientPathParam {
 pub async fn get_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<ClientPathParam>,
 ) -> ApiResult<Json<ClientResponse>> {
     Scope::from("clients:read").matches(&scope)?;
@@ -170,8 +171,8 @@ pub struct UpdateClientPayload {
 pub async fn update_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<ClientPathParam>,
     body: Json<UpdateClientPayload>,
 ) -> ApiResult<Json<ClientResponse>> {
@@ -210,8 +211,8 @@ pub async fn update_client(
 pub async fn delete_client(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
-    scope: Scope,
-    CurrentUser(current_user): CurrentUser,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<ClientPathParam>,
 ) -> ApiResult<Json<ClientResponse>> {
     Scope::from("clients:delete").matches(&scope)?;

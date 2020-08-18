@@ -6,8 +6,8 @@ use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 use enseada::secure::SecureSecret;
 
-use crate::oauth::code::AuthorizationCode;
-use crate::oauth::session::Session;
+use crate::code::AuthorizationCode;
+use crate::session::Session;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AuthorizationCodeEntity {

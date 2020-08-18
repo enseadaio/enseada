@@ -6,9 +6,9 @@ use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 use enseada::secure::SecureSecret;
 
-use crate::oauth::session::Session;
-use crate::oauth::token::{AccessToken, RefreshToken, Token};
-use crate::oauth::Expirable;
+use crate::session::Session;
+use crate::token::{AccessToken, RefreshToken, Token};
+use crate::Expirable;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccessTokenEntity {

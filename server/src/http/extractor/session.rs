@@ -8,12 +8,12 @@ use actix_web_httpauth::headers::authorization::{Basic, Bearer, ParseError, Sche
 use futures::Future;
 
 use crate::http::error::ApiError;
-use crate::oauth::handler::TokenIntrospectionHandler;
-use crate::oauth::session::Session;
-use crate::oauth::token::{AccessToken, Token};
-use crate::oauth::{ConcreteOAuthHandler, Expirable};
+use oauth::handler::TokenIntrospectionHandler;
+use oauth::session::Session;
+use oauth::token::{AccessToken, Token};
+use oauth::{ConcreteOAuthHandler, Expirable};
 
-pub type TokenSession = Session;
+pub struct TokenSession(pub Session);
 
 impl FromRequest for TokenSession {
     type Error = ApiError;
@@ -61,7 +61,7 @@ impl FromRequest for TokenSession {
                         Err(ApiError::unauthorized())
                     } else {
                         log::debug!("Token is valid");
-                        Ok(access_token.session().clone())
+                        Ok(TokenSession(access_token.session().clone()))
                     }
                 }
                 None => {

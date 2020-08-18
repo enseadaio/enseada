@@ -7,10 +7,10 @@ use url::Url;
 use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 
-use crate::oauth::client::Client;
-use crate::oauth::client::ClientKind as ExtClientKind;
-use crate::oauth::error::Error;
-use crate::oauth::scope::Scope;
+use crate::client::Client;
+use crate::client::ClientKind as ExtClientKind;
+use crate::error::Error;
+use crate::scope::Scope;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

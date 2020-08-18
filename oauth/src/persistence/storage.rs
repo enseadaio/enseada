@@ -3,19 +3,19 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 
-use couchdb::db::Database;
+use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Entity;
 use enseada::pagination::Page;
 
-use crate::oauth::client::Client;
-use crate::oauth::code::AuthorizationCode;
-use crate::oauth::error::{Error, ErrorKind};
-use crate::oauth::persistence::client::ClientEntity;
-use crate::oauth::persistence::entity::auth_code::AuthorizationCodeEntity;
-use crate::oauth::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
-use crate::oauth::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
-use crate::oauth::token::{AccessToken, RefreshToken, Token};
-use crate::oauth::{Expirable, Result};
+use crate::client::Client;
+use crate::code::AuthorizationCode;
+use crate::error::{Error, ErrorKind};
+use crate::persistence::client::ClientEntity;
+use crate::persistence::entity::auth_code::AuthorizationCodeEntity;
+use crate::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
+use crate::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
+use crate::token::{AccessToken, RefreshToken, Token};
+use crate::{Expirable, Result};
 
 pub struct CouchStorage {
     db: Arc<Database>,
@@ -228,6 +228,6 @@ impl AuthorizationCodeStorage for CouchStorage {
     }
 }
 
-fn map_couch_err(err: couchdb::error::Error) -> Error {
+fn map_couch_err(err: enseada::couchdb::error::Error) -> Error {
     Error::new(ErrorKind::ServerError, err.to_string())
 }
