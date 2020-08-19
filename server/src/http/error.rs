@@ -11,10 +11,9 @@ use url::ParseError;
 
 use couchdb::error::Error as CouchError;
 use enseada::error::Error;
+use oauth::error::{Error as OAuthError, ErrorKind};
 use oci::error::Error as OCIError;
 use rbac::EvaluationError;
-
-use oauth::error::{Error as OAuthError, ErrorKind};
 
 #[derive(Debug, Display, PartialEq, Eq)]
 #[allow(dead_code)]
@@ -54,8 +53,11 @@ impl ApiError {
     pub fn unauthorized() -> Self {
         ApiError::Unauthorized("unauthorized".to_string())
     }
-    pub fn not_found(msg: &str) -> Self {
+    pub fn not_found<S: ToString>(msg: S) -> Self {
         ApiError::NotFound(msg.to_string())
+    }
+    pub fn invalid<S: ToString>(msg: S) -> Self {
+        ApiError::ValidationError(vec![msg.to_string()])
     }
 }
 

@@ -12,13 +12,15 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use enseada::couchdb::repository::{Entity, Repository};
+use enseada::secure;
 use oauth::error::Error as OAuthError;
 use oauth::error::ErrorKind;
 use oauth::handler::{BasicAuth, RequestHandler};
+use oauth::persistence::CouchStorage;
 use oauth::request::{AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest};
 use oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use oauth::session::Session;
-use oauth::ConcreteOAuthHandler;
+use oauth::CouchOAuthHandler;
 use users::UserService;
 
 use crate::assets;
@@ -31,7 +33,7 @@ type OAuthResult<T> = Result<T, ErrorResponse>;
 
 #[get("/authorize")]
 pub async fn login_form(
-    handler: Data<ConcreteOAuthHandler>,
+    handler: Data<CouchOAuthHandler>,
     users: Data<UserService>,
     query: Query<AuthorizationRequest>,
     http_session: HttpSession,
@@ -98,7 +100,7 @@ pub struct LoginFormBody {
 
 #[post("/authorize")]
 pub async fn login(
-    handler: Data<ConcreteOAuthHandler>,
+    handler: Data<CouchOAuthHandler>,
     users: Data<UserService>,
     form: Form<LoginFormBody>,
     http_session: HttpSession,
@@ -108,7 +110,7 @@ pub async fn login(
 }
 
 async fn do_login(
-    handler: Data<ConcreteOAuthHandler>,
+    handler: Data<CouchOAuthHandler>,
     users: Data<UserService>,
     form: Form<LoginFormBody>,
     http_session: HttpSession,
@@ -164,7 +166,7 @@ async fn do_login(
 
 #[post("/token")]
 pub async fn token(
-    handler: Data<ConcreteOAuthHandler>,
+    handler: Data<CouchOAuthHandler>,
     form: Form<TokenRequest>,
     req: HttpRequest,
 ) -> OAuthResult<Json<TokenResponse>> {
@@ -181,7 +183,7 @@ pub async fn token(
 
 #[post("/introspect")]
 pub async fn introspect(
-    handler: Data<ConcreteOAuthHandler>,
+    handler: Data<CouchOAuthHandler>,
     form: Form<IntrospectionRequest>,
     req: HttpRequest,
 ) -> OAuthResult<Json<IntrospectionResponse>> {
@@ -198,7 +200,8 @@ pub async fn introspect(
 
 #[post("/revoke")]
 pub async fn revoke(
-    handler: Data<ConcreteOAuthHandler>,
+    handler: Data<CouchOAuthHandler>,
+    storage: Data<CouchStorage>,
     form: Form<RevocationRequest>,
     req: HttpRequest,
 ) -> OAuthResult<Json<RevocationResponse>> {
@@ -210,6 +213,12 @@ pub async fn revoke(
     let client = handler.validate(&req, client_auth).await?;
     let session = &mut Session::for_client(client.client_id().to_string());
     let res = handler.handle(&req, session).await?;
+    let sig = &secure::generate_signature(&req.token, handler.secret_key()).to_string();
+    let pat = storage.find(sig).await?;
+    if let Some(mut pat) = pat {
+        pat.revoke();
+        storage.save(pat).await?;
+    }
     Ok(Json(res))
 }
 

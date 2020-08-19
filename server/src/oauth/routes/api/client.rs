@@ -45,8 +45,8 @@ impl From<&Client> for ClientResponse {
     }
 }
 
-#[get("/api/v1beta1/clients")]
-pub async fn list_clients(
+#[get("/api/oauth/v1beta1/clients")]
+pub async fn list(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,
@@ -83,8 +83,8 @@ pub struct CreateClientPayload {
     pub allowed_redirect_uris: HashSet<url::Url>,
 }
 
-#[post("/api/v1beta1/clients")]
-pub async fn create_client(
+#[post("/api/oauth/v1beta1/clients")]
+pub async fn create(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,
@@ -135,8 +135,8 @@ pub struct ClientPathParam {
     pub client_id: String,
 }
 
-#[get("/api/v1beta1/clients/{client_id}")]
-pub async fn get_client(
+#[get("/api/oauth/v1beta1/clients/{client_id}")]
+pub async fn get(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,
@@ -167,8 +167,8 @@ pub struct UpdateClientPayload {
     pub allowed_redirect_uris: Option<HashSet<url::Url>>,
 }
 
-#[put("/api/v1beta1/clients/{client_id}")]
-pub async fn update_client(
+#[put("/api/oauth/v1beta1/clients/{client_id}")]
+pub async fn update(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,
@@ -207,8 +207,8 @@ pub async fn update_client(
     Ok(Json(ClientResponse::from(client)))
 }
 
-#[delete("/api/v1beta1/clients/{client_id}")]
-pub async fn delete_client(
+#[delete("/api/oauth/v1beta1/clients/{client_id}")]
+pub async fn delete(
     storage: Data<CouchStorage>,
     enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,

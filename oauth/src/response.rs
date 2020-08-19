@@ -96,9 +96,9 @@ impl IntrospectionResponse {
             introspection_data: Some(ActiveIntrospectionResponse {
                 scope: session.scope().clone(),
                 client_id: session.client_id().clone(),
-                username: session.user_id().clone(),
+                username: session.user_id().map(str::to_string),
                 token_type: token.type_hint(),
-                exp: *token.expiration(),
+                exp: token.expiration(),
             }),
         }
     }

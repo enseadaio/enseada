@@ -30,8 +30,8 @@ impl Session {
         self
     }
 
-    pub fn user_id(&self) -> &Option<String> {
-        &self.user_id
+    pub fn user_id(&self) -> Option<&str> {
+        self.user_id.as_deref()
     }
 
     pub fn set_user_id(&mut self, user_id: String) -> &mut Self {

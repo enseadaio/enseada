@@ -64,6 +64,29 @@ pub trait Repository<T>: Debug {
     }
 
     #[tracing::instrument]
+    async fn find_all(
+        &self,
+        limit: usize,
+        offset: usize,
+        selector: serde_json::Value,
+    ) -> Result<Page<T>, Error>
+    where
+        Self: Sized,
+        T: 'async_trait + Entity,
+    {
+        let id = T::build_guid("");
+        let partition = id.partition().unwrap();
+        let db = self.db();
+        let res = db
+            .find_partitioned(partition, selector, limit, offset)
+            .await?;
+
+        let count = db.count_partitioned(partition).await?;
+
+        Ok(Page::from_find_response(res, limit, offset, count))
+    }
+
+    #[tracing::instrument]
     async fn find(&self, id: &str) -> Result<Option<T>, Error>
     where
         Self: Sized,

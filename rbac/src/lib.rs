@@ -6,3 +6,5 @@ mod enforcer;
 mod model;
 mod rule;
 mod watcher;
+
+static ROOT_USER: &str = "user:root";

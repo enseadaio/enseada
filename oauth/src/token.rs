@@ -24,6 +24,10 @@ pub trait Token: ToString + Expirable {
     fn type_hint(&self) -> TokenTypeHint;
 }
 
+// * * * * * * * //
+// Access Token //
+// * * * * * * * //
+
 pub struct AccessToken {
     token_rep: Option<SecureSecret>,
     session: Session,
@@ -31,11 +35,11 @@ pub struct AccessToken {
 }
 
 impl AccessToken {
-    pub fn new(token: SecureSecret, session: Session, expires_in: Duration) -> AccessToken {
+    pub fn new(token: SecureSecret, session: Session, expiration: DateTime<Utc>) -> Self {
         AccessToken {
             token_rep: Some(token),
             session,
-            expiration: Utc::now().add(expires_in),
+            expiration,
         }
     }
 
@@ -65,8 +69,8 @@ impl ToString for AccessToken {
 }
 
 impl Expirable for AccessToken {
-    fn expiration(&self) -> &DateTime<Utc> {
-        &self.expiration
+    fn expiration(&self) -> DateTime<Utc> {
+        self.expiration
     }
 
     fn expires_in(&self) -> i64 {
@@ -80,6 +84,10 @@ impl Expirable for AccessToken {
     }
 }
 
+// * * * * * * * //
+// Refresh Token //
+// * * * * * * * //
+
 pub struct RefreshToken {
     token_rep: Option<SecureSecret>,
     session: Session,
@@ -91,13 +99,13 @@ impl RefreshToken {
     pub fn new(
         token: SecureSecret,
         session: Session,
-        expires_in: Duration,
+        expiration: DateTime<Utc>,
         related_access_token_signature: String,
     ) -> RefreshToken {
         RefreshToken {
             token_rep: Some(token),
             session,
-            expiration: Utc::now().add(expires_in),
+            expiration,
             related_access_token_signature,
         }
     }
@@ -131,8 +139,8 @@ impl ToString for RefreshToken {
 }
 
 impl Expirable for RefreshToken {
-    fn expiration(&self) -> &DateTime<Utc> {
-        &self.expiration
+    fn expiration(&self) -> DateTime<Utc> {
+        self.expiration
     }
 
     fn expires_in(&self) -> i64 {

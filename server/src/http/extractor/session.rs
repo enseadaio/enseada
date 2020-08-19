@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::pin::Pin;
 
 use actix_web::dev::{Payload, PayloadStream};
@@ -7,13 +8,15 @@ use actix_web::{FromRequest, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Basic, Bearer, ParseError, Scheme};
 use futures::Future;
 
-use crate::http::error::ApiError;
 use oauth::handler::TokenIntrospectionHandler;
 use oauth::session::Session;
 use oauth::token::{AccessToken, Token};
-use oauth::{ConcreteOAuthHandler, Expirable};
+use oauth::{CouchOAuthHandler, Expirable};
 
-pub struct TokenSession(pub Session);
+use crate::http::error::ApiError;
+
+#[derive(Debug)]
+pub struct TokenSession(Session);
 
 impl FromRequest for TokenSession {
     type Error = ApiError;
@@ -22,7 +25,7 @@ impl FromRequest for TokenSession {
 
     fn from_request(req: &HttpRequest, payload: &mut Payload<PayloadStream>) -> Self::Future {
         log::debug!("Extracting token session from request");
-        let handler_fut = Data::<ConcreteOAuthHandler>::from_request(req, payload);
+        let handler_fut = Data::<CouchOAuthHandler>::from_request(req, payload);
         let header = req.headers().get(header::AUTHORIZATION);
         let token = header
             .map(Bearer::parse)
@@ -65,10 +68,18 @@ impl FromRequest for TokenSession {
                     }
                 }
                 None => {
-                    log::debug!("Token not found");
+                    log::debug!("No token found");
                     Err(ApiError::unauthorized())
                 }
             }
         })
+    }
+}
+
+impl Deref for TokenSession {
+    type Target = Session;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

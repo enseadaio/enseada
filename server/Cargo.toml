@@ -48,7 +48,7 @@ validator_derive = "0.10.1"
 
 # Async
 async-trait = "0.1.30"
-chrono = { version = "0.4.11", features = ["serde"] }
+chrono = { version = "0.4.15", features = ["serde"] }
 futures = "0.3.4"
 tokio = { version = "0.2.20", features = ["sync"] }
 

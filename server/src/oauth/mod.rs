@@ -1,10 +1,10 @@
 use std::fmt::{self, Display, Formatter};
 
-use actix_web::{HttpResponse, ResponseError};
-
 use actix::Response;
 use actix_web::body::Body;
+use actix_web::{HttpResponse, ResponseError};
 use http::StatusCode;
+
 use oauth::error::{Error, ErrorKind};
 pub use routes::mount;
 
@@ -17,6 +17,13 @@ pub struct ErrorResponse(oauth::error::Error);
 impl From<Error> for ErrorResponse {
     fn from(err: Error) -> Self {
         ErrorResponse(err)
+    }
+}
+
+impl From<couchdb::error::Error> for ErrorResponse {
+    fn from(err: couchdb::error::Error) -> Self {
+        let oerr = oauth::error::Error::from(err);
+        ErrorResponse(oerr)
     }
 }
 

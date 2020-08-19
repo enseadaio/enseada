@@ -20,7 +20,7 @@ impl Rule {
     }
 
     pub(crate) fn new(sub: Guid, obj: Guid, act: String) -> Self {
-        let id = Self::build_id(&sub.to_string(), &obj.to_string(), &act.to_string());
+        let id = Self::build_id(&sub.to_string(), &obj.to_string(), &act);
         Rule {
             id,
             rev: None,

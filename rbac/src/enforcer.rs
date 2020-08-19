@@ -12,6 +12,7 @@ use enseada::pagination::Page;
 
 use crate::model::{EvaluationResult, Model, Permission, Principal, Role};
 use crate::rule::{RoleAssignment, Rule};
+use crate::ROOT_USER;
 
 #[derive(Debug)]
 pub struct Enforcer {
@@ -94,6 +95,10 @@ impl Enforcer {
 
     #[tracing::instrument]
     pub fn check(&self, sub: &Guid, obj: &Guid, act: &str) -> Result<(), EvaluationError> {
+        if sub.to_string() == ROOT_USER {
+            return Ok(());
+        }
+
         let sub = &sub.to_string();
         let obj = &obj.to_string();
         log::info!(
@@ -116,6 +121,17 @@ impl Enforcer {
 
     #[tracing::instrument]
     pub async fn add_permission(&self, sub: Guid, obj: Guid, act: &str) -> Result<(), Error> {
+        if sub.to_string() == ROOT_USER {
+            return Ok(());
+        }
+
+        log::debug!(
+            "adding permission sub: {}, obj: {}, act: {}",
+            &sub,
+            &obj,
+            act
+        );
+
         let rule = Rule::new(sub, obj, act.to_string());
         match self.db.put(&rule.id().to_string(), rule).await {
             Ok(_) => Ok(()),
@@ -128,6 +144,10 @@ impl Enforcer {
 
     #[tracing::instrument]
     pub async fn remove_permission(&self, sub: &Guid, obj: Guid, act: &str) -> Result<(), Error> {
+        if sub.to_string() == ROOT_USER {
+            return Ok(());
+        }
+
         let sub_name = sub.to_string();
         log::debug!("Removing permission form sub {}", &sub_name);
         let id = Rule::build_id(&sub_name, &obj.to_string(), &act.to_string());
@@ -179,6 +199,10 @@ impl Enforcer {
 
     #[tracing::instrument]
     pub async fn add_role_to_principal(&self, sub: Guid, role: &str) -> Result<(), Error> {
+        if sub.to_string() == ROOT_USER {
+            return Ok(());
+        }
+
         let assignment = RoleAssignment::new(sub, role.to_string());
         match self.db.put(&assignment.id().to_string(), assignment).await {
             Ok(_) => Ok(()),
@@ -191,6 +215,10 @@ impl Enforcer {
 
     #[tracing::instrument]
     pub async fn remove_role_from_principal(&self, sub: &Guid, role: &str) -> Result<(), Error> {
+        if sub.to_string() == ROOT_USER {
+            return Ok(());
+        }
+
         if let Some(assignment) = self
             .db
             .get::<RoleAssignment>(&RoleAssignment::build_id(&sub.to_string(), role).to_string())

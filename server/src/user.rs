@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
 use actix_web::{delete, get, post, HttpResponse};
 use serde::{Deserialize, Serialize};
@@ -126,7 +128,7 @@ pub async fn delete(
 #[get("/api/v1beta1/users/me")]
 pub async fn me(current_user: CurrentUser, scope: OAuthScope) -> ApiResult<Json<UserResponse>> {
     Scope::from("profile").matches(&scope)?;
-    Ok(Json(current_user.0.into()))
+    Ok(Json(current_user.deref().into()))
 }
 
 #[derive(Debug, Deserialize, PartialEq)]

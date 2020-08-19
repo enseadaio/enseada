@@ -5,6 +5,17 @@
             "kind": "create_database",
             "name": "oauth",
             "partitioned": true
+        },
+        {
+            "kind": "create_index",
+            "name": "pat_user_idx",
+            "database": "oauth",
+            "design_doc": "oauth_indexes",
+            "index": {
+                "fields": [
+                    "session.user_id"
+                ]
+            }
         }
     ]
 }

@@ -49,8 +49,7 @@ where
     ) -> Result<RevocationResponse> {
         let requester_client_id = session.client_id();
         let ok = RevocationResponse::ok();
-        let sig = secure::generate_signature(&req.token, self.secret_key()).to_string();
-        let sig = sig.as_str();
+        let sig = &secure::generate_signature(&req.token, self.secret_key()).to_string();
         if let Some(hint) = &req.token_type_hint {
             if let Some(()) = match hint {
                 TokenTypeHint::AccessToken => {

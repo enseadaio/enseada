@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use std::pin::Pin;
 
 use actix_web::dev::{Payload, PayloadStream};
@@ -11,9 +12,8 @@ use users::{User, UserService};
 
 use crate::http::error::ApiError;
 use crate::http::extractor::session::TokenSession;
-use std::ops::Deref;
 
-pub struct CurrentUser(pub User);
+pub struct CurrentUser(User);
 
 impl FromRequest for CurrentUser {
     type Error = ApiError;
@@ -27,7 +27,7 @@ impl FromRequest for CurrentUser {
         Box::pin(async move {
             let service = service_fut.await?;
             let session: TokenSession = session_fut.await?;
-            let username = match session.0.user_id() {
+            let username = match session.user_id() {
                 Some(username) => username,
                 None => return Err(ApiError::Unauthorized("unauthorized".to_string())),
             };

@@ -30,8 +30,8 @@ impl AuthorizationCode {
 }
 
 impl Expirable for AuthorizationCode {
-    fn expiration(&self) -> &DateTime<Utc> {
-        &self.expiration
+    fn expiration(&self) -> DateTime<Utc> {
+        self.expiration
     }
 
     fn expires_in(&self) -> i64 {

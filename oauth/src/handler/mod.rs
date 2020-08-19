@@ -1,22 +1,21 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use chrono::Duration;
+use async_trait::async_trait;
+use chrono::{Duration, Utc};
 use url::Url;
 
-use async_trait::async_trait;
 use enseada::secure;
+use enseada::secure::SecureSecret;
 
 use crate::client::{Client, ClientKind};
 use crate::error::{Error, ErrorKind};
-use crate::response::{TokenResponse, TokenType, AuthorizationResponse};
+use crate::response::{TokenResponse, TokenType};
 use crate::scope::Scope;
 use crate::session::Session;
 use crate::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::token::{AccessToken, RefreshToken, Token};
 use crate::{Expirable, Result};
-use crate::request::{AuthorizationRequest, TokenRequest, IntrospectionRequest};
-use crate::code::AuthorizationCode;
 
 mod auth;
 mod introspection;
@@ -88,7 +87,7 @@ where
         }
     }
 
-    pub(crate) fn secret_key(&self) -> &str {
+    pub fn secret_key(&self) -> &str {
         &self.secret_key
     }
 
@@ -165,30 +164,35 @@ where
         }
     }
 
+    pub fn generate_token_with_sig(&self) -> Result<(SecureSecret, SecureSecret)> {
+        let token = secure::generate_token(32)?;
+        let sig = secure::generate_signature(&token.to_string(), self.secret_key());
+        Ok((token, sig))
+    }
+
     async fn generate_token_set(&self, session: &Session) -> Result<TokenResponse> {
-        let access_token_value = secure::generate_token(32).unwrap();
-        let access_token_sig =
-            secure::generate_signature(access_token_value.to_string().as_str(), self.secret_key())
-                .to_string();
-        let access_token =
-            AccessToken::new(access_token_value, session.clone(), Duration::minutes(5));
+        let (access_token_value, access_token_sig) = self.generate_token_with_sig()?;
+        let access_token_sig = access_token_sig.to_string();
+        let access_token = AccessToken::new(
+            access_token_value,
+            session.clone(),
+            Utc::now() + Duration::minutes(5),
+        );
         let access_token = self
             .access_token_storage
-            .store_token(access_token_sig.as_str(), access_token)
+            .store_token(&access_token_sig, access_token)
             .await?;
 
-        let refresh_token_value = secure::generate_token(32).unwrap();
-        let refresh_token_sig =
-            secure::generate_signature(refresh_token_value.to_string().as_str(), self.secret_key());
+        let (refresh_token_value, refresh_token_sig) = self.generate_token_with_sig()?;
         let refresh_token = RefreshToken::new(
             refresh_token_value,
             session.clone(),
-            Duration::days(1),
+            Utc::now() + Duration::days(1),
             access_token_sig,
         );
         let refresh_token = self
             .refresh_token_storage
-            .store_token(refresh_token_sig.to_string().as_str(), refresh_token)
+            .store_token(&refresh_token_sig.to_string(), refresh_token)
             .await?;
 
         Ok(TokenResponse {

@@ -18,12 +18,12 @@ use tokio::sync::RwLock;
 use url::Url;
 
 use ::rbac::{Enforcer, Watcher};
+use oauth;
 
 use crate::config::Configuration;
 use crate::couchdb::{self, name as dbname};
 use crate::http::error;
 use crate::{dashboard, observability, oci, routes, user};
-use oauth;
 
 pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let address = format!("0.0.0.0:{}", cfg.port());
@@ -113,7 +113,7 @@ fn get_rsa_key(key: &mut File) -> PrivateKey {
 }
 
 fn default_headers(cfg: &Configuration) -> DefaultHeaders {
-    let h = DefaultHeaders::new().header("Server", "Enseada");
+    let h = DefaultHeaders::new().header("Server", "enseada");
 
     if cfg.tls().enabled() {
         h.header(

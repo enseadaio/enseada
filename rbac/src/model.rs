@@ -31,10 +31,6 @@ impl Model {
     }
 
     pub fn check(&self, principal: &str, object: &str, action: &str) -> EvaluationResult {
-        if principal == "user:root" {
-            return EvaluationResult::Granted;
-        }
-
         let target_permission = Permission::new(object, action);
         let visitor = Visitor { target_permission };
         let principal = match self.principals.get(principal) {

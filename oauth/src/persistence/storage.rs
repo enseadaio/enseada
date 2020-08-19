@@ -1,10 +1,12 @@
 use std::convert::TryInto;
+use std::ops::Deref;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 
 use enseada::couchdb::db::Database;
-use enseada::couchdb::repository::Entity;
+use enseada::couchdb::repository::{Entity, Repository};
+use enseada::guid::Guid;
 use enseada::pagination::Page;
 
 use crate::client::Client;
@@ -12,11 +14,13 @@ use crate::code::AuthorizationCode;
 use crate::error::{Error, ErrorKind};
 use crate::persistence::client::ClientEntity;
 use crate::persistence::entity::auth_code::AuthorizationCodeEntity;
+use crate::persistence::entity::pat::PersonalAccessToken;
 use crate::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
 use crate::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::token::{AccessToken, RefreshToken, Token};
 use crate::{Expirable, Result};
 
+#[derive(Debug)]
 pub struct CouchStorage {
     db: Arc<Database>,
 }
@@ -198,7 +202,7 @@ impl AuthorizationCodeStorage for CouchStorage {
         let entity = AuthorizationCodeEntity::new(
             String::from(sig),
             code.session().clone(),
-            *code.expiration(),
+            code.expiration(),
         );
         self.db
             .put(&entity.id().to_string(), &entity)
@@ -225,6 +229,12 @@ impl AuthorizationCodeStorage for CouchStorage {
                 "invalid authorization code".to_string(),
             )),
         }
+    }
+}
+
+impl Repository<PersonalAccessToken> for CouchStorage {
+    fn db(&self) -> &Database {
+        self.db.deref()
     }
 }
 

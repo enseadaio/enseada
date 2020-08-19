@@ -16,13 +16,12 @@ pub mod session;
 pub mod storage;
 pub mod token;
 
-pub type ConcreteOAuthHandler =
-    OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
+pub type CouchOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub trait Expirable {
-    fn expiration(&self) -> &DateTime<Utc>;
+    fn expiration(&self) -> DateTime<Utc>;
     fn expires_in(&self) -> i64;
     fn is_expired(&self) -> bool;
 }

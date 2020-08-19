@@ -52,15 +52,15 @@ impl AccessTokenEntity {
     }
 
     pub fn from_token(sig: String, token: &AccessToken) -> Self {
-        Self::new(sig, token.session().clone(), *token.expiration())
+        Self::new(sig, token.session().clone(), token.expiration())
     }
 
     pub fn session(&self) -> &Session {
         &self.session
     }
 
-    pub fn expiration(&self) -> &DateTime<Utc> {
-        &self.expiration
+    pub fn expiration(&self) -> DateTime<Utc> {
+        self.expiration
     }
 
     pub fn expires_in(&self) -> Duration {
@@ -68,7 +68,7 @@ impl AccessTokenEntity {
     }
 
     pub fn to_token(&self, token: SecureSecret) -> AccessToken {
-        AccessToken::new(token, self.session.clone(), self.expires_in())
+        AccessToken::new(token, self.session.clone(), self.expiration())
     }
 
     pub fn to_empty_token(&self) -> AccessToken {
@@ -128,7 +128,7 @@ impl RefreshTokenEntity {
         Self::new(
             sig,
             token.session().clone(),
-            *token.expiration(),
+            token.expiration(),
             token.related_access_token_signature().to_string(),
         )
     }
@@ -137,8 +137,8 @@ impl RefreshTokenEntity {
         &self.session
     }
 
-    pub fn expiration(&self) -> &DateTime<Utc> {
-        &self.expiration
+    pub fn expiration(&self) -> DateTime<Utc> {
+        self.expiration
     }
 
     pub fn expires_in(&self) -> Duration {
@@ -149,7 +149,7 @@ impl RefreshTokenEntity {
         RefreshToken::new(
             token,
             self.session.clone(),
-            self.expires_in(),
+            self.expiration(),
             self.related_access_token_signature.clone(),
         )
     }

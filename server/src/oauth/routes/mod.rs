@@ -44,9 +44,16 @@ pub fn mount(cfg: &mut ServiceConfig) {
             .service(oauth::logout),
     );
 
-    cfg.service(api::list_clients);
-    cfg.service(api::create_client);
-    cfg.service(api::get_client);
-    cfg.service(api::update_client);
-    cfg.service(api::delete_client);
+    // OAuth Clients
+    cfg.service(api::client::list);
+    cfg.service(api::client::create);
+    cfg.service(api::client::get);
+    cfg.service(api::client::update);
+    cfg.service(api::client::delete);
+
+    // Personal Access Tokens
+    cfg.service(api::pat::list);
+    cfg.service(api::pat::create);
+    cfg.service(api::pat::get);
+    cfg.service(api::pat::delete);
 }

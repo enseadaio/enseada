@@ -1,16 +1,17 @@
+use std::ops::Deref;
 use std::pin::Pin;
 
 use actix_web::dev::{Payload, PayloadStream};
 use actix_web::{FromRequest, HttpRequest};
 use futures::Future;
 
-use crate::http::error::ApiError;
-use crate::http::extractor::session::TokenSession;
 use oauth::scope::Scope;
 use oauth::session::Session;
-use std::ops::Deref;
 
-pub struct OAuthScope(pub Scope);
+use crate::http::error::ApiError;
+use crate::http::extractor::session::TokenSession;
+
+pub struct OAuthScope(Scope);
 
 impl FromRequest for OAuthScope {
     type Error = ApiError;
@@ -21,7 +22,7 @@ impl FromRequest for OAuthScope {
         log::debug!("Extracting token scope from request");
         let session_fut = TokenSession::from_request(req, payload);
         Box::pin(async move {
-            let TokenSession(session): TokenSession = session_fut.await?;
+            let session: TokenSession = session_fut.await?;
             log::debug!("Extracted session: {:?}", &session);
             Ok(OAuthScope(session.scope().clone()))
         })
