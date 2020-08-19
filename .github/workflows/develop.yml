@@ -28,11 +28,14 @@ jobs:
           apt-get install build-essential libssl-dev llvm-dev libclang-dev -y
           rustup update
           rustup component add clippy
-          yarn install --frozen-lockfile
+          yarn --frozen-lockfile --cwd server install
+          yarn --frozen-lockfile --cwd dashboard install
+      - name: Build dashboard
+        run: yarn --frozen-lockfile --cwd dashboard build
       - name: Lint code
         run: |
         #          Reenable when issues are fixed
-#          cargo clippy --all-targets --all-features -- -D warnings
+      #          cargo clippy --all-targets --all-features -- -D warnings
       - name: Run tests
         run: |
           cargo test
