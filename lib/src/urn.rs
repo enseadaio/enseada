@@ -1,6 +1,7 @@
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 
+use crate::predicate::not;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -85,7 +86,7 @@ impl TryFrom<&str> for Urn {
             .get(1)
             .cloned()
             .ok_or_else(|| "domain is missing".to_string())?;
-        let namespace = parts.get(2).cloned();
+        let namespace = parts.get(2).cloned().filter(not(String::is_empty));
         let kind = parts
             .get(3)
             .cloned()

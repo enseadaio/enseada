@@ -7,6 +7,7 @@ pub mod error;
 pub mod expiration;
 pub mod guid;
 pub mod pagination;
+pub mod predicate;
 pub mod secure;
 pub mod storage;
 pub mod urn;
