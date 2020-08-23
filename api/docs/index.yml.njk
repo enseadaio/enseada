@@ -1,0 +1,79 @@
+openapi: 3.0.1
+info:
+  title: Enseada
+  description: A Cloud native multi-package registry
+  x-logo:
+    url: https://enseada.io/images/enseada-logo.png
+    backgroundColor: "#FFFFFF"
+    altText: Enseada logo
+  contact:
+    email: enseada@pm.me
+    url: https://enseada.io
+  license:
+    name: MPL 2.0
+    url: https://opensource.org/licenses/MPL-2.0
+  version: 0.1.0
+externalDocs:
+  description: Find out more about Enseada
+  url: https://enseada.io
+tags:
+  - name: docker
+    description: Docker V2 registry endpoints
+  - name: monitoring
+    description: Monitoring and observability endpoints
+  - name: rbac
+    description: RBAC management endpoints
+  - name: users
+    description: User management endpoints
+paths:
+  $ref: paths/index.yml.njk
+
+components:
+  parameters:
+    $ref: components/parameters/index.yml.njk
+  schemas:
+    $ref: components/schemas/index.yml.njk
+  securitySchemes:
+    oauth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth/authorize
+          tokenUrl: /oauth/token
+          scopes:
+            profile: access user profile information
+            users:read: read-only access to registered users
+            users:manage: read-write access to registered users
+            roles: read-write access to user roles
+            permissions: read-write access to user permissions
+
+    {{
+  inject([{
+    toAllOperations: {
+      content: {
+        responses: {
+          '401': {
+            description: 'Authentication failed',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          },
+          '403': {
+            description: 'Insufficient permissions',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/Error'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }])
+}}

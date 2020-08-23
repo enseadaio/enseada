@@ -1,0 +1,12 @@
+{
+    "nunjucksOptions": {
+        "tags": {
+        }
+    },
+    "jsonSchemaRefParserBundleOpts": {
+    },
+    "permissionConfig": {
+        "routePrefix": {
+        }
+    }
+}

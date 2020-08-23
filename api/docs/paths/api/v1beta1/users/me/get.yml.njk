@@ -1,0 +1,14 @@
+tags:
+  - users
+summary: Fetches information about the currently authenticated user
+operationId: user::me
+security:
+  - oauth:
+      - profile
+responses:
+  "200":
+    description: Current user details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/user/model.yml.njk

@@ -1,0 +1,8 @@
+name: offset
+in: query
+description: Offset to use when paginating.
+required: false
+schema:
+  type: integer
+  minimum: 0
+  default: 0

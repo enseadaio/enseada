@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "api",
     "couchdb",
     "lib",
     "users",

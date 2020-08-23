@@ -26,15 +26,24 @@ impl UserService {
 
     #[tracing::instrument]
     pub async fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error> {
-        log::debug!("Authenticating user {}", username);
+        log::debug!("authenticating user {}", username);
         let user = match self.find(username).await? {
             Some(user) => user,
-            None => return Err(Error::from("authentication failed")),
+            None => {
+                log::debug!("user {} not found", username);
+                return Err(Error::from("authentication failed"));
+            }
         };
+
+        if !user.is_enabled() {
+            log::debug!("user {} is disabled", username);
+            return Err(Error::from("authentication failed"));
+        }
 
         if secure::verify_password(user.password_hash(), password)? {
             Ok(user)
         } else {
+            log::debug!("authentication failed for user {}", username);
             Err(Error::from("authentication failed"))
         }
     }

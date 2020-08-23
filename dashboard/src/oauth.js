@@ -13,7 +13,7 @@ const scope = [
 export const settings = {
   authority: buildUrl('/.well-known/openid-configuration'),
   client_id: 'enseada',
-  redirect_uri: buildUrl('/auth/callback'),
+  redirect_uri: buildUrl('/dashboard/auth/callback'),
   response_type: 'code',
   scope,
   loadUserInfo: true,
@@ -21,8 +21,8 @@ export const settings = {
     authorization_endpoint: buildUrl('/oauth/authorize'),
     token_endpoint: buildUrl('/oauth/token'),
     userinfo_endpoint: buildUrl('/api/v1beta1/users/me'),
-    end_session_endpoint: buildUrl('/oauth/logout'),
-  },
+    end_session_endpoint: buildUrl('/oauth/logout')
+  }
 };
 
 export const listeners = {

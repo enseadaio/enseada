@@ -5,10 +5,11 @@
   "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
   "license": "MPL-2.0",
   "scripts": {
-    "docs:lint": "speccy lint docs/openapi.yml",
-    "docs:build": "speccy resolve docs/openapi.yml -o $OUT_DIR/openapi.yml",
-    "docs:serve": "redoc-cli serve docs/openapi.yml --watch --options.showExtensions",
-    "snyk-protect": "snyk protect"
+      "docs:lint": "speccy lint docs/openapi.yml",
+      "docs:build": "speccy resolve docs/openapi.yml -o $OUT_DIR/openapi.yml",
+      "docs:serve": "redoc-cli serve docs/openapi.yml --watch --options.showExtensions",
+      "snyk-protect": "snyk protect",
+      "boats:build": "boats -x -i docs/openapi/src/index.yml -o $OUT_DIR/openapi.yml"
   },
   "devDependencies": {
     "redoc-cli": "^0.9.7",

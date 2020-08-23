@@ -1,0 +1,17 @@
+type: object
+required:
+  - username
+  - password
+properties:
+  username:
+    type: string
+  password:
+    type: string
+  roles:
+    type: array
+    description: Default roles for the new user
+    example:
+      - - admin
+    items:
+      type: string
+      minItems: 0

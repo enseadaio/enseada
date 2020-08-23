@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::scope::Scope;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct AuthorizationRequest {
     pub response_type: ResponseType,
     pub client_id: String,
@@ -13,7 +13,7 @@ pub struct AuthorizationRequest {
     pub state: Option<String>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ResponseType {
     Code,

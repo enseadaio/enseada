@@ -5,6 +5,7 @@ use enseada::secure;
 
 use crate::client::Client;
 use crate::code;
+use crate::error::Error;
 use crate::handler::{BasicAuth, OAuthHandler, RequestHandler};
 use crate::request::AuthorizationRequest;
 use crate::response::AuthorizationResponse;
@@ -29,6 +30,10 @@ where
     ) -> Result<Client> {
         self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope)
             .await
+            .map_err(|mut err| {
+                err.set_state(req.state.as_deref());
+                err
+            })
     }
 
     async fn handle(
@@ -46,10 +51,15 @@ where
         let code = self
             .authorization_code_storage
             .store_code(code_sig.to_string().as_str(), code)
-            .await?;
+            .await
+            .map_err(Error::from)
+            .map_err(|mut err| {
+                err.set_state(req.state.as_deref());
+                err
+            })?;
         log::debug!("Successfully stored token with signature {}", code_sig);
 
-        let res = AuthorizationResponse::new(code, req.state.as_ref().map(String::clone));
+        let res = AuthorizationResponse::new(code, req.state.clone());
         Ok(res)
     }
 }

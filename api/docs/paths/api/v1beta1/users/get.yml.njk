@@ -1,0 +1,20 @@
+tags:
+  - users
+summary: List registered users
+operationId: user::list
+x-required-permissions:
+  - object: users
+    action: read
+security:
+  - oauth:
+      - users:read
+parameters:
+  - $ref: ../../../../components/parameters/offset.yml
+  - $ref: ../../../../components/parameters/limit.yml
+responses:
+  '200':
+    description: Successful fetch
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../components/schemas/user/page.yml.njk

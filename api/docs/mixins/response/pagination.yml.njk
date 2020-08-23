@@ -1,0 +1,24 @@
+type: object
+properties:
+  count:
+    type: integer
+    minimum: 0
+    description: Number of items in the current page
+  total:
+    type: integer
+    minimum: 0
+    description: Total number of items available on the server
+  offset:
+    type: integer
+    minimum: 0
+    description: Offset representing the current page
+  limit:
+    type: integer
+    minimum: 1
+    description: Number of items that have been requested in the current page
+  items:
+    type: array
+    uniqueItems: true
+    minItems: 0
+    items:
+      $ref: {{ var1 }}

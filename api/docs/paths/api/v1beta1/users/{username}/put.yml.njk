@@ -1,0 +1,35 @@
+tags:
+  - users
+summary: Edit a user
+operationId: user::update
+x-required-permissions:
+  - object: user:$username
+    action: update
+  - object: user:$username
+    action: disable
+    description: only required to change the `enabled` status
+security:
+  - oauth:
+      - users:manage
+parameters:
+  - $ref: ../../../../../components/parameters/username.yml
+requestBody:
+  required: true
+  description: User information to update
+  content:
+    application/json:
+      schema:
+        $ref: ../../../../../components/schemas/user/put.yml.njk
+responses:
+  "200":
+    description: Updated user details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/user/model.yml.njk
+  "404":
+    description: A user with the given username doesn't exist
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/error.yml.njk

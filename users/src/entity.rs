@@ -16,6 +16,7 @@ pub struct User {
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
     password_hash: String,
+    enabled: bool,
 }
 
 impl User {
@@ -26,11 +27,21 @@ impl User {
             id,
             rev: None,
             password_hash,
+            enabled: true,
         })
     }
 
     pub fn username(&self) -> &str {
         self.id.id()
+    }
+
+    pub fn set_enabled(&mut self, enabled: bool) -> &mut Self {
+        self.enabled = enabled;
+        self
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
     }
 
     pub(super) fn password_hash(&self) -> &str {
@@ -62,6 +73,7 @@ impl Debug for User {
         f.debug_struct("User")
             .field("id", &self.id)
             .field("rev", &self.rev)
+            .field("enabled", &self.enabled)
             .finish()
     }
 }

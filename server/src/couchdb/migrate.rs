@@ -6,6 +6,7 @@ use include_dir::{Dir, File};
 
 use couchdb::db::Database;
 use couchdb::migrator::Migrator;
+use couchdb::status::Status;
 use couchdb::{Couch, Result};
 use enseada::couchdb::repository::Entity;
 use oauth::client::Client;
@@ -17,12 +18,15 @@ use crate::config::Configuration;
 
 static MIGRATION_DIR: Dir = include_dir!("./migrations");
 
+fn map_couch_err<E: std::error::Error>(err: E) -> Error {
+    Error::new(ErrorKind::Other, err.to_string())
+}
+
 pub async fn migrate(cfg: &Configuration) -> std::io::Result<()> {
     let couch = &crate::couchdb::from_config(cfg);
+    couch.status().await.map_err(map_couch_err)?;
 
-    run(couch, cfg)
-        .await
-        .map_err(|err| Error::new(ErrorKind::Other, err.to_string()))
+    run(couch, cfg).await.map_err(map_couch_err)
 }
 
 async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {

@@ -18,6 +18,7 @@ observability = { path = "../observability" }
 rbac = { path = "../rbac" }
 oci = { path = "../oci" }
 oauth = { path = "../oauth" }
+api = { path = "../api" }
 
 hold = "0.1.0-alpha.4"
 hold_s3 = "0.1.0-alpha.4"
@@ -36,6 +37,7 @@ askama = "0.10"
 askama_actix = "0.10"
 rust-embed = "5.6"
 mime_guess = "2.0"
+paperclip = { version = "0.4", features = ["actix"] }
 
 # Serde
 serde = { version = "1.0", features = ["derive"] }

@@ -1,0 +1,30 @@
+tags:
+  - users
+summary: Register a new user
+operationId: user::register
+x-required-permissions:
+  - object: users
+    action: create
+security:
+  - oauth:
+      - users:manage
+requestBody:
+  required: true
+  description: New user login information
+  content:
+    application/json:
+      schema:
+        $ref: ../../../../components/schemas/user/post.yml.njk
+responses:
+  "200":
+    description: New user details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../components/schemas/user/model.yml.njk
+  "409":
+    description: A user with the given username already exists
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../components/schemas/error.yml.njk

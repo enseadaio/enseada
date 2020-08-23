@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use actix_session::Session as HttpSession;
+use actix_web::body::Body;
 use actix_web::error::{Error, InternalError, QueryPayloadError, UrlencodedError};
 use actix_web::http::header;
 use actix_web::web::{Data, Form, Json, Query};
@@ -31,48 +32,34 @@ use crate::oauth::ErrorResponse;
 
 type OAuthResult<T> = Result<T, ErrorResponse>;
 
+#[derive(Debug, Deserialize)]
+pub struct LoginPageQuery {
+    pub error: Option<String>,
+    #[serde(flatten)]
+    pub auth_request: AuthorizationRequest,
+}
+
 #[get("/authorize")]
 pub async fn login_form(
     handler: Data<CouchOAuthHandler>,
     users: Data<UserService>,
-    query: Query<AuthorizationRequest>,
+    query: Query<LoginPageQuery>,
     http_session: HttpSession,
     req: HttpRequest,
-) -> Result<HttpResponse, ApiError> {
+) -> OAuthResult<HttpResponse> {
     let client_auth = get_basic_auth(&req);
     let client_auth = client_auth.as_ref();
-    let auth = query.into_inner();
-    if let Err(err) = handler.validate(&auth, client_auth).await {
+    let auth = &query.auth_request;
+    if let Err(mut err) = handler.validate(auth, client_auth).await {
         log::error!("{}", err);
+        err.set_state(auth.state.as_deref());
+        return Err(err.into());
     }
 
     log::debug!(
         "Reading user session from cookie {:?}",
         http_session.get::<String>("user_id")?
     );
-
-    if let Some(username) = http_session.get::<String>("user_id")? {
-        if let Some(_user) = users.find(&username).await? {
-            return do_login(
-                handler,
-                users,
-                Form(LoginFormBody {
-                    auth_request: auth,
-                    username: String::from(""),
-                    password: String::from(""),
-                }),
-                http_session,
-                req,
-            )
-            .await;
-        }
-
-        log::warn!(
-            "User {} from session cookie cannot be found in database",
-            username
-        );
-        http_session.remove("user_id");
-    }
 
     let form = LoginForm {
         stylesheet_path: assets::stylesheet_path(),
@@ -82,8 +69,46 @@ pub async fn login_form(
         client_id: auth.client_id.clone(),
         redirect_uri: auth.redirect_uri.clone(),
         scope: auth.scope.to_string(),
-        state: auth.state.as_ref().unwrap_or(&"".to_string()).clone(),
+        state: auth.state.as_deref().unwrap_or_else(|| "").to_string(),
+        error: query.error.clone(),
     };
+
+    if let Some(username) = http_session.get::<String>("user_id")? {
+        if let Some(_user) = users.find(&username).await? {
+            return match do_login(
+                handler,
+                users,
+                Form(LoginFormBody {
+                    auth_request: auth.clone(),
+                    username: String::from(""),
+                    password: String::from(""),
+                }),
+                http_session,
+                &req,
+            )
+            .await
+            {
+                Ok(res) => Ok(res),
+                Err(err) => {
+                    if let ErrorKind::AuthenticationFailed = err.kind() {
+                        let mut form = form;
+                        form.error = Some(err.to_string());
+                        Ok(HttpResponse::Unauthorized()
+                            .content_type("text/html; charset=utf-8")
+                            .body(form.to_string()))
+                    } else {
+                        Err(err)
+                    }
+                }
+            };
+        }
+
+        log::warn!(
+            "User {} from session cookie cannot be found in database",
+            username
+        );
+        http_session.remove("user_id");
+    }
 
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
@@ -105,8 +130,27 @@ pub async fn login(
     form: Form<LoginFormBody>,
     http_session: HttpSession,
     req: HttpRequest,
-) -> Result<HttpResponse, ApiError> {
-    do_login(handler, users, form, http_session, req).await
+) -> OAuthResult<HttpResponse> {
+    match do_login(handler, users, form, http_session, &req).await {
+        Ok(res) => Ok(res),
+        Err(err) => {
+            if let ErrorKind::AuthenticationFailed = err.kind() {
+                if let Some(referer) = req.headers().get(http::header::REFERER) {
+                    let mut ref_url = Url::parse(referer.to_str().unwrap())?;
+                    ref_url
+                        .query_pairs_mut()
+                        .append_pair("error", &err.description());
+                    Ok(HttpResponse::SeeOther()
+                        .header(http::header::LOCATION, ref_url.to_string())
+                        .finish())
+                } else {
+                    Err(err)
+                }
+            } else {
+                Err(err)
+            }
+        }
+    }
 }
 
 async fn do_login(
@@ -114,9 +158,9 @@ async fn do_login(
     users: Data<UserService>,
     form: Form<LoginFormBody>,
     http_session: HttpSession,
-    req: HttpRequest,
-) -> Result<HttpResponse, ApiError> {
-    let client_auth = get_basic_auth(&req);
+    req: &HttpRequest,
+) -> OAuthResult<HttpResponse> {
+    let client_auth = get_basic_auth(req);
     let client_auth = client_auth.as_ref();
     let form = form.into_inner();
     let auth = form.auth_request;
@@ -126,7 +170,10 @@ async fn do_login(
     let validate = handler.validate(&auth, client_auth).await;
     let client = match validate {
         Ok(client) => client,
-        Err(err) => return Ok(redirect_to_client(&mut url, err)),
+        Err(mut err) => {
+            err.set_state(auth.state.as_deref());
+            return Ok(redirect_to_client(&mut url, err));
+        }
     };
 
     let user = match http_session.get::<String>("user_id")? {
@@ -140,10 +187,13 @@ async fn do_login(
     let user = match user {
         Some(user) => user,
         None => {
-            log::debug!("Authentication failed");
-            return Err(ApiError::Unauthorized(String::from(
+            log::debug!("authentication failed");
+            let err = OAuthError::with_state(
+                ErrorKind::AuthenticationFailed,
                 "authentication failed",
-            )));
+                auth.state.as_deref(),
+            );
+            return Err(ErrorResponse::from(err));
         }
     };
 
@@ -157,10 +207,13 @@ async fn do_login(
     let handle = handler.handle(&auth, session).await;
     match handle {
         Ok(res) => Ok(redirect_to_client(&mut url, res)),
-        Err(err) => match err.kind() {
-            ErrorKind::InvalidRedirectUri => Err(ApiError::BadRequest(err.to_string())),
-            _ => Ok(redirect_to_client(&mut url, err)),
-        },
+        Err(mut err) => {
+            err.set_state(auth.state.as_deref());
+            match err.kind() {
+                ErrorKind::InvalidRedirectUri => Err(ErrorResponse::from(err)),
+                _ => Ok(redirect_to_client(&mut url, err)),
+            }
+        }
     }
 }
 

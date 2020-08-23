@@ -1,5 +1,6 @@
-use crate::assets;
 use askama::Template;
+
+use crate::assets;
 
 #[derive(Template)]
 #[template(path = "oauth/login.html")]
@@ -12,6 +13,7 @@ pub struct LoginForm {
     pub redirect_uri: String,
     pub scope: String,
     pub state: String,
+    pub error: Option<String>,
 }
 
 #[derive(Template)]

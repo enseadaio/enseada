@@ -1,7 +1,8 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
-use enseada::couchdb;
 use serde::Serialize;
+
+use enseada::couchdb;
 
 #[derive(Serialize, Debug)]
 pub struct Error {
@@ -9,15 +10,29 @@ pub struct Error {
     error_description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     error_uri: Option<String>,
+    state: Option<String>,
 }
 
 impl Error {
-    pub fn new(kind: ErrorKind, description: String) -> Error {
+    pub fn new<D: ToString>(kind: ErrorKind, description: D) -> Self {
         Error {
             error: kind,
-            error_description: description,
+            error_description: description.to_string(),
             error_uri: None,
+            state: None,
         }
+    }
+
+    pub fn with_state<D: ToString, S: ToString>(
+        kind: ErrorKind,
+        description: D,
+        state: Option<S>,
+    ) -> Self {
+        let mut err = Self::new(kind, description);
+        if state.is_some() {
+            err.set_state(state);
+        }
+        err
     }
 
     pub fn kind(&self) -> &ErrorKind {
@@ -26,6 +41,11 @@ impl Error {
 
     pub fn description(&self) -> &str {
         &self.error_description
+    }
+
+    pub fn set_state<S: ToString>(&mut self, state: Option<S>) -> &mut Self {
+        self.state = state.map(|s| s.to_string());
+        self
     }
 }
 
@@ -53,6 +73,7 @@ impl From<couchdb::error::Error> for Error {
 #[serde(rename_all = "snake_case")]
 pub enum ErrorKind {
     AccessDenied,
+    AuthenticationFailed,
     InvalidClient,
     InvalidGrant,
     InvalidRedirectUri,

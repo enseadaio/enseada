@@ -1,0 +1,25 @@
+tags:
+  - users
+summary: Delete a user
+operationId: user::delete
+x-required-permissions:
+  - object: user:$username
+    action: delete
+security:
+  - oauth:
+      - users:manage
+parameters:
+  - $ref: ../../../../../components/parameters/username.yml
+responses:
+  "200":
+    description: Deleted user details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/user/model.yml.njk
+  "404":
+    description: A user with the given username doesn't exist
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/error.yml.njk

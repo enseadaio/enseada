@@ -9,6 +9,18 @@ use log4rs::encode::Encode;
 
 use crate::config::Configuration;
 
+static MODULES: &'static [&'static str] = &[
+    "couchdb",
+    "enseada",
+    "users",
+    "observability",
+    "rbac",
+    "oci",
+    "oauth",
+    "api",
+    "enseada_server",
+];
+
 fn encoder(fmt: &str) -> Box<dyn Encode> {
     match fmt {
         "json" => Box::new(JsonEncoder::new()),
@@ -29,11 +41,14 @@ pub fn init(cfg: &Configuration) {
 
     let stdout = ConsoleAppender::builder().encoder(encoder(&fmt)).build();
 
-    match Config::builder()
+    let mut builder = Config::builder();
+
+    for module in MODULES {
+        builder = builder.logger(logger(module, lvl))
+    }
+
+    match builder
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
-        .logger(primary(lvl))
-        .logger(lib(lvl))
-        .logger(couchdb(lvl))
         .logger(tracing(cfg))
         .build(Root::builder().appender("stdout").build(level(root_lvl)))
     {
@@ -46,16 +61,8 @@ pub fn init(cfg: &Configuration) {
     }
 }
 
-fn primary(lvl: &str) -> Logger {
-    Logger::builder().build("enseada_server", level(lvl))
-}
-
-fn lib(lvl: &str) -> Logger {
-    Logger::builder().build("enseada", level(lvl))
-}
-
-fn couchdb(lvl: &str) -> Logger {
-    Logger::builder().build("couchdb", level(lvl))
+fn logger(name: &str, lvl: &str) -> Logger {
+    Logger::builder().build(name, level(lvl))
 }
 
 fn tracing(cfg: &Configuration) -> Logger {

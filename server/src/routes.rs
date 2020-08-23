@@ -5,7 +5,7 @@ use crate::http::error::ApiError;
 use crate::template::ReDoc;
 
 pub fn mount(cfg: &mut web::ServiceConfig) {
-    cfg.service(open_api);
+    // cfg.service(open_api);
     cfg.service(redoc);
 }
 
