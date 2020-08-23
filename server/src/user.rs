@@ -184,6 +184,7 @@ fn map_user(user: &User) -> UserModel {
     }
 }
 
+#[inline]
 fn map_owned_user(user: User) -> UserModel {
     map_user(&user)
 }

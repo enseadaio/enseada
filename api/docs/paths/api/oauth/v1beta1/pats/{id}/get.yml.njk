@@ -1,0 +1,22 @@
+tags:
+  - oauth
+summary: Get a personal access token owned by the current user
+operationId: pat::get
+security:
+  - oauth:
+      - pats:read
+parameters:
+  - $ref: ../../../../../../components/parameters/id.yml
+responses:
+  '200':
+    description: PAT information
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/pat/model.yml.njk
+  '404':
+    description: No PAT owned by the current user exists with the given ID
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/error.yml.njk

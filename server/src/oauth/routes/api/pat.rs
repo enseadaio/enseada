@@ -6,6 +6,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
+use api::pat::v1beta1::{
+    CreatedPersonalAccessToken, PersonalAccessTokenModel, PersonalAccessTokenPost,
+};
 use enseada::couchdb::repository::{Entity, Repository};
 use enseada::expiration::Expiration;
 use enseada::guid::Guid;
@@ -28,40 +31,13 @@ use crate::http::extractor::session::TokenSession;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::{ApiResult, PaginationQuery};
 
-#[derive(Debug, Serialize, PartialEq)]
-pub struct PersonalAccessTokenResponse {
-    id: String,
-    label: String,
-    client_id: String,
-    scope: Scope,
-    user_id: Option<String>,
-    expiration: Expiration,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    revoked_at: Option<DateTime<Utc>>,
-}
-
-impl From<PersonalAccessToken> for PersonalAccessTokenResponse {
-    fn from(pat: PersonalAccessToken) -> Self {
-        let session = pat.session();
-        PersonalAccessTokenResponse {
-            id: pat.id().id().to_string(),
-            label: pat.label().to_string(),
-            client_id: session.client_id().to_string(),
-            scope: session.scope().clone(),
-            user_id: session.user_id().map(str::to_string),
-            expiration: pat.expiration().into(),
-            revoked_at: pat.revoked_at(),
-        }
-    }
-}
-
 #[get("/api/oauth/v1beta1/pats")]
 pub async fn list(
     storage: Data<CouchStorage>,
     scope: OAuthScope,
     current_user: CurrentUser,
     list: Query<PaginationQuery>,
-) -> ApiResult<Json<Page<PersonalAccessTokenResponse>>> {
+) -> ApiResult<Json<Page<PersonalAccessTokenModel>>> {
     Scope::from("pats:read").matches(&scope)?;
     let user_id = current_user.id();
 
@@ -75,27 +51,9 @@ pub async fn list(
             serde_json::json!({ "session.user_id": user_id }),
         )
         .await?
-        .map(PersonalAccessTokenResponse::from);
+        .map(map_owned_pat);
 
     Ok(Json(page))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct CreatePersonalAccessTokenPayload {
-    label: String,
-    scope: Scope,
-    expiration: Option<DateTime<Utc>>,
-}
-
-#[derive(Debug, Serialize, PartialEq)]
-pub struct CreatedPersonalAccessTokenResponse {
-    access_token: String,
-    id: String,
-    label: String,
-    client_id: String,
-    scope: Scope,
-    user_id: Option<String>,
-    expiration: Expiration,
 }
 
 #[post("/api/oauth/v1beta1/pats")]
@@ -106,8 +64,8 @@ pub async fn create(
     session: TokenSession,
     scope: OAuthScope,
     current_user: CurrentUser,
-    body: Json<CreatePersonalAccessTokenPayload>,
-) -> ApiResult<Json<CreatedPersonalAccessTokenResponse>> {
+    body: Json<PersonalAccessTokenPost>,
+) -> ApiResult<Json<CreatedPersonalAccessToken>> {
     Scope::from("pats:manage").matches(&scope)?;
     let enforcer = enforcer.read().await;
     let label = body.label.clone();
@@ -144,14 +102,9 @@ pub async fn create(
         .add_permission(user_id.clone(), pat_id.clone(), "*")
         .await?;
 
-    Ok(Json(CreatedPersonalAccessTokenResponse {
+    Ok(Json(CreatedPersonalAccessToken {
         access_token: access_token_value,
-        id: pat_id.id().to_string(),
-        label: pat.label().to_string(),
-        client_id: pat.session().client_id().to_string(),
-        scope: pat.session().scope().clone(),
-        user_id: pat.session().user_id().map(str::to_string),
-        expiration: pat.expiration().into(),
+        pat: map_pat(&pat),
     }))
 }
 
@@ -163,51 +116,37 @@ pub struct PersonalAccessTokenPathParam {
 #[get("/api/oauth/v1beta1/pats/{pat_id}")]
 pub async fn get(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<PersonalAccessTokenPathParam>,
-) -> ApiResult<Json<PersonalAccessTokenResponse>> {
+) -> ApiResult<Json<PersonalAccessTokenModel>> {
     Scope::from("pats:read").matches(&scope)?;
-    let enforcer = enforcer.read().await;
     let pat_id = &path.pat_id;
-    enforcer.check(
-        current_user.id(),
-        &PersonalAccessToken::build_guid(pat_id),
-        "read",
-    )?;
-
     let client = storage.find(pat_id).await?;
 
-    client
-        .ok_or_else(|| {
-            ApiError::not_found(&format!("Personal Access Token '{}' not found", pat_id))
-        })
-        .map(PersonalAccessTokenResponse::from)
-        .map(Json)
+    let pat = client.ok_or_else(|| {
+        ApiError::not_found(&format!("Personal Access Token '{}' not found", pat_id))
+    })?;
+    check_pat_owner(&pat, &current_user)?;
+    Ok(Json(map_pat(&pat)))
 }
 
 #[delete("/api/oauth/v1beta1/pats/{pat_id}")]
 pub async fn delete(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<PersonalAccessTokenPathParam>,
-) -> ApiResult<Json<PersonalAccessTokenResponse>> {
-    Scope::from("pats:read").matches(&scope)?;
-    let enforcer = enforcer.read().await;
+) -> ApiResult<Json<PersonalAccessTokenModel>> {
+    Scope::from("pats:manage").matches(&scope)?;
     let pat_id = &path.pat_id;
-    enforcer.check(
-        current_user.id(),
-        &PersonalAccessToken::build_guid(pat_id),
-        "delete",
-    )?;
 
     let pat = storage
         .find(pat_id)
         .await?
         .ok_or_else(|| ApiError::not_found(&format!("PAT '{}' not found", pat_id)))?;
+
+    check_pat_owner(&pat, &current_user)?;
 
     log::debug!("deleting related access token");
     if let Some(err) = TokenStorage::<AccessToken>::revoke_token(storage.get_ref(), pat_id)
@@ -225,5 +164,34 @@ pub async fn delete(
     storage.delete(&pat).await?;
     log::debug!("PAT deleted");
 
-    Ok(Json(PersonalAccessTokenResponse::from(pat)))
+    Ok(Json(map_pat(&pat)))
+}
+
+fn check_pat_owner(pat: &PersonalAccessToken, current_user: &CurrentUser) -> ApiResult<()> {
+    if pat.session().user_id() != Some(&current_user.id().to_string()) {
+        Err(ApiError::not_found(&format!(
+            "PAT '{}' not found",
+            pat.id().id()
+        )))
+    } else {
+        Ok(())
+    }
+}
+
+fn map_pat(pat: &PersonalAccessToken) -> PersonalAccessTokenModel {
+    let session = pat.session();
+    PersonalAccessTokenModel {
+        id: pat.id().id().to_string(),
+        label: pat.label().to_string(),
+        client_id: session.client_id().to_string(),
+        scope: session.scope().clone(),
+        user_id: session.user_id().map(str::to_string),
+        expiration: pat.expiration().into(),
+        revoked_at: pat.revoked_at(),
+    }
+}
+
+#[inline]
+fn map_owned_pat(pat: PersonalAccessToken) -> PersonalAccessTokenModel {
+    map_pat(&pat)
 }

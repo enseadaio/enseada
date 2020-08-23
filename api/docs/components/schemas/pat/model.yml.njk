@@ -1,0 +1,25 @@
+type: object
+required:
+  - id
+  - label
+  - client_id
+  - scope
+  - user_id
+  - expiration
+properties:
+  id:
+    type: string
+  label:
+    type: string
+  client_id:
+    type: string
+  scope:
+    type: string
+  user_id:
+    type: string
+  expiration:
+    type: string
+    format: date-time
+  revoked_at:
+    type: string
+    format: date-time

@@ -1,0 +1,21 @@
+tags:
+  - oauth
+summary: Create a new personal access token for the current user
+operationId: pat::create
+security:
+  - oauth:
+      - pats:manage
+requestBody:
+  required: true
+  description: New PAT information
+  content:
+    application/json:
+      schema:
+        $ref: ../../../../../components/schemas/pat/post.yml.njk
+responses:
+  '200':
+    description: Successful fetch
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/pat/model.yml.njk

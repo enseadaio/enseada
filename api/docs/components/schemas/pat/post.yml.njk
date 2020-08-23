@@ -1,0 +1,13 @@
+type: object
+required:
+  - label
+  - scope
+properties:
+  label:
+    type: string
+  scope:
+    type: string
+  expiration:
+    type: string
+    format: date-time
+    description: If not provided the created PAT will have infinite expiration

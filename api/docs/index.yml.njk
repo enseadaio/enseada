@@ -17,6 +17,8 @@ externalDocs:
   description: Find out more about Enseada
   url: https://enseada.io
 tags:
+  - name: oauth
+    description: OAuth 2.0 endpoints
   - name: docker
     description: Docker V2 registry endpoints
   - name: monitoring
@@ -41,11 +43,19 @@ components:
           authorizationUrl: /oauth/authorize
           tokenUrl: /oauth/token
           scopes:
+            # Users
             profile: access user profile information
             users:read: read-only access to registered users
             users:manage: read-write access to registered users
+
+            # RBAC
             roles: read-write access to user roles
             permissions: read-write access to user permissions
+
+            # PAT
+            pat:read: read-only access to PATs
+            pat:manage: read-write access to PATs
+
 
     {{
   inject([{

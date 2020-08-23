@@ -1,0 +1,17 @@
+tags:
+  - oauth
+summary: List personal access tokens for the current user
+operationId: pat::list
+security:
+  - oauth:
+      - pats:read
+parameters:
+  - $ref: ../../../../../components/parameters/offset.yml
+  - $ref: ../../../../../components/parameters/limit.yml
+responses:
+  '200':
+    description: Successful fetch
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/pat/page.yml.njk
