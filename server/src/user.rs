@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
 use actix_web::{delete, get, post, put, HttpResponse};
@@ -35,7 +36,7 @@ pub fn mount(cfg: &mut ServiceConfig) {
 #[get("/api/v1beta1/users")]
 pub async fn list(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     list: Query<PaginationQuery>,
@@ -61,7 +62,7 @@ pub async fn register(
     service: Data<UserService>,
     data: Json<UserPost>,
     scope: OAuthScope,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     current_user: CurrentUser,
 ) -> Result<Json<UserModel>, ApiError> {
     Scope::from("users:manage").matches(&scope)?;
@@ -92,7 +93,7 @@ pub struct UsernamePathParam {
 #[get("/api/v1beta1/users/{username}")]
 pub async fn get(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,
@@ -112,7 +113,7 @@ pub async fn get(
 #[put("/api/v1beta1/users/{username}")]
 pub async fn update(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,
@@ -152,7 +153,7 @@ pub async fn update(
 #[delete("/api/v1beta1/users/{username}")]
 pub async fn delete(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,

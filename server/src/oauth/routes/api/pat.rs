@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::{delete, get, post, put};
@@ -60,7 +61,7 @@ pub async fn list(
 pub async fn create(
     handler: Data<CouchOAuthHandler>,
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     session: TokenSession,
     scope: OAuthScope,
     current_user: CurrentUser,

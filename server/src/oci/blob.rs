@@ -1,13 +1,20 @@
+use std::sync::Arc;
+
 use actix_web::web::{Data, Path};
 use actix_web::HttpResponse;
 use actix_web::{delete, get, head};
+use tokio::sync::RwLock;
 
-use enseada::couchdb::repository::Repository;
+use enseada::couchdb::repository::{Entity, Repository};
+use oauth::scope::Scope;
 use oci::entity::Repo;
 use oci::error::{Error, ErrorCode};
 use oci::header;
 use oci::service::{BlobService, RepoService};
+use rbac::Enforcer;
 
+use crate::http::extractor::scope::OAuthScope;
+use crate::http::extractor::user::CurrentUser;
 use crate::oci::upload::DigestParam;
 use crate::oci::{RepoPath, Result};
 
@@ -17,10 +24,17 @@ pub async fn get(
     repos: Data<RepoService>,
     repo: Path<RepoPath>,
     digest: Path<DigestParam>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
 ) -> Result<HttpResponse> {
+    Scope::from("oci:image:pull").matches(&scope)?;
     let group = &repo.group;
     let name = &repo.name;
     let digest = &digest.digest;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:pull")?;
 
     log::debug!("looking for repo {}/{}", group, name);
     repos
@@ -49,10 +63,17 @@ pub async fn head(
     repos: Data<RepoService>,
     repo: Path<RepoPath>,
     digest: Path<DigestParam>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
 ) -> Result<HttpResponse> {
+    Scope::from("oci:image:pull").matches(&scope)?;
     let group = &repo.group;
     let name = &repo.name;
     let digest = &digest.digest;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:pull")?;
 
     log::debug!("looking for repo {}/{}", group, name);
     repos
@@ -79,10 +100,21 @@ pub async fn delete(
     repos: Data<RepoService>,
     repo: Path<RepoPath>,
     digest: Path<DigestParam>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
 ) -> Result<HttpResponse> {
+    Scope::from("oci:image:delete").matches(&scope)?;
     let group = &repo.group;
     let name = &repo.name;
     let digest = &digest.digest;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(
+        current_user.id(),
+        &Repo::build_guid(&repo_id),
+        "image:delete",
+    )?;
 
     log::debug!("looking for repo {}/{}", group, name);
     repos

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::{delete, get, post};
 use serde::{Deserialize, Serialize};
@@ -43,7 +45,7 @@ impl From<Repo> for RepoResponse {
 #[get("/api/oci/v1beta1/repositories")]
 pub async fn list_repos(
     service: Data<RepoService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     list: Query<PaginationQuery>,
@@ -68,7 +70,7 @@ pub struct CreateRepoPayload {
 #[post("/api/oci/v1beta1/repositories")]
 pub async fn create_repo(
     service: Data<RepoService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     body: Json<CreateRepoPayload>,
@@ -86,7 +88,7 @@ pub async fn create_repo(
 #[get("/api/oci/v1beta1/repositories/{group}/{name}")]
 pub async fn get_repo(
     service: Data<RepoService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<RepoPath>,
@@ -108,7 +110,7 @@ pub async fn get_repo(
 #[delete("/api/oci/v1beta1/repositories/{group}/{name}")]
 pub async fn delete_repo(
     service: Data<RepoService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<RepoPath>,

@@ -35,8 +35,8 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let rbac_db = Arc::new(couch.database(dbname::RBAC, true));
     let mut enforcer = Enforcer::new(rbac_db.clone());
     enforcer.load_rules().await.expect("enforcer.load_rules()");
-    let enforcer = Data::new(RwLock::new(enforcer));
-    let watcher = Watcher::new(rbac_db.clone(), enforcer.clone().into_inner());
+    let enforcer = Arc::new(RwLock::new(enforcer));
+    let watcher = Watcher::new(rbac_db.clone(), enforcer.clone());
     watcher.start().expect("watcher.start()");
 
     let server = HttpServer::new(move || {
@@ -54,12 +54,11 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
                     .same_site(SameSite::Strict),
             )
             .wrap(Cors::default())
-            .wrap(ErrorHandlers::new().handler(StatusCode::BAD_REQUEST, error::handle_bad_request))
-            .wrap(
-                ErrorHandlers::new().handler(StatusCode::UNAUTHORIZED, error::handle_unauthorized),
-            )
             .wrap(default_headers(cfg))
-            .app_data(enforcer.clone())
+            // (matteojoliveau) This requires to inject the Enforcer as `Data<Arc<RwLock<Enforcer>>>`
+            // because app_data() stuff is not accessible in nested scopes.
+            // Should hopefully be fixed with Actix Web 3.0
+            .data(enforcer.clone())
             .configure(user::mount)
             .configure(crate::rbac::mount)
             .configure(crate::oauth::mount)

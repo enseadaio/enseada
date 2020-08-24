@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt::{self, Display, Formatter};
 use std::vec::Vec;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -70,20 +71,20 @@ impl From<HashSet<String>> for Scope {
 
 impl From<Vec<String>> for Scope {
     fn from(vec: Vec<String>) -> Self {
-        let set = vec.iter().map(String::clone).collect();
+        let set = vec.into_iter().collect();
         Scope(set)
     }
 }
 
 impl From<Vec<&str>> for Scope {
     fn from(vec: Vec<&str>) -> Self {
-        Scope(vec.iter().map(|s| (*s).to_string()).collect())
+        Scope(vec.into_iter().map(str::to_string).collect())
     }
 }
 
 impl From<String> for Scope {
     fn from(scope: String) -> Self {
-        Scope(scope.split(' ').map(|s| s.to_string()).collect())
+        Scope(scope.split(' ').map(str::to_string).collect())
     }
 }
 
@@ -93,11 +94,12 @@ impl From<&str> for Scope {
     }
 }
 
-impl ToString for Scope {
-    fn to_string(&self) -> String {
+impl Display for Scope {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut vec: Vec<String> = self.0.iter().map(String::clone).collect();
         vec.sort();
-        vec.join(" ")
+        let s: String = vec.join(" ");
+        s.fmt(f)
     }
 }
 
@@ -119,7 +121,7 @@ impl<'de> Deserialize<'de> for Scope {
         D: Deserializer<'de>,
     {
         let scope = String::deserialize(deserializer)?;
-        Ok(Scope(scope.split(' ').map(|s| s.to_string()).collect()))
+        Ok(Scope::from(scope))
     }
 }
 

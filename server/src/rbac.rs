@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
 use actix_web::{delete, get, post, put};
 use serde::{Deserialize, Serialize};
@@ -6,6 +8,7 @@ use tokio::sync::RwLock;
 use enseada::couchdb::repository::{Entity, Repository};
 use enseada::guid::Guid;
 use enseada::pagination::Page;
+use oauth::scope::Scope;
 use rbac::{Enforcer, Rule};
 use users::UserService;
 
@@ -14,7 +17,6 @@ use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::{ApiResult, PaginationQuery};
 use crate::user::UsernamePathParam;
-use oauth::scope::Scope;
 
 pub fn mount(cfg: &mut ServiceConfig) {
     cfg.service(get_user_roles);
@@ -35,7 +37,7 @@ pub struct RoleResponse {
 #[get("/api/v1beta1/users/{username}/roles")]
 pub async fn get_user_roles(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,
@@ -67,7 +69,7 @@ pub struct UserRolesPathParams {
 #[put("/api/v1beta1/users/{username}/roles/{role}")]
 pub async fn add_user_role(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UserRolesPathParams>,
@@ -90,7 +92,7 @@ pub async fn add_user_role(
 #[delete("/api/v1beta1/users/{username}/roles/{role}")]
 pub async fn remove_user_role(
     service: Data<UserService>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UserRolesPathParams>,
@@ -130,7 +132,7 @@ impl From<Rule> for Permission {
 
 #[get("/api/v1beta1/users/{username}/permissions")]
 pub async fn get_user_permissions(
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,
@@ -154,7 +156,7 @@ pub async fn get_user_permissions(
 
 #[post("/api/v1beta1/users/{username}/permissions")]
 pub async fn add_user_permission(
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,
@@ -177,7 +179,7 @@ pub async fn add_user_permission(
 
 #[delete("/api/v1beta1/users/{username}/permissions")]
 pub async fn remove_user_permission(
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<UsernamePathParam>,
@@ -205,7 +207,7 @@ pub struct RolePathParam {
 
 #[get("/api/v1beta1/roles/{role}/permissions")]
 pub async fn get_role_permissions(
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<RolePathParam>,
@@ -229,7 +231,7 @@ pub async fn get_role_permissions(
 
 #[post("/api/v1beta1/roles/{role}/permissions")]
 pub async fn add_role_permission(
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<RolePathParam>,
@@ -252,7 +254,7 @@ pub async fn add_role_permission(
 
 #[delete("/api/v1beta1/roles/{role}/permissions")]
 pub async fn remove_role_permission(
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<RolePathParam>,

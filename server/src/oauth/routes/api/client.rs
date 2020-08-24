@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::{delete, get, post, put};
@@ -48,7 +49,7 @@ impl From<&Client> for ClientResponse {
 #[get("/api/oauth/v1beta1/clients")]
 pub async fn list(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     list: Query<PaginationQuery>,
@@ -86,7 +87,7 @@ pub struct CreateClientPayload {
 #[post("/api/oauth/v1beta1/clients")]
 pub async fn create(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     body: Json<CreateClientPayload>,
@@ -138,7 +139,7 @@ pub struct ClientPathParam {
 #[get("/api/oauth/v1beta1/clients/{client_id}")]
 pub async fn get(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<ClientPathParam>,
@@ -170,7 +171,7 @@ pub struct UpdateClientPayload {
 #[put("/api/oauth/v1beta1/clients/{client_id}")]
 pub async fn update(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<ClientPathParam>,
@@ -210,7 +211,7 @@ pub async fn update(
 #[delete("/api/oauth/v1beta1/clients/{client_id}")]
 pub async fn delete(
     storage: Data<CouchStorage>,
-    enforcer: Data<RwLock<Enforcer>>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
     path: Path<ClientPathParam>,

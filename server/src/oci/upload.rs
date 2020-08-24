@@ -1,15 +1,22 @@
+use std::sync::Arc;
+
 use actix_web::http::HeaderMap;
 use actix_web::web::{Bytes, Data, Path, Query};
 use actix_web::{delete, get, patch, post, put, HttpRequest, HttpResponse};
 use serde::Deserialize;
+use tokio::sync::RwLock;
 
 use enseada::couchdb::repository::{Entity, Repository};
+use oauth::scope::Scope;
 use oci::digest::Digest;
 use oci::entity::{Blob, Repo, UploadChunk};
 use oci::error::{Error, ErrorCode};
 use oci::header;
 use oci::service::{BlobService, RepoService, UploadService};
+use rbac::Enforcer;
 
+use crate::http::extractor::scope::OAuthScope;
+use crate::http::extractor::user::CurrentUser;
 use crate::oci::{RepoPath, Result};
 
 #[derive(Debug, Deserialize)]
@@ -22,18 +29,22 @@ pub async fn start(
     uploads: Data<UploadService>,
     blobs: Data<BlobService>,
     repos: Data<RepoService>,
-    // enforcer: Data<RwLock<Enforcer>>,
-    // scope: OAuthScope,
-    // current_user: CurrentUser,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<RepoPath>,
     query: Option<Query<DigestParam>>,
     body: Bytes,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
+    Scope::from("oci:image:push").matches(&scope)?;
     let group = &path.group;
     let name = &path.name;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:push")?;
     let repo = &repos
-        .find(&Repo::build_id(group, name))
+        .find(&repo_id)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
@@ -77,18 +88,22 @@ pub struct UploadPath {
 pub async fn get(
     uploads: Data<UploadService>,
     repos: Data<RepoService>,
-    // enforcer: Data<RwLock<Enforcer>>,
-    // scope: OAuthScope,
-    // current_user: CurrentUser,
-    repo: Path<RepoPath>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
+    path: Path<RepoPath>,
     upload: Path<UploadPath>,
 ) -> Result<HttpResponse> {
-    let group = &repo.group;
-    let name = &repo.name;
+    Scope::from("oci:image:push").matches(&scope)?;
+    let group = &path.group;
+    let name = &path.name;
     let upload_id = &upload.upload_id;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:push")?;
     log::debug!("looking for repo {}/{}", group, name);
     repos
-        .find(&Repo::build_id(group, name))
+        .find(&repo_id)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
@@ -108,20 +123,24 @@ pub async fn get(
 pub async fn push(
     uploads: Data<UploadService>,
     repos: Data<RepoService>,
-    // enforcer: Data<RwLock<Enforcer>>,
-    // scope: OAuthScope,
-    // current_user: CurrentUser,
-    repo: Path<RepoPath>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
+    path: Path<RepoPath>,
     upload: Path<UploadPath>,
     body: Bytes,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
-    let group = &repo.group;
-    let name = &repo.name;
-    let upload_id = upload.upload_id.as_str();
+    Scope::from("oci:image:push").matches(&scope)?;
+    let group = &path.group;
+    let name = &path.name;
+    let upload_id = &upload.upload_id;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:push")?;
     log::debug!("looking for repo {}/{}", group, name);
     let repo = repos
-        .find(&Repo::build_id(group, name))
+        .find(&repo_id)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
@@ -137,7 +156,7 @@ pub async fn push(
             format!("/v2/{}/blobs/uploads/{}", repo.full_name(), upload_id),
         )
         .header(http::header::RANGE, format!("0-{}", upload.latest_offset()))
-        .header(header::BLOB_UPLOAD_ID, upload_id)
+        .header(header::BLOB_UPLOAD_ID, upload_id.as_str())
         .finish())
 }
 
@@ -153,22 +172,26 @@ pub async fn complete(
     uploads: Data<UploadService>,
     blobs: Data<BlobService>,
     repos: Data<RepoService>,
-    // enforcer: Data<RwLock<Enforcer>>,
-    // scope: OAuthScope,
-    // current_user: CurrentUser,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
     path: Path<CompletePath>,
     digest: Query<DigestParam>,
     body: Option<Bytes>,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
+    Scope::from("oci:image:push").matches(&scope)?;
     let group = &path.group;
     let name = &path.name;
-    let upload_id = path.upload_id.as_str();
+    let upload_id = &path.upload_id;
     let digest = &digest.digest;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:push")?;
 
     log::debug!("looking for repo {}/{}", group, name);
     let repo = repos
-        .find(&Repo::build_id(group, name))
+        .find(&repo_id)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
@@ -204,19 +227,23 @@ pub async fn complete(
 pub async fn delete(
     uploads: Data<UploadService>,
     repos: Data<RepoService>,
-    // enforcer: Data<RwLock<Enforcer>>,
-    // scope: OAuthScope,
-    // current_user: CurrentUser,
-    repo: Path<RepoPath>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
+    path: Path<RepoPath>,
     upload: Path<UploadPath>,
 ) -> Result<HttpResponse> {
-    let group = &repo.group;
-    let name = &repo.name;
-    let upload_id = upload.upload_id.as_str();
+    Scope::from("oci:image:push").matches(&scope)?;
+    let group = &path.group;
+    let name = &path.name;
+    let upload_id = &upload.upload_id;
+    let repo_id = Repo::build_id(group, name);
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:push")?;
 
     log::debug!("looking for repo {}/{}", group, name);
     repos
-        .find(&Repo::build_id(group, name))
+        .find(&repo_id)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 

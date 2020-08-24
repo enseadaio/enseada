@@ -10,11 +10,12 @@ use enseada::couchdb::error::Error as CouchError;
 pub struct Error {
     code: ErrorCode,
     message: String,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
     detail: HashMap<String, String>,
 }
 
 impl Error {
-    pub fn new(code: ErrorCode, message: &str) -> Self {
+    pub fn new<M: ToString>(code: ErrorCode, message: M) -> Self {
         Error {
             code,
             message: message.to_string(),

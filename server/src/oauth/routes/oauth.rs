@@ -6,8 +6,9 @@ use actix_web::error::{Error, InternalError, QueryPayloadError, UrlencodedError}
 use actix_web::http::header;
 use actix_web::web::{Data, Form, Json, Query};
 use actix_web::web::{FormConfig, QueryConfig};
-use actix_web::{get, post};
+use actix_web::{get, post, ResponseError};
 use actix_web::{HttpRequest, HttpResponse};
+use actix_web_httpauth::extractors::basic::BasicAuth as BasicHeader;
 use actix_web_httpauth::headers::authorization::{Basic, ParseError, Scheme};
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -320,7 +321,11 @@ fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
     let res = match &err {
         QueryPayloadError::Deserialize(err) => {
             if detail.contains("redirect_uri") {
-                HttpResponse::BadRequest().body("invalid redirect_uri parameter")
+                ErrorResponse(OAuthError::new(
+                    ErrorKind::InvalidRedirectUri,
+                    "invalid redirect_uri parameter",
+                ))
+                .error_response()
             } else {
                 let err = OAuthError::new(ErrorKind::InvalidRequest, err.to_string());
                 let result =
@@ -333,7 +338,8 @@ fn handle_query_error(err: QueryPayloadError, req: &HttpRequest) -> Error {
                     .and_then(|(_, uri)| Url::from_str(uri.as_str()).ok())
                 {
                     Some(mut redirect_uri) => redirect_to_client(&mut redirect_uri, err),
-                    None => HttpResponse::BadRequest().body("invalid redirect_uri parameter"),
+                    None => ErrorResponse(OAuthError::new(ErrorKind::InvalidRedirectUri, err))
+                        .error_response(),
                 }
             }
         }
@@ -346,13 +352,11 @@ fn handle_form_error(err: UrlencodedError, req: &HttpRequest) -> Error {
     log::error!("Error: {}", &detail);
     log::debug!("{:?}", req);
     let res = match &err {
-        UrlencodedError::Parse => HttpResponse::BadRequest().json(OAuthError::new(
+        UrlencodedError::Parse => OAuthError::new(
             ErrorKind::InvalidRequest,
             "request data is invalid or is missing a required parameter".to_string(),
-        )),
-        _ => HttpResponse::BadRequest()
-            .content_type("text/plain")
-            .body(detail),
+        ),
+        _ => OAuthError::new(ErrorKind::ServerError, &err),
     };
-    InternalError::from_response(err, res).into()
+    InternalError::from_response(err, ErrorResponse(res).error_response()).into()
 }

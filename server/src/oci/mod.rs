@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::middleware::DefaultHeaders;
 use actix_web::web::{self, ServiceConfig};
 use actix_web::{get, FromRequest, ResponseError};
@@ -11,6 +12,7 @@ use oci::header;
 use oci::service::{BlobService, ManifestService, RepoService, UploadService};
 
 use crate::config::CONFIG;
+use crate::http::extractor::session::TokenSession;
 use crate::http::guard::subdomain;
 use crate::storage;
 
@@ -50,6 +52,10 @@ pub fn mount(cfg: &mut ServiceConfig) {
         web::scope("/v2")
             .guard(subdomain(sub))
             .wrap(DefaultHeaders::new().header(header::DISTRIBUTION_API_VERSION, "registry/2.0"))
+            .wrap(
+                ErrorHandlers::new()
+                    .handler(StatusCode::UNAUTHORIZED, error::handle_unauthorized_request),
+            )
             .app_data(actix_web::web::Bytes::configure(|cfg| {
                 cfg.limit(1_073_741_824) // Set max file size to 1 Gib
             }))
@@ -84,7 +90,7 @@ pub struct RepoPath {
 }
 
 #[get("/")]
-pub async fn root(req: HttpRequest) -> HttpResponse {
-    log::debug!("{:?}", req);
+pub async fn root(session: TokenSession) -> HttpResponse {
+    log::debug!("{:?}", session);
     HttpResponse::Ok().finish()
 }

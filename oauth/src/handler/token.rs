@@ -1,31 +1,33 @@
 use async_trait::async_trait;
 
+use enseada::secure;
+
 use crate::client::Client;
 use crate::error::{Error, ErrorKind};
 use crate::handler::{BasicAuth, OAuthHandler, RequestHandler};
 use crate::request::TokenRequest;
 use crate::response::TokenResponse;
-use crate::{Result, Expirable};
+use crate::session::Session;
 use crate::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
 use crate::token::{AccessToken, RefreshToken, Token};
-use enseada::secure;
-use crate::session::Session;
+use crate::{Expirable, Result};
 
 #[async_trait]
 impl<CS, ATS, RTS, ACS> RequestHandler<TokenRequest, TokenResponse>
-for OAuthHandler<CS, ATS, RTS, ACS>
-    where
-        CS: ClientStorage,
-        ATS: TokenStorage<AccessToken>,
-        RTS: TokenStorage<RefreshToken>,
-        ACS: AuthorizationCodeStorage,
+    for OAuthHandler<CS, ATS, RTS, ACS>
+where
+    CS: ClientStorage,
+    ATS: TokenStorage<AccessToken>,
+    RTS: TokenStorage<RefreshToken>,
+    ACS: AuthorizationCodeStorage,
 {
     async fn validate(
         &self,
         req: &TokenRequest,
         client_auth: Option<&BasicAuth>,
     ) -> Result<Client> {
-        let auth_client_id = client_auth.map(|BasicAuth(client_id, _client_secret)| client_id.as_str());
+        let auth_client_id =
+            client_auth.map(|BasicAuth(client_id, _client_secret)| client_id.as_str());
         let auth_client_secret =
             client_auth.and_then(|BasicAuth(_client_id, client_secret)| client_secret.as_deref());
         match req {
@@ -234,4 +236,3 @@ for OAuthHandler<CS, ATS, RTS, ACS>
         }
     }
 }
-
