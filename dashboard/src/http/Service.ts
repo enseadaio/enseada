@@ -2,12 +2,14 @@ import { HttpClient, Query } from "./HttpClient";
 import { accessTokenProvider } from '../store';
 import { Page, PageParams } from "./Page";
 
-export type Associations = Record<string, Service<Tre>>
 export interface Service<T> {
-  list(params: PageParams): Promise<Page<T>>;
+  list(params: PageParams = { limit: 25, offset: 0 }): Promise<Page<T>>;
+
   get(id: string): Promise<T | undefined>;
+
   create(payload: any): Promise<T>;
-  delete(id: string): Promise<void>;
+
+  remove(id: string): Promise<void>;
 }
 
 class ServiceImpl<T> implements Service<T>{
@@ -34,7 +36,7 @@ class ServiceImpl<T> implements Service<T>{
     return this.http.post(this.path, payload).then((res) => res.json());
   }
 
-  async delete(id: string): Promise<void> {
+  async remove(id: string): Promise<void> {
     await this.http.delete(`${this.path}/${id}`);
   }
 }

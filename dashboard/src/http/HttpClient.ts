@@ -1,7 +1,7 @@
 import { Method } from "./Method";
 import { ResponseError } from "./ResponseError";
 
-export type HttpHeaders = object | Headers;
+export type HttpHeaders = Headers | Record<string, string>;
 export type Query = Record<string, string>;
 export type AuthTokenProvider = () => Promise<string>;
 
@@ -34,7 +34,7 @@ export class HttpClient {
   async request(method: Method, url: string, body?: any, query?: Query, headers?: HttpHeaders): Promise<Response> {
     const h = await this.buildHeaders(headers);
     const uri = this.buildUrl(url, query);
-    const res = await fetch(uri, {
+    const res = await fetch(uri.toString(), {
       method,
       mode: 'cors',
       headers: h,

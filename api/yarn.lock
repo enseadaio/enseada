@@ -35,9 +35,9 @@
     z-schema "^4.2.3"
 
 "@asyncapi/parser@^1.0.0-rc.1":
-  version "1.0.0-rc.2"
-  resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-1.0.0-rc.2.tgz#87d2e83c1d390e21d53f868e6209cbc584d35449"
-  integrity sha512-nZYJLnMiq48q7YHa+AI9ZaDc5UqoqKR7MDhTiIKsIJj6X5fF6hpwBrTP0bQn76Pc1oGBXRB69PcD/Y+Et1qFyw==
+  version "1.0.0-rc.3"
+  resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-1.0.0-rc.3.tgz#670224bad2b01dc4ec1b6c23ee502d79e89698e2"
+  integrity sha512-dfWCxNGt1e4aEmmvrTrV60K6Xo1UqQfYI3NQ5F/7zC6Jd0sSbUKPLlZRhKFxYAtX6bO2IMc4f+6XRgGNw9NQ8w==
   dependencies:
     "@apidevtools/json-schema-ref-parser" "^9.0.6"
     "@asyncapi/specs" "^2.7.4"
@@ -480,9 +480,9 @@ bn.js@^5.1.1:
   integrity sha512-GkTiFpjFtUzU9CbMeJ5iazkCzGL3jrhzerzZIuqLABjbwRaFt33I9tUdSNryIptM+RxDet6OKm2WnLXzW51KsQ==
 
 boats@^1.20.1:
-  version "1.20.1"
-  resolved "https://registry.yarnpkg.com/boats/-/boats-1.20.1.tgz#e3ddfa1a5acdc7d5571decfb3db79ab948836193"
-  integrity sha512-Ptx/84cjybaUhfqLSBfBdjjGtTKghjmOq6LPZeg58GiNXO+HFLClsLyBzvRI6iD4sIr48vb4tG1Gqk2dqkQokw==
+  version "1.20.4"
+  resolved "https://registry.yarnpkg.com/boats/-/boats-1.20.4.tgz#d9087c601171f587f768c632debb5e7d2e6600e2"
+  integrity sha512-rIeXjYsECP3ZJeJlvaOG+Big/g765k+KIeXZLaLdoYqrvxoVMeUOkQ8wolMiSk++kfGvYrDkJ7FAOz7SJCwRUw==
   dependencies:
     "@asyncapi/parser" "^1.0.0-rc.1"
     colors "^1.4.0"

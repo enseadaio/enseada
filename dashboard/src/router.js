@@ -14,12 +14,12 @@ Vue.use(Router);
 const router = new Router({
   mode: 'history',
   routes: [
-    { path: '/', name: 'home', component: Home, },
-    { path: '/about', name: 'about', component: About, },
-    { path: '/auth/callback', name: 'oauthCallback', component: OAuthCallback, },
+    { path: '/', name: 'home', component: Home },
+    { path: '/about', name: 'about', component: About },
+    { path: '/dashboard/auth/callback', name: 'oauthCallback', component: OAuthCallback },
     ...usersRoutes,
     ...containersRoutes,
-    ...mavenRoutes,
+    ...mavenRoutes
   ],
 });
 

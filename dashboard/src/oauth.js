@@ -8,6 +8,7 @@ const scope = [
   'users:manage',
   'oci:repos:read',
   'oci:repos:manage',
+  'oci:repos:delete'
 ].join(' ');
 
 export const settings = {
@@ -17,6 +18,7 @@ export const settings = {
   response_type: 'code',
   scope,
   loadUserInfo: true,
+  automaticSilentRenew: true,
   metadata: {
     authorization_endpoint: buildUrl('/oauth/authorize'),
     token_endpoint: buildUrl('/oauth/token'),
@@ -26,11 +28,11 @@ export const settings = {
 };
 
 export const listeners = {
-  userLoaded: (user) => console.debug('OIDC user is loaded:', user),
+  userLoaded: () => console.debug('OIDC user is loaded'),
   userUnloaded: () => console.debug('OIDC user is unloaded'),
   accessTokenExpiring: () => console.warn('Access token will expire'),
   accessTokenExpired: () => console.warn('Access token did expire'),
   silentRenewError: () => console.error('OIDC user is unloaded'),
   userSignedOut: () => console.debug('OIDC user is signed out'),
-  oidcError: (payload) => console.error(`An error occured at ${payload.context}:`, payload.error),
+  oidcError: (payload) => console.error(`An error occured at ${payload.context}:`, payload.error)
 };

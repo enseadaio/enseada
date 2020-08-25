@@ -5,15 +5,15 @@ use crate::http::error::ApiError;
 use crate::template::ReDoc;
 
 pub fn mount(cfg: &mut web::ServiceConfig) {
-    // cfg.service(open_api);
+    cfg.service(open_api);
     cfg.service(redoc);
 }
 
-const SPEC: &str = include_str!(concat!(env!("OUT_DIR"), "/openapi.yml"));
-
 #[get("/api/docs/openapi.yml")]
 pub async fn open_api() -> HttpResponse {
-    HttpResponse::Ok().content_type("text/yaml").body(SPEC)
+    HttpResponse::Ok()
+        .content_type("text/yaml")
+        .body(api::SPEC_YML)
 }
 
 #[get("/api/docs")]

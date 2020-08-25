@@ -5,9 +5,10 @@
     "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
     "license": "MPL-2.0",
     "scripts": {
-        "build": "boats -x -i docs/index.yml -o $OUT_DIR/openapi.yml",
+        "build": "boats -x -i docs/index.yml.njk -o $OUT_DIR/openapi.yml",
         "build:local": "boats -x -i docs/index.yml.njk -o dist/openapi.yml",
         "serve": "redoc-cli serve dist/openapi.yml --watch --options.showExtensions",
+        "preserve": "yarn build:local",
         "clean": "rimraf dist"
     },
     "devDependencies": {

@@ -7,14 +7,6 @@ export interface Section {
 }
 
 const sections: Section[] = [
-  // <b-navbar-dropdown label="Packages" hoverable class="is-hidden-desktop">
-  //   <b-navbar-item tag="router-link" :to="{ name: 'containers'}">
-  // Containers
-  // </b-navbar-item>
-  // <b-navbar-item tag="router-link" :to="{ name: 'maven'}">
-  // Maven
-  // </b-navbar-item>
-  // </b-navbar-dropdown>
   {
     name: 'Packages',
     children: [
