@@ -60,6 +60,10 @@ export default {
     sections: () => (sections),
     enseadaLogo: () => (enseadaLogo),
     username () {
+      if (!this.currentUser) {
+        return 'loading...'
+      }
+
       return this.currentUser.username
     }
   },
