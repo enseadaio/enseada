@@ -770,7 +770,7 @@ dependencies = [
  "futures",
  "log",
  "reqwest",
- "rustls 0.17.0",
+ "rustls 0.18.1",
  "serde 1.0.115",
  "serde_json",
  "snafu",
