@@ -55,6 +55,15 @@ COPY rbac .
 WORKDIR /app/enseada/users
 COPY users .
 
+# API
+WORKDIR /app/enseada/api
+COPY api/package.json .
+COPY api/yarn.lock .
+
+RUN yarn --frozen-lockfile install
+
+COPY api .
+
 # Server
 WORKDIR /app/enseada/server
 

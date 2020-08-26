@@ -30,12 +30,13 @@ jobs:
           rustup component add clippy
           yarn --frozen-lockfile --cwd server install
           yarn --frozen-lockfile --cwd dashboard install
+          yarn --frozen-lockfile --cwd api install
       - name: Build dashboard
         run: yarn --frozen-lockfile --cwd dashboard build
       - name: Lint code
         run: |
-        #          Reenable when issues are fixed
-      #          cargo clippy --all-targets --all-features -- -D warnings
+        # Reenable when issues are fixed
+        # cargo clippy --all-targets --all-features -- -D warnings
       - name: Run tests
         run: |
           cargo test
