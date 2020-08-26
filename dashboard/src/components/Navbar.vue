@@ -36,37 +36,40 @@
         </template>
 
         <template slot="end">
-            <b-navbar-dropdown label="John Doe" hoverable>
-                <b-navbar-item href="#">
-                    Account
-                </b-navbar-item>
-                <b-navbar-item @click="this.signOut">
-                    Logout
-                </b-navbar-item>
+            <b-navbar-dropdown :label="username" hoverable>
+              <b-navbar-item href="#">
+                Account
+              </b-navbar-item>
+              <b-navbar-item @click="this.signOut">
+                Logout
+              </b-navbar-item>
             </b-navbar-dropdown>
         </template>
     </b-navbar>
 </template>
 
 <script>
-  import { mapGetters, mapActions } from 'vuex';
-  import enseadaLogo from '../../assets/images/enseada-logo.svg'
-  import sections from '../sections';
+import { mapActions, mapGetters } from 'vuex'
+import enseadaLogo from '../../assets/images/enseada-logo.svg'
+import sections from '../sections'
 
-  export default {
-    name: 'Navbar',
-    computed: {
-      sections: () => (sections),
-      enseadaLogo: () => (enseadaLogo),
-      ...mapGetters(['oidcUser'])
-    },
-    methods: {
-      signOut() {
-        this.signOutOidc()
-        .catch((e) => this.$emit('error', e));
-      },
-      ...mapActions(['authenticateOidc', 'signOutOidc']),
-    },
+export default {
+  name: 'Navbar',
+  computed: {
+    ...mapGetters(['currentUser']),
+    sections: () => (sections),
+    enseadaLogo: () => (enseadaLogo),
+    username () {
+      return this.currentUser.username
+    }
+  },
+  methods: {
+    ...mapActions(['authenticateOidc', 'signOutOidc']),
+    signOut () {
+      this.signOutOidc()
+          .catch((e) => this.$emit('error', e))
+    }
+  }
   }
 </script>
 

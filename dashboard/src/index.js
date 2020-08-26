@@ -9,7 +9,6 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import '../assets/scss/style.scss'
 import 'buefy/dist/buefy.css'
 
-
 if (module.hot) {
   module.hot.accept();
 }
@@ -23,8 +22,10 @@ window.addEventListener("error", function (e) {
   return false;
 })
 
-Vue.use(Buefy);
-Vue.use(VueHttp, { accessTokenProvider });
+Vue.use(Buefy, {
+  defaultProgrammaticPromise: true
+})
+Vue.use(VueHttp, { accessTokenProvider })
 
 new Vue({
   router,

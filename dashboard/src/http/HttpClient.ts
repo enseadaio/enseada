@@ -27,6 +27,10 @@ export class HttpClient {
     return this.request(Method.POST, url, body, query, headers)
   }
 
+  put(url: string, body?: any, query?: Query, headers?: HttpHeaders): Promise<Response> {
+    return this.request(Method.PUT, url, body, query, headers)
+  }
+
   delete(url: string, query?: Query, headers?: HttpHeaders): Promise<Response> {
     return this.request(Method.DELETE, url, undefined, query, headers)
   }

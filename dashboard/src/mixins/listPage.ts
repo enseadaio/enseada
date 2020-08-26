@@ -50,6 +50,9 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
         this.page = await svc(this).list({ offset, limit: this.limit })
         this.loading = false
       },
+      reloadCurrent() {
+        return this.fetch(this.offset).catch((err) => this.$emit('error', err))
+      },
       onPageChange(page) {
         return this.fetch(pageToOffset(page, this.limit)).catch((err) => this.$emit('error', err))
       },
@@ -63,7 +66,7 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
               message: `Deleted ${name} ${id}`,
               type: 'is-warning',
               position: 'is-bottom-right',
-              duration: 10000
+              duration: 2000
             })
           });
 

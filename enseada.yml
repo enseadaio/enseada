@@ -1,4 +1,4 @@
-# Configuration
+# Example Configuration
 
 ## Generic
 port: 9623
@@ -11,15 +11,18 @@ secret.key: Y7o3UYJTdympbipV54to2e57r5bjTMcq
 public.host: http://localhost:9623
 root.password: supersecret
 
+# Tracing
 tracing:
   log: false
   level: info
 
+# Database
 couchdb:
   url: http://localhost:5984
   username: enseada
   password: enseada
 
+# Storage
 storage:
   provider: s3
   bucket: enseada
@@ -27,10 +30,12 @@ storage:
   access_key_id: enseada
   secret_access_key: enseadaminio
 
+# HTTPS
 tls:
   enabled: false
-  cert.path: examples/cert.pem
-  key.path: examples/key.pem
+  cert.path: .github/cert.pem
+  key.path: .github/key.pem
 
+# OCI registry
 oci:
   subdomain: containers

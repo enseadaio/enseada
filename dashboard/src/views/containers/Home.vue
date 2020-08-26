@@ -3,7 +3,7 @@
     <h1 class="title">Containers</h1>
     <div class="level">
       <div class="level-right">
-        <router-link class="level-item button is-primary" :to="{name: 'create-container-repo'}">Create</router-link>
+        <router-link class="level-item button info" :to="{name: 'create-container-repo'}">Create</router-link>
         <a class="level-item button is-danger"
            @click="remove"
            :disabled="!checked.length">Delete</a>
@@ -29,7 +29,6 @@ export default {
   mixins: [listPage({ name: 'repository', service: 'containers', mapId: ({ group, name }) => `${group}/${name}` })],
   computed: {
     items () {
-      console.dir(this.page.items)
       return this.page.items.map((repo) => ({ ...repo, fullName: this.mapId(repo) }))
     },
     columns () {

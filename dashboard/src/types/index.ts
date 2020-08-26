@@ -1,4 +1,5 @@
 export { Repository as ContainerRepository } from './containers';
+export * from './users';
 
 export type IdMapFn<T> = (obj: T) => string;
 

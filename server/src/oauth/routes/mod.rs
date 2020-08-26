@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
-use actix_web::web;
-use actix_web::web::ServiceConfig;
+use actix_web::get;
+use actix_web::web::{self, Json, ServiceConfig};
 use actix_web::FromRequest;
+use serde::Serialize;
+use url::Url;
 
 use ::oauth::handler::OAuthHandler;
 use ::oauth::persistence::CouchStorage;
@@ -28,6 +30,7 @@ pub fn mount(cfg: &mut ServiceConfig) {
     cfg.data(CouchStorage::new(db.clone()));
     cfg.data(handler);
 
+    cfg.service(oauth::metadata);
     cfg.service(
         web::scope("/oauth")
             .app_data(web::Query::<AuthorizationRequest>::configure(

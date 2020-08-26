@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
 use actix_web::{delete, get, post, put, HttpResponse};
+use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
@@ -160,6 +161,12 @@ pub async fn delete(
 ) -> ApiResult<Json<UserModel>> {
     Scope::from("users:manage").matches(&scope)?;
     let username = &path.username;
+    if username == "root" {
+        return Err(ApiError::new(
+            StatusCode::FORBIDDEN,
+            "root user cannot be deleted",
+        ));
+    }
     let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &User::build_guid(username), "delete")?;
 

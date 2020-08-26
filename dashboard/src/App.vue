@@ -15,26 +15,20 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
-  import SideMenu from './components/SideMenu'
-  import Navbar from './components/Navbar'
+import SideMenu from './components/SideMenu'
+import Navbar from './components/Navbar'
 
-  export default {
-    name: 'App',
-    components: { SideMenu, Navbar },
-    data () {
-      return {
-        error: null
-      }
-    },
-    computed: {
-      ...mapGetters([
-        'oidcIsAuthenticated'
-      ])
-    },
-    methods: {
-      async onError (err) {
-        console.error(err);
+export default {
+  name: 'App',
+  components: { SideMenu, Navbar },
+  data () {
+    return {
+      error: null
+    }
+  },
+  methods: {
+    async onError (err) {
+      console.error(err)
         if (err.response) {
             const { error, reasons } = await err.response.json();
             reasons.forEach((reason) => {

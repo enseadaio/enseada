@@ -7,7 +7,7 @@
   "scripts": {
     "start": "parcel watch index.html --public-url='/static'",
     "build": "parcel build index.html --public-url='/static'",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist .cache"
   },
   "devDependencies": {
     "@types/node": "^14.0.23",
@@ -18,15 +18,15 @@
     "vue-template-compiler": "^2.6.11"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.14.0",
-    "buefy": "^0.8.20",
-    "bulma": "^0.9.0",
-    "oidc-client": "^1.10.1",
-    "vue": "^2.6.11",
-    "vue-hot-reload-api": "^2.3.4",
-    "vue-router": "^3.3.4",
-    "vuex": "^3.5.1",
-    "vuex-oidc": "^3.5.1"
+      "@fortawesome/fontawesome-free": "^5.14.0",
+      "buefy": "^0.9.2",
+      "bulma": "^0.9.0",
+      "oidc-client": "^1.10.1",
+      "vue": "^2.6.11",
+      "vue-hot-reload-api": "^2.3.4",
+      "vue-router": "^3.3.4",
+      "vuex": "^3.5.1",
+      "vuex-oidc": "^3.5.1"
   },
   "browserslist": [
     "last 3 and_chr versions",

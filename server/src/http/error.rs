@@ -38,7 +38,8 @@ pub struct ErrorResponse {
 }
 
 impl ApiError {
-    pub fn new(status: StatusCode, reason: String) -> Self {
+    pub fn new<R: ToString>(status: StatusCode, reason: R) -> Self {
+        let reason = reason.to_string();
         match status {
             StatusCode::BAD_REQUEST => ApiError::BadRequest(reason),
             StatusCode::CONFLICT => ApiError::Conflict(reason),

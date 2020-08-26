@@ -9,6 +9,8 @@ export interface Service<T> {
 
   create(payload: any): Promise<T>;
 
+  update(id: string, payload: any): Promise<T>;
+
   remove(id: string): Promise<void>;
 }
 
@@ -35,6 +37,11 @@ class ServiceImpl<T> implements Service<T>{
   create(payload: any): Promise<T> {
     return this.http.post(this.path, payload).then((res) => res.json());
   }
+
+  update(id: string, payload: any): Promise<T> {
+    return this.http.put(`${this.path}/${id}`, payload).then((res) => res.json())
+  }
+
 
   async remove(id: string): Promise<void> {
     await this.http.delete(`${this.path}/${id}`);

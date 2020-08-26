@@ -7,22 +7,23 @@
 
 
 <script>
-  import { mapActions } from 'vuex'
+import { mapActions } from 'vuex'
 
-  export default {
-    name: 'OAuthCallback',
-    data () {
-      return {
-        error: null
-      }
-    },
-    methods: {
-      ...mapActions(['oidcSignInCallback'])
-    },
-    mounted () {
-      this.oidcSignInCallback()
-        .then((redirect) => {
-          return this.$router.push(redirect);
+export default {
+  name: 'OAuthCallback',
+  data () {
+    return {
+      error: null
+    }
+  },
+  methods: {
+    ...mapActions(['oidcSignInCallback', 'storeCurrentUser'])
+  },
+  mounted () {
+    this.oidcSignInCallback()
+        .then(async (redirect) => {
+          await this.storeCurrentUser()
+          return this.$router.push(redirect)
         })
         .catch((e) => {
           this.error = e

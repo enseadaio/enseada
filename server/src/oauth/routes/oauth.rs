@@ -26,6 +26,7 @@ use oauth::CouchOAuthHandler;
 use users::UserService;
 
 use crate::assets;
+use crate::config::CONFIG;
 use crate::http::error::ApiError;
 use crate::http::responses;
 use crate::oauth::template::{LoginForm, Logout};
@@ -284,6 +285,58 @@ pub async fn logout(http_session: HttpSession) -> Result<Logout, ApiError> {
 
     http_session.clear();
     Ok(Logout::default())
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct OAuthMetadata {
+    issuer: Url,
+    authorization_endpoint: Url,
+    token_endpoint: Url,
+    revocation_endpoint: Url,
+    introspection_endpoint: Url,
+    end_session_endpoint: Url,
+    userinfo_endpoint: Url,
+    grant_types_supported: Vec<String>,
+    response_types_supported: Vec<String>,
+    response_modes_supported: Vec<String>,
+    token_endpoint_auth_methods_supported: Vec<String>,
+    revocation_endpoint_auth_methods_supported: Vec<String>,
+    introspection_endpoint_auth_methods_supported: Vec<String>,
+    code_challenge_methods_supported: Vec<String>,
+    service_documentation: Url,
+}
+
+lazy_static! {
+    static ref METADATA: OAuthMetadata = {
+        let issuer: &Url = CONFIG.public_host();
+        OAuthMetadata {
+            issuer: issuer.clone(),
+            authorization_endpoint: issuer.join("/oauth/authorize").unwrap(),
+            token_endpoint: issuer.join("/oauth/token").unwrap(),
+            revocation_endpoint: issuer.join("/oauth/revoke").unwrap(),
+            introspection_endpoint: issuer.join("/oauth/introspect").unwrap(),
+            end_session_endpoint: issuer.join("/oauth/logout").unwrap(),
+            userinfo_endpoint: issuer.join("/api/v1beta1/users/me").unwrap(),
+            grant_types_supported: vec![
+                "authorization_code".to_string(),
+                "refresh_token".to_string(),
+            ],
+            response_types_supported: vec!["code".to_string()],
+            response_modes_supported: vec!["query".to_string()],
+            code_challenge_methods_supported: vec!["plain".to_string(), "S256".to_string()],
+            token_endpoint_auth_methods_supported: vec![
+                "client_secret_basic".to_string(),
+                "client_secret_post".to_string(),
+            ],
+            revocation_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
+            introspection_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
+            service_documentation: Url::parse("https://docs.enseada.io").unwrap(),
+        }
+    };
+}
+#[get("/.well-known/oauth-authorization-server")]
+pub async fn metadata() -> OAuthResult<Json<&'static OAuthMetadata>> {
+    Ok(Json(&*METADATA))
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {

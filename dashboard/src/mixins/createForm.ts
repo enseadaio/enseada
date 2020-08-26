@@ -20,20 +20,24 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
       return {
         loading: false,
         model: {},
+        created: null,
       }
     },
     methods: {
+      postSubmit() {
+        this.$buefy.notification.open({
+          message: `Created ${name} ${mapId(this.created)}`,
+          type: 'is-success',
+          position: 'is-bottom-right',
+          duration: 2000
+        });
+        return this.$router.push({ name: service })
+      },
       async submit() {
         try {
           this.loading = true
-          const created = await svc(this).create(this.model)
-          this.$buefy.notification.open({
-            message: `Created ${name} ${mapId(created)}`,
-            type: 'is-success',
-            position: 'is-bottom-right',
-            duration: 10000
-          })
-          await this.$router.push({ name: service })
+          this.created = await svc(this).create(this.model)
+          return this.postSubmit();
         } catch (err) {
           this.$emit('error', err)
         } finally {

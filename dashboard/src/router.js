@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './views/Home'
 import { routes as usersRoutes } from './views/users'
+import { routes as patsRoutes } from './views/pats'
 import { routes as containersRoutes } from './views/containers'
 import { routes as mavenRoutes } from './views/maven'
 import About from './views/About'
@@ -18,6 +19,7 @@ const router = new Router({
     { path: '/about', name: 'about', component: About },
     { path: '/dashboard/auth/callback', name: 'oauthCallback', component: OAuthCallback },
     ...usersRoutes,
+    ...patsRoutes,
     ...containersRoutes,
     ...mavenRoutes
   ],
