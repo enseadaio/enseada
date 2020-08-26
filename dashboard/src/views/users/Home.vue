@@ -12,7 +12,6 @@
            :disabled="!checked.length">Delete</a>
       </div>
     </div>
-    <!--               :columns="columns"-->
     <b-table :data="items"
              :total="count"
              :per-page="limit"
