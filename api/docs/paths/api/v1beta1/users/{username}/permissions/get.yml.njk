@@ -1,0 +1,21 @@
+tags:
+  - rbac
+summary: List permissions associated with the given user
+operationId: user::permissions::list
+x-required-permissions:
+  - object: users:$username
+    action: read_permissions
+security:
+  - oauth:
+      - users:read
+      - permissions
+parameters:
+  - $ref: ../../../../../../components/parameters/offset.yml
+  - $ref: ../../../../../../components/parameters/limit.yml
+responses:
+  '200':
+    description: Successful fetch
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/permission/page.yml.njk

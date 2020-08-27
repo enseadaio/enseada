@@ -1,0 +1,6 @@
+name: role
+in: path
+description: Name of the desired role
+required: true
+schema:
+  type: string

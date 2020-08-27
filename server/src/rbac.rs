@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
 use actix_web::{delete, get, post, put};
+use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
@@ -60,18 +61,26 @@ pub async fn list_roles(
     Ok(Json(roles.map(map_owned_role)))
 }
 
-#[post("/api/v1beta1/roles")]
+#[put("/api/v1beta1/roles/{role}")]
 pub async fn create_role(
     enforcer: Data<Arc<RwLock<Enforcer>>>,
     scope: OAuthScope,
     current_user: CurrentUser,
-    body: Json<RoleModel>,
+    path: Path<RolePathParam>,
 ) -> ApiResult<Json<RoleModel>> {
     Scope::from("roles").matches(&scope)?;
     let enforcer = enforcer.read().await;
     enforcer.check(current_user.id(), &Guid::simple("roles"), "create")?;
 
-    let role = Role::new(&body.role);
+    let role = &path.role;
+    let other: Option<Role> = enforcer.find(role).await?;
+    if other.is_some() {
+        return Err(ApiError::new(
+            StatusCode::CONFLICT,
+            format!("role '{}' already exists", role,),
+        ));
+    }
+    let role = Role::new(role);
     let role = enforcer.save(role).await?;
 
     Ok(Json(map_owned_role(role)))
@@ -87,7 +96,7 @@ pub async fn delete_role(
     Scope::from("roles").matches_exactly(&scope)?;
     let role = &path.role;
     let enforcer = enforcer.read().await;
-    enforcer.check(current_user.id(), &Role::build_guid(role), "manage")?;
+    enforcer.check(current_user.id(), &Role::build_guid(role), "delete")?;
 
     let role = enforcer.get(role).await?;
     enforcer.delete(&role).await?;
@@ -130,7 +139,7 @@ pub async fn add_role_permission(
     let role = &path.role;
     let enforcer = enforcer.read().await;
     let sub = Guid::partitioned("role", role);
-    enforcer.check(current_user.id(), &sub, "manage_permissions")?;
+    enforcer.check(current_user.id(), &sub, "add_permission")?;
 
     let mut permission = permission;
     permission.subject = Some(sub.clone());
@@ -153,7 +162,7 @@ pub async fn remove_role_permission(
     let role = &path.role;
     let enforcer = enforcer.read().await;
     let sub = &Guid::partitioned("role", role);
-    enforcer.check(current_user.id(), sub, "manage_permissions")?;
+    enforcer.check(current_user.id(), sub, "remove_permission")?;
 
     let mut permission = permission;
     permission.subject = Some(sub.clone());

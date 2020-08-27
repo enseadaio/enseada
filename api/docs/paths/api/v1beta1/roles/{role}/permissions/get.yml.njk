@@ -1,0 +1,21 @@
+tags:
+  - rbac
+summary: List permissions associated with the given role
+operationId: role::permissions::list
+x-required-permissions:
+  - object: roles:$role
+    action: read_permissions
+security:
+  - oauth:
+      - roles
+      - permissions
+parameters:
+  - $ref: ../../../../../../components/parameters/offset.yml
+  - $ref: ../../../../../../components/parameters/limit.yml
+responses:
+  '200':
+    description: Successful fetch
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/permission/page.yml.njk

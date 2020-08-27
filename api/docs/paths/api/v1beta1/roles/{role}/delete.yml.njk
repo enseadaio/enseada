@@ -1,0 +1,25 @@
+tags:
+  - rbac
+summary: Delete a role
+operationId: role::delete
+x-required-permissions:
+  - object: roles:$role
+    action: delete
+security:
+  - oauth:
+      - roles
+parameters:
+  - $ref: ../../../../../components/parameters/role.yml
+responses:
+  "200":
+    description: Deleted role details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/role/model.yml.njk
+  "404":
+    description: A role with the given name doesn't exist
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/error.yml.njk

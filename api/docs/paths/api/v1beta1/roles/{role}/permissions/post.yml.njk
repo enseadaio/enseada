@@ -1,0 +1,33 @@
+tags:
+  - rbac
+summary: Add a permission from the given role
+operationId: role::permission::add
+x-required-permissions:
+  - object: roles:$role
+    action: add_permission
+security:
+  - oauth:
+      - roles
+      - permissions
+parameters:
+  - $ref: ../../../../../../components/parameters/role.yml
+requestBody:
+  required: true
+  description: Permission to add. The subject can be omitted
+  content:
+    application/json:
+      schema:
+        $ref: ../../../../../../components/schemas/permission/model.yml.njk
+responses:
+  "200":
+    description: Added permission details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/permission/model.yml.njk
+  "404":
+    description: A role with the given name doesn't exist
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/error.yml.njk

@@ -1,0 +1,20 @@
+tags:
+  - users
+summary: Fetches permissions assigned to the currently authenticated user
+description: |
+  This endpoint returns an aggregated, unique list of permissions that
+  are assigned to the current user, either directly or via a role.
+  It is primarily used to retrieve the deduplicated list of permissions
+  to check if a user is allowed to perform a certain action, for example
+  in the web dashboard.
+operationId: user::me::capabilities
+security:
+  - oauth:
+      - profile
+responses:
+  "200":
+    description: Current user capabilities
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/user/capabilities.yml.njk

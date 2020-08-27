@@ -1,0 +1,33 @@
+tags:
+  - rbac
+summary: Remove a permission from the given user
+operationId: user::permission::delete
+x-required-permissions:
+  - object: users:$username
+    action: remove_permission
+security:
+  - oauth:
+      - user:manage
+      - permissions
+parameters:
+  - $ref: ../../../../../../components/parameters/username.yml
+requestBody:
+  required: true
+  description: Permission to remove. The subject can be omitted
+  content:
+    application/json:
+      schema:
+        $ref: ../../../../../../components/schemas/permission/model.yml.njk
+responses:
+  "200":
+    description: Removed permission details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/permission/model.yml.njk
+  "404":
+    description: A role with the given name doesn't exist
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../../components/schemas/error.yml.njk

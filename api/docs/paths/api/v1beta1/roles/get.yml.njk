@@ -1,0 +1,20 @@
+tags:
+  - rbac
+summary: List available roles
+operationId: roles::list
+x-required-permissions:
+  - object: roles
+    action: read
+security:
+  - oauth:
+      - roles
+parameters:
+  - $ref: ../../../../components/parameters/offset.yml
+  - $ref: ../../../../components/parameters/limit.yml
+responses:
+  '200':
+    description: Successful fetch
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../components/schemas/role/page.yml.njk

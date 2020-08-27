@@ -1,0 +1,17 @@
+type: object
+required:
+  - permissions
+  - roles
+properties:
+  permissions:
+    type: array
+    uniqueItems: true
+    minItems: 0
+    items:
+      $ref: ../permission/model.yml.njk
+  roles:
+    type: array
+    uniqueItems: true
+    minItems: 0
+    items:
+      $ref: ../role/model.yml.njk

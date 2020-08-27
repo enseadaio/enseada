@@ -3,7 +3,7 @@ use std::fmt::Display;
 use serde::export::Formatter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Guid {
     partition: Option<String>,
     id: String,

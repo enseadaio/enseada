@@ -13,8 +13,11 @@ pub fn mount(cfg: &mut ServiceConfig) {
     let service = UserService::new(db);
     cfg.data(service);
 
-    // CRUD
+    // Profile
     cfg.service(self::user::me);
+    cfg.service(self::rbac::list_capabilities);
+
+    // Users
     cfg.service(self::user::list);
     cfg.service(self::user::register);
     cfg.service(self::user::get);

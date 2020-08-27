@@ -1,0 +1,23 @@
+tags:
+  - rbac
+summary: Create a new role
+operationId: role::create
+x-required-permissions:
+  - object: roles
+    action: create
+security:
+  - oauth:
+      - roles
+responses:
+  "200":
+    description: New role details
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/role/model.yml.njk
+  "409":
+    description: A role with the given name already exists
+    content:
+      application/json:
+        schema:
+          $ref: ../../../../../components/schemas/error.yml.njk
