@@ -104,7 +104,12 @@ where
                     "access denied".to_string(),
                 ));
             }
-            self.access_token_storage.revoke_token(sig).await;
+            if let Err(err) = self.access_token_storage.revoke_token(sig).await {
+                match err.kind() {
+                    ErrorKind::InvalidRequest => log::warn!("{}", err),
+                    _ => return Err(err),
+                }
+            }
             return Ok(ok);
         }
 
