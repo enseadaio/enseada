@@ -88,7 +88,7 @@ pub async fn get(
     service
         .find(username)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("User {} not found", username)))
+        .ok_or_else(|| ApiError::not_found(format!("User '{}' not found", username)))
         .map(map_owned_user)
         .map(Json)
 }
@@ -111,7 +111,7 @@ pub async fn update(
     let mut user = service
         .find(username)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("User {} not found", username)))?;
+        .ok_or_else(|| ApiError::not_found(format!("User '{}' not found", username)))?;
 
     let mut dirty = false;
 
@@ -155,7 +155,7 @@ pub async fn delete(
     let user = service
         .find(username)
         .await?
-        .ok_or_else(|| ApiError::NotFound(username.clone()))?;
+        .ok_or_else(|| ApiError::not_found(format!("User '{}' not found", username)))?;
 
     service.delete(&user).await?;
     Ok(Json(map_user(&user)))

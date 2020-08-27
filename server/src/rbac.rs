@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
-use actix_web::{delete, get, post, put};
+use actix_web::{delete, get, head, post, put, HttpResponse};
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use api::rbac::v1beta1::{PermissionModel, RoleModel};
+use api::rbac::v1beta1::{PermissionModel, RoleDetails, RoleModel};
 use enseada::couchdb::repository::{Entity, Repository};
+use enseada::error::Error;
 use enseada::guid::Guid;
 use enseada::pagination::Page;
 use oauth::scope::Scope;
@@ -24,6 +25,7 @@ use crate::user::UsernamePathParam;
 pub fn mount(cfg: &mut ServiceConfig) {
     // Roles
     cfg.service(list_roles);
+    cfg.service(check_role);
     cfg.service(create_role);
     cfg.service(delete_role);
 
@@ -59,6 +61,26 @@ pub async fn list_roles(
 
     let roles: Page<Role> = enforcer.list(limit, offset).await?;
     Ok(Json(roles.map(map_owned_role)))
+}
+
+#[head("/api/v1beta1/roles/{role}")]
+pub async fn check_role(
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
+    path: Path<RolePathParam>,
+) -> ApiResult<HttpResponse> {
+    Scope::from("roles").matches_exactly(&scope)?;
+    let role = &path.role;
+    let enforcer = enforcer.read().await;
+    enforcer.check(current_user.id(), &Role::build_guid(role), "read")?;
+
+    let _role: Role = enforcer
+        .find(role)
+        .await?
+        .ok_or_else(|| Error::not_found("role", role))?;
+
+    Ok(HttpResponse::NoContent().finish())
 }
 
 #[put("/api/v1beta1/roles/{role}")]

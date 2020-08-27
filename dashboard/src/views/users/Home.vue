@@ -16,13 +16,16 @@
              :total="count"
              :per-page="limit"
              :checked-rows.sync="checked"
+             :loading="loading"
+             :is-row-checkable="isNotRoot"
              @page-change="onPageChange"
              checkable
-             :is-row-checkable="isNotRoot"
              backend-pagination
              paginated>
-      <b-table-column field="usernameHint" label="Username" v-slot="{ row }">
-        {{ row.username }}
+      <b-table-column field="username" label="Username" v-slot="{ row }">
+        <router-link :to="{ name: 'user', params: { id: row.username }}" v-if="isNotRoot(row)">{{ row.username }}
+        </router-link>
+        <span v-else>{{ row.username }}</span>
       </b-table-column>
       <b-table-column label="Status" v-slot="{ row: { username, enabled } }">
         <b-tooltip label="Root user cannot be disabled"

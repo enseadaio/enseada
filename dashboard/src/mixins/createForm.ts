@@ -5,6 +5,7 @@ import { svcGetter } from "../utils";
 interface CreateFormData<T> {
   loading: boolean,
   model: any,
+  created: T,
 }
 
 interface FactoryParams<T> {

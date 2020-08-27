@@ -16,6 +16,12 @@ pub mod v1beta1 {
         pub role: String,
     }
 
+    #[derive(Debug, Deserialize, Serialize)]
+    pub struct RoleDetails {
+        pub role: String,
+        pub permissions: Vec<PermissionModel>,
+    }
+
     #[derive(Debug, Serialize)]
     pub struct UserCapabilities {
         pub permissions: Vec<PermissionModel>,

@@ -18,6 +18,7 @@ const sections: Section[] = [
     name: 'Security',
     children: [
       { name: 'Users', to: { name: 'users' } },
+      { name: 'Roles', to: { name: 'roles' } },
       { name: 'OAuth Clients', to: '#' },
       { name: 'Access Tokens', to: { name: 'pats' } },
     ],

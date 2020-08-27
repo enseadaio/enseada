@@ -17,6 +17,10 @@ export const SCOPES = {
     'users:read',
     'users:manage',
   ],
+  rbac: [
+    'roles',
+    'permissions',
+  ],
   tokens: [
     'pats:read',
     'pats:manage',

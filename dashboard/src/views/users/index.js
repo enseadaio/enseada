@@ -1,8 +1,11 @@
-import Home from './Home';
+import Home from './Home'
 import CreateForm from './CreateForm'
-const routes = [
-  { path: '/users', name: 'users', component: Home, },
-  { path: '/users/new', name: 'create-user', component: CreateForm, },
-];
+import Show from './Show'
 
-export { routes };
+const routes = [
+  { path: '/users', name: 'users', component: Home },
+  { path: '/users/new', name: 'create-user', component: CreateForm },
+  { path: '/users/:id', name: 'user', component: Show, props: true }
+]
+
+export { routes }

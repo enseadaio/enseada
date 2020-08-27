@@ -19,6 +19,10 @@ export class HttpClient {
     this.accessTokenProvider = accessTokenProvider;
   }
 
+  head(url: string, query?: Query, headers?: HttpHeaders): Promise<Response> {
+    return this.request(Method.HEAD, url, undefined, query, headers)
+  }
+
   get(url: string, query?: Query, headers?: HttpHeaders): Promise<Response> {
     return this.request(Method.GET, url, undefined, query, headers)
   }
@@ -31,8 +35,8 @@ export class HttpClient {
     return this.request(Method.PUT, url, body, query, headers)
   }
 
-  delete(url: string, query?: Query, headers?: HttpHeaders): Promise<Response> {
-    return this.request(Method.DELETE, url, undefined, query, headers)
+  delete(url: string, body?: any, query?: Query, headers?: HttpHeaders): Promise<Response> {
+    return this.request(Method.DELETE, url, body, query, headers)
   }
 
   async request(method: Method, url: string, body?: any, query?: Query, headers?: HttpHeaders): Promise<Response> {

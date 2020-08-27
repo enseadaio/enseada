@@ -14,6 +14,7 @@
              :total="count"
              :per-page="limit"
              :checked-rows.sync="checked"
+             :loading="loading"
              @page-change="onPageChange"
              checkable
              backend-pagination
