@@ -38,4 +38,4 @@ tls:
 
 # OCI registry
 oci:
-  subdomain: containers
+  host: containers.localhost

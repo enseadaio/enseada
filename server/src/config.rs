@@ -72,7 +72,7 @@ pub enum Storage {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OCI {
-    subdomain: String,
+    host: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -105,7 +105,7 @@ impl Configuration {
         c.set_default("log.level", "info")?;
         c.set_default("log.rootlevel", "warn")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
-        c.set_default("oci.subdomain", "containers")?;
+        c.set_default("oci.host", "containers.localhost")?;
         c.set_default("tracing.log", false)?;
         c.set_default("tracing.level", "info")?;
 
@@ -222,8 +222,8 @@ impl TLS {
 }
 
 impl OCI {
-    pub fn subdomain(&self) -> String {
-        self.subdomain.clone()
+    pub fn host(&self) -> String {
+        self.host.clone()
     }
 }
 

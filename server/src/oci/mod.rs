@@ -3,7 +3,7 @@ use std::sync::Arc;
 use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::middleware::DefaultHeaders;
 use actix_web::web::{self, ServiceConfig};
-use actix_web::{get, FromRequest, ResponseError};
+use actix_web::{get, guard, FromRequest, ResponseError};
 use actix_web::{HttpRequest, HttpResponse};
 use http::StatusCode;
 use serde::Deserialize;
@@ -13,7 +13,6 @@ use oci::service::{BlobService, ManifestService, RepoService, UploadService};
 
 use crate::config::CONFIG;
 use crate::http::extractor::session::TokenSession;
-use crate::http::guard::subdomain;
 use crate::storage;
 
 mod api;
@@ -47,10 +46,10 @@ pub fn mount(cfg: &mut ServiceConfig) {
     cfg.service(api::get_repo);
     cfg.service(api::delete_repo);
 
-    let sub = CONFIG.oci().subdomain();
+    let host = CONFIG.oci().host();
     cfg.service(
         web::scope("/v2")
-            .guard(subdomain(sub))
+            .guard(guard::Host(host))
             .wrap(DefaultHeaders::new().header(header::DISTRIBUTION_API_VERSION, "registry/2.0"))
             .wrap(
                 ErrorHandlers::new()
