@@ -81,6 +81,10 @@ pub trait Repository<T>: Debug {
             .find_partitioned(partition, selector, limit, offset)
             .await?;
 
+        if let Some(warning) = &res.warning {
+            log::warn!("{}", warning);
+        }
+
         let count = db.count_partitioned(partition).await?;
 
         Ok(Page::from_find_response(res, limit, offset, count))

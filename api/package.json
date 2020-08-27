@@ -5,14 +5,14 @@
     "author": "Matteo Joliveau <matteojoliveau@gmail.com>",
     "license": "MPL-2.0",
     "scripts": {
-        "build": "boats -x -i docs/index.yml.njk -o $OUT_DIR/openapi.yml",
+        "build": "boats -x -y -i docs/index.yml.njk -o $OUT_DIR/openapi.yml",
         "build:local": "boats -x -i docs/index.yml.njk -o dist/openapi.yml",
         "serve": "redoc-cli serve dist/openapi.yml --watch --options.showExtensions",
         "preserve": "yarn build:local",
         "clean": "rimraf dist"
     },
     "devDependencies": {
-        "boats": "^1.23.0",
+        "boats": "^1.24.0",
         "redoc-cli": "^0.9.11",
         "rimraf": "^3.0.2",
         "speccy": "^0.11.0"

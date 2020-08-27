@@ -4,7 +4,6 @@ use std::sync::Arc;
 use actix_web::web::{Data, Json, Path, Query, ServiceConfig};
 use actix_web::{delete, get, post, put, HttpResponse};
 use http::StatusCode;
-use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use api::users::v1beta1::{UserModel, UserPost, UserPut};
@@ -20,19 +19,7 @@ use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::responses;
 use crate::http::{ApiResult, PaginationQuery};
-
-pub fn mount(cfg: &mut ServiceConfig) {
-    let couch = &crate::couchdb::SINGLETON;
-    let db = couch.database(crate::couchdb::name::USERS, true);
-    let service = UserService::new(db);
-    cfg.data(service);
-    cfg.service(me);
-    cfg.service(list);
-    cfg.service(register);
-    cfg.service(get);
-    cfg.service(update);
-    cfg.service(delete);
-}
+use crate::user::{map_owned_user, map_user, UsernamePathParam};
 
 #[get("/api/v1beta1/users")]
 pub async fn list(
@@ -84,11 +71,6 @@ pub async fn register(
     }
 
     responses::ok(map_user(&user))
-}
-
-#[derive(Debug, Deserialize)]
-pub struct UsernamePathParam {
-    pub username: String,
 }
 
 #[get("/api/v1beta1/users/{username}")]
@@ -183,16 +165,4 @@ pub async fn delete(
 pub async fn me(current_user: CurrentUser, scope: OAuthScope) -> ApiResult<Json<UserModel>> {
     Scope::from("profile").matches(&scope)?;
     Ok(Json(map_user(&current_user.deref())))
-}
-
-fn map_user(user: &User) -> UserModel {
-    UserModel {
-        username: user.username().to_string(),
-        enabled: user.is_enabled(),
-    }
-}
-
-#[inline]
-fn map_owned_user(user: User) -> UserModel {
-    map_user(&user)
 }

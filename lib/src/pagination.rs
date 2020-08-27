@@ -97,6 +97,10 @@ impl<T: Clone + Debug> Page<T> {
     pub fn limit(&self) -> usize {
         self.limit
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.items.iter()
+    }
 }
 
 impl<T> IntoIterator for Page<T> {

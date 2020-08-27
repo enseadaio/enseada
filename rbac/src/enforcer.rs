@@ -5,12 +5,13 @@ use std::sync::Arc;
 use http::StatusCode;
 
 use enseada::couchdb::db::Database;
-use enseada::couchdb::repository::Entity;
+use enseada::couchdb::repository::{Entity, Repository};
 use enseada::error::Error;
 use enseada::guid::Guid;
 use enseada::pagination::Page;
 
-use crate::model::{EvaluationResult, Model, Permission, Principal, Role};
+use crate::model::{self, EvaluationResult, Model, Permission, Principal};
+use crate::role::Role;
 use crate::rule::{RoleAssignment, Rule};
 use crate::ROOT_USER;
 
@@ -36,23 +37,26 @@ impl Enforcer {
         let mut roles = HashMap::new();
 
         log::debug!("Loading rules");
-        let rules = self.db.list_all_partitioned::<Rule>("rule").await?;
+        let rules = self
+            .db
+            .list_all_partitioned::<Rule>(Rule::build_guid("").partition().unwrap())
+            .await?;
         for row in rules.rows {
             let rule = &row.doc.unwrap();
             log::debug!("Processing rule {:?}", rule);
-            let permission = Permission::new(&rule.object().to_string(), &rule.action());
+            let permission = Permission::new(rule.object(), rule.action());
             let sub = rule.subject().id().to_string();
             if rule.subject().partition() == Some("role") {
                 log::debug!("Rule has a role subject. Adding permission to it");
                 if !roles.contains_key(&sub) {
-                    roles.insert(sub.clone(), Role::new(sub.clone()));
+                    roles.insert(sub.clone(), model::Role::new(&sub));
                 }
                 let role = roles.get_mut(&sub).unwrap();
                 role.add_permission(permission);
             } else {
                 log::debug!("Rule has a principal subject. Adding permission to it");
                 if !principals.contains_key(&sub) {
-                    principals.insert(sub.clone(), Principal::new(sub.clone()));
+                    principals.insert(sub.clone(), Principal::new(&sub));
                 }
 
                 let principal = principals.get_mut(&sub).unwrap();
@@ -63,7 +67,9 @@ impl Enforcer {
         log::debug!("Loading roles for principals");
         let role_assignments = self
             .db
-            .list_all_partitioned::<RoleAssignment>("role")
+            .list_all_partitioned::<RoleAssignment>(
+                RoleAssignment::build_guid("").partition().unwrap(),
+            )
             .await?;
         for row in role_assignments.rows {
             let assignment = &row.doc.unwrap();
@@ -71,7 +77,7 @@ impl Enforcer {
             log::debug!("Processing role assignment {:?}", assignment);
             let sub = assignment.subject().to_string();
             if !principals.contains_key(&sub) {
-                principals.insert(sub.clone(), Principal::new(sub.clone()));
+                principals.insert(sub.clone(), Principal::new(&sub));
             }
 
             let principal = principals.get_mut(&sub).unwrap();
@@ -83,7 +89,7 @@ impl Enforcer {
             let role = roles.get(assignment_role);
             let role = match role {
                 Some(role) => role.clone(),
-                None => Role::new(assignment_role.to_string()),
+                None => model::Role::new(assignment_role),
             };
             principal.add_role(role);
         }
@@ -133,7 +139,7 @@ impl Enforcer {
         );
 
         let rule = Rule::new(sub, obj, act.to_string());
-        match self.db.put(&rule.id().to_string(), rule).await {
+        match self.save(rule).await {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
                 StatusCode::CONFLICT => Ok(()),
@@ -151,16 +157,12 @@ impl Enforcer {
         let sub_name = sub.to_string();
         log::debug!("Removing permission form sub {}", &sub_name);
         let id = Rule::build_id(&sub_name, &obj.to_string(), &act.to_string());
-        let rule = self
-            .db
-            .get::<Rule>(&id.to_string())
+        let rule: Rule = self
+            .find(id.id())
             .await?
             .ok_or_else(|| Error::not_found(id.partition().unwrap_or("permission"), id.id()))?;
         log::debug!("Permission found, removing");
-        self.db
-            .delete(&rule.id().to_string(), &rule.rev().unwrap())
-            .await?;
-        Ok(())
+        self.delete(&rule).await.map_err(Error::from)
     }
 
     #[tracing::instrument]
@@ -176,25 +178,15 @@ impl Enforcer {
             limit,
             offset,
         );
-        let response = self
-            .db
-            .find_partitioned::<Rule>(
-                "rule",
-                serde_json::json!({
-                    "sub": sub.to_string(),
-                }),
-                limit,
-                offset,
-            )
-            .await?;
-
-        let total = self.db.count_partitioned("rule").await?;
-
-        if let Some(warning) = &response.warning {
-            log::warn!("{}", warning);
-        }
-
-        Ok(Page::from_find_response(response, limit, offset, total))
+        self.find_all(
+            limit,
+            offset,
+            serde_json::json!({
+                "sub": sub.to_string(),
+            }),
+        )
+        .await
+        .map_err(Error::from)
     }
 
     #[tracing::instrument]
@@ -203,8 +195,12 @@ impl Enforcer {
             return Ok(());
         }
 
-        let assignment = RoleAssignment::new(sub, role.to_string());
-        match self.db.put(&assignment.id().to_string(), assignment).await {
+        let role: Role = self
+            .find(role)
+            .await?
+            .ok_or_else(|| Error::not_found("role", role))?;
+        let assignment = RoleAssignment::new(sub, role.name());
+        match self.save(assignment).await {
             Ok(_) => Ok(()),
             Err(err) => match err.status() {
                 StatusCode::CONFLICT => Ok(()),
@@ -219,14 +215,10 @@ impl Enforcer {
             return Ok(());
         }
 
-        if let Some(assignment) = self
-            .db
-            .get::<RoleAssignment>(&RoleAssignment::build_id(&sub.to_string(), role).to_string())
-            .await?
-        {
-            self.db
-                .delete(&assignment.id().to_string(), &assignment.rev().unwrap())
-                .await?;
+        let opt: Option<RoleAssignment> =
+            self.find(RoleAssignment::build_id(sub, role).id()).await?;
+        if let Some(assignment) = opt {
+            self.delete(&assignment).await?;
         }
 
         Ok(())
@@ -238,28 +230,54 @@ impl Enforcer {
         sub: &Guid,
         limit: usize,
         offset: usize,
-    ) -> Result<Page<String>, Error> {
-        let response = self
-            .db
-            .find_partitioned::<RoleAssignment>(
-                "role",
+    ) -> Result<Page<Role>, Error> {
+        let assignments: Page<RoleAssignment> = self
+            .find_all(
+                limit,
+                offset,
                 serde_json::json!({
                     "subject": sub.to_string()
                 }),
-                limit,
-                offset,
             )
             .await?;
 
-        let total = self.db.count_partitioned("role").await?;
+        let ids: Vec<String> = assignments
+            .iter()
+            .map(RoleAssignment::role)
+            .map(Role::build_guid)
+            .map(|id| id.to_string())
+            .collect();
 
-        if let Some(warning) = &response.warning {
-            log::warn!("{}", warning);
-        }
-
-        let page = Page::from_find_response(response, limit, offset, total)
-            .map(|assignment| assignment.role().to_string());
+        let page = self
+            .find_all(
+                limit,
+                offset,
+                serde_json::json!({
+                    "_id": {
+                        "$in": ids
+                    }
+                }),
+            )
+            .await?;
         Ok(page)
+    }
+}
+
+impl Repository<Rule> for Enforcer {
+    fn db(&self) -> &Database {
+        &self.db
+    }
+}
+
+impl Repository<RoleAssignment> for Enforcer {
+    fn db(&self) -> &Database {
+        &self.db
+    }
+}
+
+impl Repository<Role> for Enforcer {
+    fn db(&self) -> &Database {
+        &self.db
     }
 }
 

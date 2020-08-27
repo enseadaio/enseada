@@ -46,6 +46,7 @@ impl Error {
     pub fn status(&self) -> StatusCode {
         match self {
             Error::Conflict { .. } => StatusCode::CONFLICT,
+            Error::NotFound { .. } => StatusCode::NOT_FOUND,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

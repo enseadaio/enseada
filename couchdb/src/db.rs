@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::io::{BufRead, Cursor};
 use std::str::from_utf8;
 use std::sync::Arc;
@@ -151,7 +151,7 @@ impl Database {
             .map_err(Error::from)
     }
 
-    pub async fn put<T: Serialize>(&self, id: &str, entity: T) -> Result<PutResponse> {
+    pub async fn put<T: Serialize, ID: Display>(&self, id: ID, entity: T) -> Result<PutResponse> {
         let path = format!("{}/{}", &self.name, &id);
         log::debug!("Putting {} into couch", &path);
         self.client

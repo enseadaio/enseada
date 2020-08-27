@@ -65,9 +65,9 @@ pub struct Principal {
 }
 
 impl Principal {
-    pub fn new(name: String) -> Self {
+    pub fn new<N: ToString>(name: N) -> Self {
         Principal {
-            name,
+            name: name.to_string(),
             roles: HashMap::new(),
             permissions: HashMap::new(),
         }
@@ -134,9 +134,9 @@ pub struct Role {
 }
 
 impl Role {
-    pub fn new(name: String) -> Self {
+    pub fn new<N: ToString>(name: N) -> Self {
         Role {
-            name,
+            name: name.to_string(),
             permissions: HashMap::new(),
         }
     }
@@ -194,7 +194,7 @@ pub struct Permission {
 }
 
 impl Permission {
-    pub fn new(object: &str, action: &str) -> Self {
+    pub fn new<O: ToString, A: ToString>(object: O, action: A) -> Self {
         let object = object.to_string();
         let action = action.to_string();
         Permission {

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 use enseada::couchdb::repository::Entity;
@@ -73,17 +75,17 @@ pub struct RoleAssignment {
 }
 
 impl RoleAssignment {
-    pub fn build_id(sub: &str, role: &str) -> Guid {
+    pub fn build_id<D: Display, R: Display>(sub: D, role: R) -> Guid {
         Self::build_guid(&format!("{}-{}", role, sub))
     }
 
-    pub(crate) fn new(subject: Guid, role: String) -> Self {
-        let id = Self::build_id(&subject.to_string(), &role);
+    pub(crate) fn new(subject: Guid, role: &str) -> Self {
+        let id = Self::build_id(&subject, &role);
         RoleAssignment {
             id,
             rev: None,
             subject,
-            role,
+            role: role.to_string(),
         }
     }
 
@@ -98,7 +100,7 @@ impl RoleAssignment {
 
 impl Entity for RoleAssignment {
     fn build_guid(id: &str) -> Guid {
-        Guid::from(format!("role:{}", id))
+        Guid::from(format!("role_assignment:{}", id))
     }
 
     fn id(&self) -> &Guid {
