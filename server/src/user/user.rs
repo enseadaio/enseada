@@ -117,6 +117,9 @@ pub async fn update(
 
     log::debug!("updating user {}", username);
     if let Some(enabled) = data.enabled {
+        if user.id() == current_user.id() {
+            return Err(ApiError::invalid("users cannot disable themselves"));
+        }
         enforcer.check(current_user.id(), &User::build_guid(username), "disable")?;
         if enabled != user.is_enabled() {
             log::debug!("setting enabled to '{}' for user {}", enabled, username);

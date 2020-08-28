@@ -6,9 +6,13 @@
           {{ count === 1 ? 'user' : 'users' }} registered</h1>
       </div>
       <div class="level-right">
-        <router-link class="level-item button is-info" :to="{name: 'create-user'}">Create</router-link>
+        <router-link class="level-item button is-info"
+                     v-if="check('users', 'create')"
+                     :to="{name: 'create-user'}">Create
+        </router-link>
         <a class="level-item button is-danger"
            @click="remove"
+           v-if="check('users', 'delete')"
            :disabled="!checked.length">Delete</a>
       </div>
     </div>
@@ -27,7 +31,8 @@
         </router-link>
         <span v-else>{{ row.username }}</span>
       </b-table-column>
-      <b-table-column label="Status" v-slot="{ row: { username, enabled } }">
+      <b-table-column label="Status"
+                      v-slot="{ row: { username, enabled } }">
         <b-tooltip label="Root user cannot be disabled"
                    position="is-left"
                    type="is-info"
@@ -43,6 +48,7 @@
                   type="is-success"
                   passive-type="is-danger"
                   @click.native.prevent="toggle(username, enabled)"
+                  :disabled="!check(`users:${username}`, 'disable')"
                   v-else>
           {{ enableText(enabled) }}
         </b-switch>
@@ -56,7 +62,13 @@ import { listPage } from '../../mixins'
 
 export default {
   name: 'UsersHome',
-  mixins: [listPage({ name: 'user', service: 'users', mapId: ({ username }) => username })],
+  mixins: [listPage({
+    name: 'user',
+    service: 'users',
+    mapId: ({ username }) => username,
+    permission: { object: 'users', action: 'read' }
+  })
+  ],
   methods: {
     enableText (enabled) {
       return enabled ? 'Enabled' : 'Disabled'
@@ -65,6 +77,8 @@ export default {
       return username !== 'root'
     },
     async toggle (username, enabled) {
+      if (!this.check(`users:${username}`, 'disable')) return
+
       try {
         const action = enabled ? 'disabled' : 'enabled'
         const { result, dialog } = await this.$buefy.dialog.confirm({

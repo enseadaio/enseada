@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "target": "es6",
+        "rootDir": "src",
+        "lib": [
+            "dom",
+            "es2017"
+        ]
+    },
+    "exclude": [
+        "node_modules"
+    ],
+    "compileOnSave": false
+}

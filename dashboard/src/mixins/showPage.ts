@@ -1,5 +1,9 @@
 import Vue, { ComponentOptions } from 'vue';
 import { svcGetter } from "../utils";
+import { Permission } from "../types";
+import { ForbiddenError } from "../errors";
+import { mapGetters } from "vuex";
+import { check } from "../auth";
 
 interface ShowData<T> {
   loading: boolean,
@@ -9,9 +13,10 @@ interface ShowData<T> {
 interface FactoryParams<T> {
   name: string,
   service: string,
+  permission?: Permission,
 }
 
-function factory<T>({ name, service }: FactoryParams<T>): ComponentOptions<Vue> {
+function factory<T>({ name, service, permission }: FactoryParams<T>): ComponentOptions<Vue> {
   const svc = svcGetter(`$${service}`);
   return {
     props: {
@@ -23,7 +28,11 @@ function factory<T>({ name, service }: FactoryParams<T>): ComponentOptions<Vue> 
         model: null,
       };
     },
+    computed: {
+      ...mapGetters(['currentUser', 'permissions']),
+    },
     methods: {
+      check,
       async fetch() {
         this.loading = true
         this.model = await svc(this).get(this.id)
@@ -46,6 +55,9 @@ function factory<T>({ name, service }: FactoryParams<T>): ComponentOptions<Vue> 
       },
     },
     async created() {
+      if (permission && !this.check(`${permission.object}:${this.id}`, permission.action)) {
+        return this.$emit('error', new ForbiddenError(permission));
+      }
       return this.fetch().catch((err) => this.$emit('error', err))
     },
   }

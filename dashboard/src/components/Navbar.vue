@@ -16,7 +16,9 @@
                          hoverable>
         <b-navbar-item v-for="child of (section.children || [])"
                        :key="child.name"
-                       tag="router-link" :to="child.to">
+                       tag="router-link"
+                       v-if="!child.permission || check(child.permission.object, child.permission.action)"
+                       :to="child.to">
           {{ child.name }}
         </b-navbar-item>
       </b-navbar-dropdown>
@@ -55,11 +57,12 @@
 import { mapActions, mapGetters } from 'vuex'
 import enseadaLogo from '../../assets/images/enseada-logo.svg'
 import sections from '../sections'
+import { check } from '../auth'
 
 export default {
   name: 'Navbar',
   computed: {
-    ...mapGetters(['currentUser']),
+    ...mapGetters(['currentUser', 'permissions']),
     sections: () => (sections),
     enseadaLogo: () => (enseadaLogo),
     username () {
@@ -72,6 +75,7 @@ export default {
   },
   methods: {
     ...mapActions(['authenticateOidc', 'signOutOidc']),
+    check,
     signOut () {
       this.signOutOidc()
           .catch((e) => this.$emit('error', e))

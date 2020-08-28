@@ -12,9 +12,10 @@ interface FactoryParams<T> {
   name: string,
   service: string,
   mapId: IdMapFn<T>,
+  touch?: boolean,
 }
 
-function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOptions<Vue> {
+function factory<T>({ name, service, mapId, touch }: FactoryParams<T>): ComponentOptions<Vue> {
   const svc = svcGetter(`$${service}`);
   return {
     data(): CreateFormData<T> {
@@ -37,7 +38,9 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
       async submit() {
         try {
           this.loading = true
-          this.created = await svc(this).create(this.model)
+          this.created = !!touch
+            ? await svc(this).touch(mapId(this.model), this.model)
+            : await svc(this).create(this.model)
           return this.postSubmit();
         } catch (err) {
           this.$emit('error', err)

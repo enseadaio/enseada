@@ -24,7 +24,13 @@ import { createForm } from '../../mixins'
 
 export default {
   name: 'ContainersCreateForm',
-  mixins: [createForm({ name: 'repository', service: 'containers', mapId: ({ group, name }) => `${group}/${name}` })],
+  mixins: [createForm({
+    name: 'repository',
+    service: 'containers',
+    mapId: ({ group, name }) => `${group}/${name}`,
+    permission: { object: 'oci_repos', action: 'manage' }
+  })
+  ],
   data () {
     return {
       model: {

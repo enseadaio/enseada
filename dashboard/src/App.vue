@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="isReady">
     <header>
       <Navbar @error="onError"/>
     </header>
@@ -13,12 +13,17 @@
       </div>
     </main>
   </div>
+  <b-loading :is-full-page="true" active v-else></b-loading>
 </template>
 
 <script>
 import SideMenu from './components/SideMenu'
 import Navbar from './components/Navbar'
 import NotFound from './views/NotFound'
+import { ForbiddenError } from './errors'
+import { mapGetters } from 'vuex'
+
+const ALLOWED_ROUTES = ['oauthCallback']
 
 export default {
   name: 'App',
@@ -29,6 +34,12 @@ export default {
       notFound: null
     }
   },
+  computed: {
+    ...mapGetters(['ready']),
+    isReady () {
+      return ALLOWED_ROUTES.includes(this.$route.name) || this.ready
+    }
+  },
   watch: {
     $route () {
       this.notFound = null
@@ -37,7 +48,15 @@ export default {
   methods: {
     async onError (err) {
       console.error(err)
-      console.log(err.response)
+      if (err instanceof ForbiddenError) {
+        this.$buefy.notification.open({
+          type: 'is-danger',
+          message: err.toString(),
+          position: 'is-bottom-right',
+          duration: 10000
+        })
+        return this.$router.go(-1)
+      }
       if (err.response) {
         try {
           const { error, reasons } = await err.response.json()

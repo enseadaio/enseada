@@ -14,6 +14,7 @@
       </b-table-column>
     </b-table>
 
+    <h2 class="subtitle">Permissions</h2>
     <PermissionsTable :page="permissionsPage"
                       @page-change="onPermissionsPageChange"
                       @remove="removePermission">
@@ -26,11 +27,20 @@ import showPage from '../../mixins/showPage'
 import { pageToOffset } from '../../http'
 import PermissionsTable from '../../components/PermissionsTable'
 import { permissionsTable } from '../../mixins'
+import { ForbiddenError } from '../../errors'
 
 export default {
   name: 'UsersShow',
   components: { PermissionsTable },
-  mixins: [showPage({ name: 'user', service: 'users' }), permissionsTable({ service: 'users' })],
+  mixins: [showPage({
+    name: 'user',
+    service: 'users',
+    permission: { object: 'users', action: 'read' }
+  }), permissionsTable({
+    service: 'users',
+    permission: { object: 'users', action: 'read_permissions' }
+  })
+  ],
   data () {
     return {
       model: null,
@@ -59,6 +69,11 @@ export default {
     }
   },
   created () {
+    const object = `users:${this.id}`
+    const action = 'read_roles'
+    if (!this.check(object, action)) {
+      return this.$emit('error', new ForbiddenError({ object, action }))
+    }
     return this.fetchRoles().catch((err) => this.$emit('error', err))
   }
 }

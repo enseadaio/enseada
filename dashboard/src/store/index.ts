@@ -3,16 +3,17 @@ import Vuex, { StoreOptions } from 'vuex';
 import { vuexOidcCreateStoreModule } from 'vuex-oidc';
 import { listeners, settings } from '../oauth';
 import { RootState } from "./types";
-import { User } from "../types";
+import { Capabilities, User } from "../types";
 
 Vue.use(Vuex);
 
 const opts: StoreOptions<RootState> = {
-  state: () => ({ currentUser: null }),
+  state: () => ({ currentUser: null, capabilities: null }),
   getters: {
-    currentUser({ currentUser }) {
-      return currentUser
-    },
+    currentUser: ({ currentUser }) => currentUser,
+    capabilities: ({ capabilities }) => capabilities,
+    permissions: ({ capabilities }) => capabilities?.permissions,
+    ready: ({ currentUser, capabilities }) => (!!currentUser && !!capabilities),
   },
   mutations: {
     setCurrentUser(state: RootState, user: User) {
@@ -20,22 +21,28 @@ const opts: StoreOptions<RootState> = {
     },
     removeCurrentUser(state: RootState) {
       state.currentUser = null;
-    }
+    },
+    setCapabilities(state: RootState, capabilities: Capabilities) {
+      state.capabilities = capabilities;
+    },
+    removeCapabilities(state: RootState) {
+      state.capabilities = null;
+    },
   },
   actions: {
     async storeCurrentUser({ commit }) {
-      const localUser = localStorage.getItem('currentUser');
-      if (localUser) {
-        commit('setCurrentUser', JSON.parse(localUser));
-      } else {
-        const user = await this._vm.$users.get('me');
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        commit('setCurrentUser', user);
-      }
+      const user = await this._vm.$users.get('me');
+      commit('setCurrentUser', user);
     },
     removeCurrentUser({ commit }) {
-      localStorage.removeItem('currentUser');
       commit('removeCurrentUser')
+    },
+    async storeCapabilities({ commit }) {
+      const caps = await this._vm.$users.get('me/capabilities');
+      commit('setCapabilities', caps);
+    },
+    removeCapabilities({ commit }) {
+      commit('removeCapabilities')
     }
   },
 };

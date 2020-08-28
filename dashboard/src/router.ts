@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Router from 'vue-router'
+import Router, { RouterOptions } from 'vue-router'
 import Home from './views/Home'
 import { routes as usersRoutes } from './views/users'
 import { routes as rolesRoutes } from './views/roles'
@@ -12,9 +12,9 @@ import { vuexOidcCreateRouterMiddleware } from 'vuex-oidc'
 import store from './store'
 import NotFound from './views/NotFound'
 
-Vue.use(Router);
+Vue.use(Router)
 
-const router = new Router({
+const opts: RouterOptions = {
   mode: 'history',
   routes: [
     { path: '/', name: 'home', component: Home },
@@ -26,9 +26,10 @@ const router = new Router({
     ...containersRoutes,
     ...mavenRoutes,
     { path: '*', name: '404', component: NotFound }
-  ],
-});
+  ]
+};
+const router = new Router(opts)
 
-router.beforeEach(vuexOidcCreateRouterMiddleware(store));
+router.beforeEach(vuexOidcCreateRouterMiddleware(store))
 
-export default router;
+export default router

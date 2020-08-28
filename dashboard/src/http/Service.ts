@@ -13,6 +13,8 @@ export interface Service<T> {
 
   create(payload: any): Promise<T>;
 
+  touch(id: string, payload?: any): Promise<T>;
+
   update(id: string, payload: any): Promise<T>;
 
   remove(id?: string, payload?: any): Promise<void>;
@@ -45,6 +47,10 @@ class ServiceImpl<T> implements Service<T> {
 
   create(payload: any): Promise<T> {
     return this.http.post(this.path, payload).then((res) => res.json());
+  }
+
+  touch(id: string, payload?: any): Promise<T> {
+    return this.http.put(`${this.path}/${id}`, payload).then((res) => res.json())
   }
 
   update(id: string, payload: any): Promise<T> {

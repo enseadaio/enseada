@@ -58,7 +58,9 @@ export const settings: VuexOidcClientSettings = {
 export const listeners = (store: Store<RootState>) => ({
   userLoaded: (_user: OidcUser) => {
     console.debug('OIDC user is loaded');
-    store.dispatch('storeCurrentUser').catch()
+    store.dispatch('storeCurrentUser')
+      .then(() => store.dispatch('storeCapabilities'))
+      .catch(console.error)
   },
   userUnloaded: () => console.debug('OIDC user is unloaded'),
   accessTokenExpiring: () => console.warn('Access token will expire'),
@@ -66,7 +68,9 @@ export const listeners = (store: Store<RootState>) => ({
   silentRenewError: () => console.error('OIDC user is unloaded'),
   userSignedOut: () => {
     console.debug('OIDC user is signed out');
-    localStorage.removeItem('currentUser');
+    store.dispatch('removeCurrentUser')
+      .then(() => store.dispatch('removeCapabilities'))
+      .catch(console.error)
   },
   oidcError: (payload) => console.error(`An error occured at ${payload.context}:`, payload.error)
 })

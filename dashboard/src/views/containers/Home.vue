@@ -3,9 +3,13 @@
     <h1 class="title">Containers</h1>
     <div class="level">
       <div class="level-right">
-        <router-link class="level-item button info" :to="{name: 'create-container-repo'}">Create</router-link>
+        <router-link class="level-item button info"
+                     v-if="check('oci_repos', 'create')"
+                     :to="{name: 'create-container-repo'}">Create
+        </router-link>
         <a class="level-item button is-danger"
            @click="remove"
+           v-if="check('oci_repos', 'delete')"
            :disabled="!checked.length">Delete</a>
       </div>
     </div>
@@ -27,7 +31,13 @@ import { listPage } from '../../mixins'
 
 export default {
   name: 'ContainersHome',
-  mixins: [listPage({ name: 'repository', service: 'containers', mapId: ({ group, name }) => `${group}/${name}` })],
+  mixins: [listPage({
+    name: 'repository',
+    service: 'containers',
+    mapId: ({ group, name }) => `${group}/${name}`,
+    permission: { object: 'oci_repos', action: 'read' }
+  })
+  ],
   computed: {
     items () {
       return this.page.items.map((repo) => ({ ...repo, fullName: this.mapId(repo) }))

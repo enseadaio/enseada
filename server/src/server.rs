@@ -77,8 +77,8 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
 
     let server = if tls.enabled() {
         let mut config = ServerConfig::new(NoClientAuth::new());
-        let cert_f = &mut File::open(tls.cert_path().expect("missing tls.cert_path"))?;
-        let key_f = &mut File::open(tls.key_path().expect("missing tls.cert_path"))?;
+        let cert_f = &mut File::open(tls.cert_path().expect("missing tls.cert.path"))?;
+        let key_f = &mut File::open(tls.key_path().expect("missing tls.key.path"))?;
         let certs = get_certs(cert_f);
         let key = get_rsa_key(key_f);
         config.set_single_cert(certs, key).unwrap();

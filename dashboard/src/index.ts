@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import store, { accessTokenProvider } from './store'
 import './filters'
+import './validations';
 import Buefy from 'buefy'
 import '@fortawesome/fontawesome-free/css/all.css'
 import '../assets/scss/style.scss'

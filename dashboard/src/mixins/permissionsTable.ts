@@ -2,12 +2,16 @@ import { pageToOffset } from "../http";
 import AddPermissionModal from '../components/AddPermissionModal';
 import Vue, { ComponentOptions } from "vue";
 import { svcGetter } from "../utils";
+import { Permission } from "../types";
+import { ForbiddenError } from "../errors";
+import { check } from "../auth";
 
 interface FactoryParams<T> {
   service: string,
+  permission: Permission,
 }
 
-function factory<T>({ service }: FactoryParams<T>): ComponentOptions<Vue> {
+function factory<T>({ service, permission }: FactoryParams<T>): ComponentOptions<Vue> {
   const svc = svcGetter(`$${service}`);
   return {
     data() {
@@ -24,6 +28,7 @@ function factory<T>({ service }: FactoryParams<T>): ComponentOptions<Vue> {
       },
     },
     methods: {
+      check,
       async fetchPermissions(offset = 0) {
         this.loading = true
         this.permissionsPage = await this.permissionSvc.list({ offset, limit: this.permissionsPage.limit })
@@ -80,6 +85,9 @@ function factory<T>({ service }: FactoryParams<T>): ComponentOptions<Vue> {
       },
     },
     created() {
+      if (permission && !this.check(`${permission.object}:${this.id}`, permission.action)) {
+        return this.$emit('error', new ForbiddenError(permission));
+      }
       return this.fetchPermissions().catch((err) => this.$emit('error', err))
     }
   }

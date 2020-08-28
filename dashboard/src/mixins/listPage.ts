@@ -1,7 +1,10 @@
 import Vue, { ComponentOptions } from 'vue';
-import { IdMapFn, Page } from "../types";
+import { IdMapFn, Page, Permission } from "../types";
 import { pageToOffset } from "../http/Page";
 import { svcGetter } from "../utils";
+import { mapGetters } from "vuex";
+import { check } from "../auth";
+import { ForbiddenError } from "../errors";
 
 interface ListData<T> {
   limit: number,
@@ -14,9 +17,10 @@ interface FactoryParams<T> {
   name: string,
   service: string,
   mapId: IdMapFn<T>,
+  permission?: Permission,
 }
 
-function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOptions<Vue> {
+function factory<T>({ name, service, mapId, permission }: FactoryParams<T>): ComponentOptions<Vue> {
   const svc = svcGetter(`$${service}`);
   return {
     data(): ListData<T> {
@@ -34,6 +38,7 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
       };
     },
     computed: {
+      ...mapGetters(['currentUser', 'permissions']),
       items() {
         return this.page.items
       },
@@ -45,6 +50,7 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
       }
     },
     methods: {
+      check,
       async fetch(offset: number = 0) {
         this.loading = true
         this.page = await svc(this).list({ offset, limit: this.limit })
@@ -78,6 +84,9 @@ function factory<T>({ name, service, mapId }: FactoryParams<T>): ComponentOption
       mapId,
     },
     async created() {
+      if (permission && !this.check(permission.object, permission.action)) {
+        return this.$emit('error', new ForbiddenError(permission));
+      }
       return this.fetch().catch((err) => this.$emit('error', err))
     },
   }
