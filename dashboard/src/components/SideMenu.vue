@@ -2,10 +2,10 @@
   <b-menu>
     <b-menu-list v-for="section of sections"
                  :key="section.name"
-                 :label="section.name">
+                 :label="$t(section.name) | pascalCase">
       <b-menu-item v-for="child of (section.children || [])"
                    :key="child.name"
-                   :label="child.name"
+                   :label="$t(child.name) | pascalCase"
                    tag="router-link"
                    :to="child.to"
                    v-if="!child.permission || check(child.permission.object, child.permission.action)">

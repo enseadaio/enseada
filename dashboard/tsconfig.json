@@ -1,11 +1,11 @@
 {
     "compilerOptions": {
+        "target": "esnext",
         "sourceMap": true,
         "module": "commonjs",
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "experimentalDecorators": true,
-        "target": "es6",
         "rootDir": "src",
         "lib": [
             "dom",

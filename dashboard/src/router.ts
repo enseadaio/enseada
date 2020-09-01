@@ -19,7 +19,7 @@ const opts: RouterOptions = {
   routes: [
     { path: '/', name: 'home', component: Home },
     { path: '/about', name: 'about', component: About },
-    { path: '/dashboard/auth/callback', name: 'oauthCallback', component: OAuthCallback },
+    { path: '/dashboard/auth/callback', name: 'oauthCallback', component: OAuthCallback, meta: { public: true } },
     ...usersRoutes,
     ...rolesRoutes,
     ...patsRoutes,

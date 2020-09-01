@@ -7,11 +7,11 @@
     </template>
     <template slot="start">
       <b-navbar-item tag="router-link" :to="{ name: 'home' }">
-        Home
+        {{ $t('home') | titleCase }}
       </b-navbar-item>
       <b-navbar-dropdown v-for="section of sections"
                          :key="section.name"
-                         :label="section.name"
+                         :label="$t(section.name) | pascalCase"
                          class="is-hidden-desktop"
                          hoverable>
         <b-navbar-item v-for="child of (section.children || [])"
@@ -19,23 +19,23 @@
                        tag="router-link"
                        v-if="!child.permission || check(child.permission.object, child.permission.action)"
                        :to="child.to">
-          {{ child.name }}
+          {{ $t(child.name) | pascalCase }}
         </b-navbar-item>
       </b-navbar-dropdown>
       <b-navbar-dropdown label="Help" hoverable>
         <b-navbar-item href="https://docs.enseada.io" target="_blank">
-          Documentation
+          {{ $t('documentation') | titleCase }}
         </b-navbar-item>
         <b-navbar-item href="/api/docs" target="_blank">
-          API Docs
+          {{ $t('apiDocs') | pascalCase }}
         </b-navbar-item>
         <b-navbar-item href="https://github.com/enseadaio/enseada/issues/new/choose"
                        target="_blank">
-          Report an issue
+          {{ $t('issueReport') | titleCase }}
         </b-navbar-item>
         <hr class="navbar-divider"/>
         <b-navbar-item tag="router-link" :to="{ name: 'about' }">
-          About
+          {{ $t('about') | titleCase }}
         </b-navbar-item>
       </b-navbar-dropdown>
     </template>
@@ -43,10 +43,10 @@
     <template slot="end">
       <b-navbar-dropdown :label="username | titleCase" hoverable>
         <b-navbar-item href="#">
-          Account
+          {{ $t('account') | titleCase }}
         </b-navbar-item>
         <b-navbar-item @click="this.signOut">
-          Logout
+          {{ $t('logout') | titleCase }}
         </b-navbar-item>
       </b-navbar-dropdown>
     </template>

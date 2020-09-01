@@ -51,7 +51,10 @@ const store = new Vuex.Store<RootState>(opts)
 store.registerModule('oidcStore', vuexOidcCreateStoreModule(settings, {}, listeners(store)))
 
 export function accessTokenProvider() {
-  return Promise.resolve(store.state.oidcStore.access_token);
+  const token = store.getters.oidcAccessToken;
+  console.log('Fetching access token', token)
+  if (token) return Promise.resolve(token);
+  return Promise.reject('no access token found in store');
 }
 
 export default store;

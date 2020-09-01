@@ -14,19 +14,19 @@ export interface Section {
 
 const sections: SectionGroup[] = [
   {
-    name: 'Packages',
+    name: 'sections.packages',
     children: [
-      { name: 'Containers', to: { name: 'containers' }, permission: { object: 'oci_repos', action: 'read' } },
-      { name: 'Maven', to: { name: 'maven' }, permission: { object: 'maven_repos', action: 'read' } },
+      { name: 'sections.containers', to: { name: 'containers' }, permission: { object: 'oci_repos', action: 'read' } },
+      { name: 'sections.maven', to: { name: 'maven' }, permission: { object: 'maven_repos', action: 'read' } },
     ],
   },
   {
-    name: 'Security',
+    name: 'sections.security',
     children: [
-      { name: 'Users', to: { name: 'users' }, permission: { object: 'users', action: 'read' } },
-      { name: 'Roles', to: { name: 'roles' }, permission: { object: 'roles', action: 'read' } },
-      { name: 'OAuth Clients', to: '#', permission: { object: 'oauth:clients', action: 'read' } },
-      { name: 'Access Tokens', to: { name: 'pats' }, permission: { object: 'pats', action: 'read' } },
+      { name: 'sections.users', to: { name: 'users' }, permission: { object: 'users', action: 'read' } },
+      { name: 'sections.roles', to: { name: 'roles' }, permission: { object: 'roles', action: 'read' } },
+      { name: 'sections.clients', to: '#', permission: { object: 'oauth:clients', action: 'read' } },
+      { name: 'sections.pats', to: { name: 'pats' }, permission: { object: 'pats', action: 'read' } },
     ],
   },
 ];

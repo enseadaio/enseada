@@ -1,5 +1,6 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
+use http::StatusCode;
 use serde::Serialize;
 
 use enseada::couchdb;
@@ -65,7 +66,10 @@ impl From<String> for Error {
 
 impl From<couchdb::error::Error> for Error {
     fn from(err: couchdb::error::Error) -> Self {
-        Self::from(err.to_string())
+        match err.status() {
+            StatusCode::NOT_FOUND => Self::new(ErrorKind::AccessDenied, err),
+            _ => Self::from(err.to_string()),
+        }
     }
 }
 

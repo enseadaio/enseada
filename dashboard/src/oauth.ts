@@ -56,7 +56,7 @@ export const settings: VuexOidcClientSettings = {
 }
 
 export const listeners = (store: Store<RootState>) => ({
-  userLoaded: (_user: OidcUser) => {
+  userLoaded: (user: OidcUser) => {
     console.debug('OIDC user is loaded');
     store.dispatch('storeCurrentUser')
       .then(() => store.dispatch('storeCapabilities'))

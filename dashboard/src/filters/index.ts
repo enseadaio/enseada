@@ -1,1 +1,2 @@
 import './titleCase';
+import './pascalCase';

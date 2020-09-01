@@ -23,8 +23,6 @@ import NotFound from './views/NotFound'
 import { ForbiddenError } from './errors'
 import { mapGetters } from 'vuex'
 
-const ALLOWED_ROUTES = ['oauthCallback']
-
 export default {
   name: 'App',
   components: { SideMenu, Navbar, NotFound },
@@ -37,7 +35,7 @@ export default {
   computed: {
     ...mapGetters(['ready']),
     isReady () {
-      return ALLOWED_ROUTES.includes(this.$route.name) || this.ready
+      return this.$route.meta.public || this.ready
     }
   },
   watch: {
@@ -87,7 +85,7 @@ export default {
         })
       }
     }
-  }
+  },
 }
 </script>
 

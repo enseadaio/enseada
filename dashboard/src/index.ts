@@ -1,14 +1,17 @@
-import Vue from 'vue'
-import VueHttp from './http'
-import App from './App.vue'
-import router from './router'
-import store, { accessTokenProvider } from './store'
-import './filters'
+import Vue from 'vue';
+import Buefy from 'buefy';
+import VueHttp from './http';
+import App from './App.vue';
+import router from './router';
+import store, { accessTokenProvider } from './store';
+import { i18n } from './i18n';
+
+import './filters';
 import './validations';
-import Buefy from 'buefy'
-import '@fortawesome/fontawesome-free/css/all.css'
-import '../assets/scss/style.scss'
-import 'buefy/dist/buefy.css'
+
+import '@fortawesome/fontawesome-free/css/all.css';
+import '../assets/scss/style.scss';
+import 'buefy/dist/buefy.css';
 
 if (module.hot) {
   module.hot.accept();
@@ -25,11 +28,12 @@ window.addEventListener("error", function (e) {
 
 Vue.use(Buefy, {
   defaultProgrammaticPromise: true
-})
-Vue.use(VueHttp, { accessTokenProvider })
+});
+Vue.use(VueHttp, { accessTokenProvider });
 
 new Vue({
   router,
   store,
+  i18n,
   render: (h) => h(App)
 }).$mount('#app');
