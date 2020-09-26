@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+actix = "0.10"
 base64 = "0.12"
 couchdb = { path = "../couchdb" }
 chrono = { version = "0.4.15", features = ["serde"] }
