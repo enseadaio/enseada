@@ -8,6 +8,7 @@ use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
+use actix_web::middleware::normalize::TrailingSlash;
 use actix_web::middleware::{Compress, DefaultHeaders, Logger, NormalizePath};
 use actix_web::web::Data;
 use actix_web::{App, HttpServer};
@@ -45,7 +46,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
 
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(NormalizePath)
+            .wrap(NormalizePath::new(TrailingSlash::Trim))
             .wrap(Logger::default().exclude("/health"))
             .wrap(Compress::default())
             .wrap(
@@ -59,7 +60,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             )
             .wrap(Cors::default())
             .wrap(default_headers(cfg))
-            // (matteojoliveau) This requires to inject the Enforcer as `Data<Arc<RwLock<Enforcer>>>`
+            // (matteojoliveau) This requires to inject the Enforcer as `Data<RwLock<Enforcer>>`
             // because app_data() stuff is not accessible in nested scopes.
             // Should hopefully be fixed with Actix Web 3.0
             .data(enforcer.clone())

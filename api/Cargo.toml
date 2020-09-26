@@ -7,8 +7,8 @@ edition = "2018"
 [dependencies]
 oauth = { path = "../oauth" }
 enseada = { path = "../lib" }
-serde = { version = "1.0", features = ["derive"] }
-chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "^1.0", features = ["derive"] }
+chrono = { version = "^0.4", features = ["serde"] }
 
 [build-dependencies]
-walkdir = "2.3"
+walkdir = "^2.3"

@@ -106,7 +106,7 @@ pub struct RepoPath {
     name: String,
 }
 
-#[get("/")]
+#[get("")]
 pub async fn root(session: TokenSession) -> HttpResponse {
     log::debug!("{:?}", session);
     HttpResponse::Ok().finish()

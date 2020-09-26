@@ -24,7 +24,7 @@ pub struct DigestParam {
     pub digest: Digest,
 }
 
-#[post("/{group}/{name}/blobs/uploads/")]
+#[post("/{group}/{name}/blobs/uploads")]
 pub async fn start(
     uploads: Data<UploadService>,
     blobs: Data<BlobService>,
