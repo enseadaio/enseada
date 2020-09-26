@@ -11,18 +11,43 @@ dependencies = [
  "actix_derive",
  "bitflags",
  "bytes",
- "crossbeam-channel",
- "derive_more",
- "futures",
- "lazy_static 1.4.0",
- "log",
- "parking_lot 0.10.2",
- "pin-project",
- "smallvec",
- "tokio",
- "tokio-util 0.2.0",
- "trust-dns-proto",
- "trust-dns-resolver",
+    "crossbeam-channel",
+    "derive_more",
+    "futures",
+    "lazy_static 1.4.0",
+    "log",
+    "parking_lot 0.10.2",
+    "pin-project",
+    "smallvec",
+    "tokio",
+    "tokio-util 0.2.0",
+    "trust-dns-proto 0.18.0-alpha.2",
+    "trust-dns-resolver 0.18.0-alpha.2",
+]
+
+[[package]]
+name = "actix"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1be241f88f3b1e7e9a3fbe3b5a8a0f6915b5a1d7ee0d9a248d3376d01068cc60"
+dependencies = [
+    "actix-rt",
+    "actix_derive",
+    "bitflags",
+    "bytes",
+    "crossbeam-channel",
+    "derive_more",
+    "futures-channel",
+    "futures-util",
+    "log",
+    "once_cell",
+    "parking_lot 0.11.0",
+    "pin-project",
+    "smallvec",
+    "tokio",
+    "tokio-util 0.3.1",
+    "trust-dns-proto 0.19.5",
+    "trust-dns-resolver 0.19.5",
 ]
 
 [[package]]
@@ -31,8 +56,8 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "09e55f0a5c2ca15795035d90c46bd0e73a5123b72f68f12596d6ba5282051380"
 dependencies = [
- "bitflags",
- "bytes",
+    "bitflags",
+    "bytes",
  "futures-core",
  "futures-sink",
  "log",
@@ -47,19 +72,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c95cc9569221e9802bf4c377f6c18b90ef10227d787611decf79fd47d2a8e76c"
 dependencies = [
  "actix-codec",
- "actix-rt",
- "actix-service",
- "actix-utils",
- "derive_more",
- "either",
- "futures",
- "http",
- "log",
- "rustls 0.16.0",
- "tokio-rustls 0.12.3",
- "trust-dns-proto",
- "trust-dns-resolver",
- "webpki",
+    "actix-rt",
+    "actix-service",
+    "actix-utils",
+    "derive_more",
+    "either",
+    "futures",
+    "http",
+    "log",
+    "rustls 0.16.0",
+    "tokio-rustls 0.12.3",
+    "trust-dns-proto 0.18.0-alpha.2",
+    "trust-dns-resolver 0.18.0-alpha.2",
+    "webpki",
 ]
 
 [[package]]
@@ -926,16 +951,17 @@ dependencies = [
 name = "enseada"
 version = "0.1.0"
 dependencies = [
- "async-trait",
- "base64 0.12.3",
- "chrono",
- "couchdb",
- "hex",
- "hold",
- "http",
- "lazy_static 1.4.0",
- "log",
- "ring",
+    "actix 0.10.0",
+    "async-trait",
+    "base64 0.12.3",
+    "chrono",
+    "couchdb",
+    "hex",
+    "hold",
+    "http",
+    "lazy_static 1.4.0",
+    "log",
+    "ring",
  "rust-argon2 0.8.2",
  "serde 1.0.115",
  "serde_json",
@@ -948,17 +974,17 @@ dependencies = [
 name = "enseada_server"
 version = "0.1.0"
 dependencies = [
- "actix",
- "actix-cors",
- "actix-files",
- "actix-rt",
- "actix-session",
- "actix-tls",
- "actix-web",
- "actix-web-httpauth",
- "api",
- "askama",
- "askama_actix",
+    "actix 0.9.0",
+    "actix-cors",
+    "actix-files",
+    "actix-rt",
+    "actix-session",
+    "actix-tls",
+    "actix-web",
+    "actix-web-httpauth",
+    "api",
+    "askama",
+    "askama_actix",
  "async-trait",
  "base64 0.12.3",
  "bytes",
@@ -1900,17 +1926,19 @@ dependencies = [
 name = "oci"
 version = "0.1.0"
 dependencies = [
- "bytes",
- "enseada",
- "hold",
- "http",
- "log",
- "serde 1.0.115",
- "serde_json",
- "tracing",
- "tracing-futures",
- "url",
- "uuid",
+    "async-trait",
+    "bytes",
+    "enseada",
+    "futures",
+    "hold",
+    "http",
+    "log",
+    "serde 1.0.115",
+    "serde_json",
+    "tracing",
+    "tracing-futures",
+    "url",
+    "uuid",
 ]
 
 [[package]]
@@ -2883,12 +2911,32 @@ version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a6e24d9338a0a5be79593e2fa15a648add6138caa803e2d5bc782c371732ca9"
 dependencies = [
- "cfg-if",
- "libc",
- "rand",
- "redox_syscall",
- "remove_dir_all",
- "winapi 0.3.9",
+    "cfg-if",
+    "libc",
+    "rand",
+    "redox_syscall",
+    "remove_dir_all",
+    "winapi 0.3.9",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dfdd070ccd8ccb78f4ad66bf1982dc37f620ef696c6b5028fe2ed83dd3d0d08"
+dependencies = [
+    "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd80fc12f73063ac132ac92aceea36734f04a1d93c1240c6944e23a3b8841793"
+dependencies = [
+    "proc-macro2 1.0.19",
+    "quote 1.0.7",
+    "syn 1.0.38",
 ]
 
 [[package]]
@@ -2897,9 +2945,9 @@ version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7fbf4c9d56b320106cd64fd024dadfa0be7cb4706725fc44a7d7ce952d820c1"
 dependencies = [
- "libc",
- "redox_syscall",
- "winapi 0.3.9",
+    "libc",
+    "redox_syscall",
+    "winapi 0.3.9",
 ]
 
 [[package]]
@@ -3074,12 +3122,13 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be8242891f2b6cbef26a2d7e8605133c2c554cd35b3e4948ea892d6d68436499"
 dependencies = [
- "bytes",
- "futures-core",
- "futures-sink",
- "log",
- "pin-project-lite",
- "tokio",
+    "bytes",
+    "futures-core",
+    "futures-io",
+    "futures-sink",
+    "log",
+    "pin-project-lite",
+    "tokio",
 ]
 
 [[package]]
@@ -3194,14 +3243,34 @@ dependencies = [
  "enum-as-inner",
  "failure",
  "futures",
- "idna",
- "lazy_static 1.4.0",
- "log",
- "rand",
- "smallvec",
- "socket2",
- "tokio",
- "url",
+    "idna",
+    "lazy_static 1.4.0",
+    "log",
+    "rand",
+    "smallvec",
+    "socket2",
+    "tokio",
+    "url",
+]
+
+[[package]]
+name = "trust-dns-proto"
+version = "0.19.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdd7061ba6f4d4d9721afedffbfd403f20f39a4301fee1b70d6fcd09cca69f28"
+dependencies = [
+    "async-trait",
+    "backtrace",
+    "enum-as-inner",
+    "futures",
+    "idna",
+    "lazy_static 1.4.0",
+    "log",
+    "rand",
+    "smallvec",
+    "thiserror",
+    "tokio",
+    "url",
 ]
 
 [[package]]
@@ -3210,17 +3279,37 @@ version = "0.18.0-alpha.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f90b1502b226f8b2514c6d5b37bafa8c200d7ca4102d57dc36ee0f3b7a04a2f"
 dependencies = [
- "cfg-if",
- "failure",
- "futures",
- "ipconfig",
- "lazy_static 1.4.0",
- "log",
- "lru-cache",
- "resolv-conf",
- "smallvec",
- "tokio",
- "trust-dns-proto",
+    "cfg-if",
+    "failure",
+    "futures",
+    "ipconfig",
+    "lazy_static 1.4.0",
+    "log",
+    "lru-cache",
+    "resolv-conf",
+    "smallvec",
+    "tokio",
+    "trust-dns-proto 0.18.0-alpha.2",
+]
+
+[[package]]
+name = "trust-dns-resolver"
+version = "0.19.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f23cdfdc3d8300b3c50c9e84302d3bd6d860fb9529af84ace6cf9665f181b77"
+dependencies = [
+    "backtrace",
+    "cfg-if",
+    "futures",
+    "ipconfig",
+    "lazy_static 1.4.0",
+    "log",
+    "lru-cache",
+    "resolv-conf",
+    "smallvec",
+    "thiserror",
+    "tokio",
+    "trust-dns-proto 0.19.5",
 ]
 
 [[package]]

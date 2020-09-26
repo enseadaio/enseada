@@ -11,13 +11,13 @@ use enseada::error::Error;
 use crate::enforcer::Enforcer;
 
 pub struct Watcher {
-    db: Arc<Database>,
+    db: Database,
     arbiter: Arbiter,
     enforcer: Arc<RwLock<Enforcer>>,
 }
 
 impl Watcher {
-    pub fn new(db: Arc<Database>, enforcer: Arc<RwLock<Enforcer>>) -> Self {
+    pub fn new(db: Database, enforcer: Arc<RwLock<Enforcer>>) -> Self {
         Watcher {
             db,
             arbiter: Arbiter::new(),

@@ -21,7 +21,7 @@ pub trait Entity: Clone + Debug + Serialize + DeserializeOwned + Send + Sync {
 }
 
 #[async_trait]
-pub trait Repository<T>: Debug {
+pub trait Repository<T: Entity>: Debug {
     fn db(&self) -> &Database;
 
     #[tracing::instrument]
@@ -118,14 +118,24 @@ pub trait Repository<T>: Debug {
         T: 'async_trait + Entity,
     {
         let id = entity.id().to_string();
+        let updated = entity.rev().is_some();
         let mut entity = entity;
         if let Some(rev) = self.db().get::<T>(&id).await?.as_ref().and_then(T::rev) {
             entity.set_rev(rev.to_string());
         }
         let res = self.db().put(&id, &entity).await?;
         entity.set_rev(res.rev);
+        if updated {
+            self.updated(&entity).await;
+        } else {
+            self.created(&entity).await;
+        }
         Ok(entity)
     }
+
+    async fn created(&self, entity: &T) {}
+
+    async fn updated(&self, entity: &T) {}
 
     #[tracing::instrument]
     async fn delete(&self, entity: &T) -> Result<(), Error>
@@ -138,6 +148,10 @@ pub trait Repository<T>: Debug {
             Some(rev) => rev,
             None => panic!("entity {} is missing rev", id),
         };
-        self.db().delete(&id, &rev).await.map_err(Error::from)
+        self.db().delete(&id, &rev).await?;
+        self.deleted(&entity).await;
+        Ok(())
     }
+
+    async fn deleted(&self, entity: &T) {}
 }

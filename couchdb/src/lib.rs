@@ -18,6 +18,7 @@ pub mod status;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[derive(Clone)]
 pub struct Couch {
     client: Arc<Client>,
 }

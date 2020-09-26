@@ -17,12 +17,12 @@ use crate::ROOT_USER;
 
 #[derive(Debug)]
 pub struct Enforcer {
-    db: Arc<Database>,
+    db: Database,
     model: Model,
 }
 
 impl Enforcer {
-    pub fn new(db: Arc<Database>) -> Self {
+    pub fn new(db: Database) -> Self {
         Enforcer {
             db,
             model: Model::empty(),

@@ -18,6 +18,7 @@ use tokio::sync::RwLock;
 use url::Url;
 
 use ::rbac::{Enforcer, Watcher};
+use enseada::events::EventBus;
 use oauth;
 
 use crate::config::Configuration;
@@ -30,14 +31,17 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let public_host: &Url = cfg.public_host();
     let secret_key = cfg.secret_key();
     let tls = cfg.tls();
-    let couch = &couchdb::from_config(cfg);
 
-    let rbac_db = Arc::new(couch.database(dbname::RBAC, true));
+    let couch = couchdb::from_config(cfg);
+    let rbac_db = couch.database(dbname::RBAC, true);
+
     let mut enforcer = Enforcer::new(rbac_db.clone());
-    enforcer.load_rules().await.expect("enforcer.load_rules()");
+    enforcer.load_rules().await.expect("Enforcer::load_rules()");
     let enforcer = Arc::new(RwLock::new(enforcer));
     let watcher = Watcher::new(rbac_db.clone(), enforcer.clone());
-    watcher.start().expect("watcher.start()");
+    watcher.start().expect("Watcher::start()");
+
+    let event_bus = Arc::new(std::sync::RwLock::new(EventBus::new()));
 
     let server = HttpServer::new(move || {
         App::new()
@@ -59,11 +63,20 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             // because app_data() stuff is not accessible in nested scopes.
             // Should hopefully be fixed with Actix Web 3.0
             .data(enforcer.clone())
-            .configure(user::mount)
+            .configure(user::mount(
+                couch.database(crate::couchdb::name::USERS, true),
+                event_bus.clone(),
+            ))
             .configure(crate::rbac::mount)
-            .configure(crate::oauth::mount)
+            .configure(crate::oauth::mount(
+                couch.database(crate::couchdb::name::OAUTH, true),
+            ))
             .configure(observability::mount)
-            .configure(oci::mount)
+            .configure(oci::mount(
+                cfg,
+                couch.database(crate::couchdb::name::OCI, true),
+                event_bus.clone(),
+            ))
             .configure(routes::mount)
             .configure(dashboard::mount)
             .default_service(dashboard::default_service())

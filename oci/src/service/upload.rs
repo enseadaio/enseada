@@ -1,14 +1,17 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use hold::blob::Blob as StorageBlob;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
+use enseada::events::EventHandler;
 use enseada::storage::Provider;
 
 use crate::digest::Digest;
 use crate::entity::{Repo, Upload, UploadChunk};
 use crate::error::{Error, ErrorCode};
+use crate::events::RepoDeleted;
 use crate::{storage, Result};
 
 #[derive(Debug)]
@@ -111,5 +114,12 @@ impl UploadService {
 impl Repository<Upload> for UploadService {
     fn db(&self) -> &Database {
         self.db.as_ref()
+    }
+}
+
+#[async_trait]
+impl EventHandler<RepoDeleted> for UploadService {
+    async fn handle(&self, event: &RepoDeleted) {
+        // TODO (matteojoliveau): implement
     }
 }

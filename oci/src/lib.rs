@@ -1,6 +1,7 @@
 pub mod digest;
 pub mod entity;
 pub mod error;
+pub mod events;
 pub mod header;
 pub mod manifest;
 pub mod mime;

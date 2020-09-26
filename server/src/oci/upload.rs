@@ -58,7 +58,7 @@ pub async fn start(
             uploads
                 .complete_upload(upload_id, digest, Some(chunk))
                 .await?;
-            let blob = Blob::new(digest.clone());
+            let blob = Blob::new(digest.clone(), group, name);
             blobs.save(blob).await?;
             Ok(HttpResponse::Created()
                 .header(
@@ -207,7 +207,7 @@ pub async fn complete(
     // TODO: check digest matches chunk
     let upload = uploads.complete_upload(upload_id, &digest, chunk).await?;
     let digest_s = digest.to_string();
-    let blob = Blob::new(digest.clone());
+    let blob = Blob::new(digest.clone(), group, name);
     blobs.save(blob).await?;
 
     Ok(HttpResponse::Created()

@@ -13,12 +13,14 @@ pub struct Manifest {
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
     manifest: ImageManifest,
+    image: String,
 }
 
 impl Manifest {
-    pub fn new(reference: &str, manifest: ImageManifest) -> Self {
+    pub fn new(reference: &str, group: &str, name: &str, manifest: ImageManifest) -> Self {
         let mut manifest = Self::from(manifest);
         manifest.id = Self::build_guid(reference);
+        manifest.image = format!("{}/{}", group, name);
         manifest
     }
 
@@ -33,6 +35,7 @@ impl From<ImageManifest> for Manifest {
             id: Self::build_guid(&manifest.digest().to_string()),
             rev: None,
             manifest,
+            image: String::new(),
         }
     }
 }

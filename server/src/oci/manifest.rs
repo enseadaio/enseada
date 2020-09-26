@@ -89,7 +89,7 @@ pub async fn put(
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
-    let manifest = Manifest::new(reference, body.into_inner());
+    let manifest = Manifest::new(reference, group, name, body.into_inner());
     let manifest = manifests.save(manifest).await?;
 
     log::debug!("Checking if ref '{}' is a tag", reference);

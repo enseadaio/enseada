@@ -16,6 +16,17 @@
                     "manifest.config.digest"
                 ]
             }
+        },
+        {
+            "kind": "create_index",
+            "name": "image_idx",
+            "database": "oci",
+            "design_doc": "oci_indexes",
+            "index": {
+                "fields": [
+                    "image"
+                ]
+            }
         }
     ]
 }

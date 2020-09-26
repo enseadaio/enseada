@@ -1,15 +1,20 @@
+use std::sync::{Arc, RwLock};
+
 use async_trait::async_trait;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
 use enseada::error::Error;
+use enseada::events::EventBus;
 use enseada::secure;
 
+use crate::events::{UserCreated, UserDeleted, UserUpdated};
 use crate::User;
 
 #[derive(Debug)]
 pub struct UserService {
     db: Database,
+    bus: Arc<RwLock<EventBus>>,
 }
 
 #[async_trait]
@@ -17,11 +22,29 @@ impl Repository<User> for UserService {
     fn db(&self) -> &Database {
         &self.db
     }
+
+    async fn created(&self, entity: &User) {
+        let event = UserCreated::from(entity);
+        let bus = self.bus.read().expect("created() EventBus unlock");
+        bus.broadcast(event);
+    }
+
+    async fn updated(&self, entity: &User) {
+        let event = UserUpdated::from(entity);
+        let bus = self.bus.read().expect("updated() EventBus unlock");
+        bus.broadcast(event);
+    }
+
+    async fn deleted(&self, entity: &User) {
+        let event = UserDeleted::from(entity);
+        let bus = self.bus.read().expect("deleted() EventBus unlock");
+        bus.broadcast(event);
+    }
 }
 
 impl UserService {
-    pub fn new(db: Database) -> UserService {
-        UserService { db }
+    pub fn new(db: Database, bus: Arc<RwLock<EventBus>>) -> UserService {
+        UserService { db, bus }
     }
 
     #[tracing::instrument]

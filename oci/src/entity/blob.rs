@@ -12,14 +12,16 @@ pub struct Blob {
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
     digest: Digest,
+    image: String,
 }
 
 impl Blob {
-    pub fn new(digest: Digest) -> Self {
+    pub fn new(digest: Digest, group: &str, name: &str) -> Self {
         Self {
             id: Self::build_guid(&digest.to_string()),
             rev: None,
             digest,
+            image: format!("{}/{}", group, name),
         }
     }
 

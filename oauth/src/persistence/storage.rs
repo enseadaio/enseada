@@ -22,11 +22,11 @@ use crate::{Expirable, Result};
 
 #[derive(Debug)]
 pub struct CouchStorage {
-    db: Arc<Database>,
+    db: Database,
 }
 
 impl CouchStorage {
-    pub fn new(db: Arc<Database>) -> CouchStorage {
+    pub fn new(db: Database) -> CouchStorage {
         CouchStorage { db }
     }
 }
@@ -234,7 +234,7 @@ impl AuthorizationCodeStorage for CouchStorage {
 
 impl Repository<PersonalAccessToken> for CouchStorage {
     fn db(&self) -> &Database {
-        self.db.deref()
+        &self.db
     }
 }
 
