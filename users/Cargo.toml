@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 # Enseada
 enseada = { path = "../lib" }
+events = { path = "../events" }
 
 # Serde
 serde = { version = "1.0", features = ["derive"] }

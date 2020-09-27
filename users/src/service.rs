@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
 use enseada::error::Error;
-use enseada::events::EventBus;
+use events::EventBus;
 use enseada::secure;
 
 use crate::events::{UserCreated, UserDeleted, UserUpdated};
