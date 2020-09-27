@@ -1293,6 +1293,15 @@ version = "0.1.0"
 dependencies = [
  "actix 0.10.0",
  "async-trait",
+ "events_derive",
+]
+
+[[package]]
+name = "events_derive"
+version = "0.1.0"
+dependencies = [
+ "quote 1.0.7",
+ "syn 1.0.42",
 ]
 
 [[package]]

@@ -13,6 +13,8 @@ use std::sync::Arc;
 use actix::{Actor, Arbiter, Context, Handler, Message, Recipient, Supervised, Supervisor};
 use async_trait::async_trait;
 
+pub use events_derive::Event;
+
 pub trait Event: 'static + Send + Sync + Debug {}
 
 #[derive(Message)]

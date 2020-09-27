@@ -4,14 +4,12 @@ use enseada::guid::Guid;
 
 use crate::User;
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct UserCreated {
     id: Guid,
     rev: Option<String>,
     enabled: bool,
 }
-
-impl Event for UserCreated {}
 
 impl From<&User> for UserCreated {
     fn from(user: &User) -> Self {
@@ -23,14 +21,12 @@ impl From<&User> for UserCreated {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct UserUpdated {
     id: Guid,
     rev: Option<String>,
     enabled: bool,
 }
-
-impl Event for UserUpdated {}
 
 impl From<&User> for UserUpdated {
     fn from(user: &User) -> Self {
@@ -42,14 +38,12 @@ impl From<&User> for UserUpdated {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct UserDeleted {
     id: Guid,
     rev: Option<String>,
     enabled: bool,
 }
-
-impl Event for UserDeleted {}
 
 impl From<&User> for UserDeleted {
     fn from(user: &User) -> Self {

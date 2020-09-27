@@ -4,7 +4,7 @@ use enseada::guid::Guid;
 
 use crate::entity::Repo;
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct RepoCreated {
     pub id: Guid,
     pub rev: Option<String>,
@@ -13,8 +13,6 @@ pub struct RepoCreated {
     pub description: Option<String>,
     pub tags: Vec<String>,
 }
-
-impl Event for RepoCreated {}
 
 impl From<&Repo> for RepoCreated {
     fn from(repo: &Repo) -> Self {
@@ -29,7 +27,7 @@ impl From<&Repo> for RepoCreated {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct RepoUpdated {
     pub id: Guid,
     pub rev: Option<String>,
@@ -38,8 +36,6 @@ pub struct RepoUpdated {
     pub description: Option<String>,
     pub tags: Vec<String>,
 }
-
-impl Event for RepoUpdated {}
 
 impl From<&Repo> for RepoUpdated {
     fn from(repo: &Repo) -> Self {
@@ -54,7 +50,7 @@ impl From<&Repo> for RepoUpdated {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Event)]
 pub struct RepoDeleted {
     pub id: Guid,
     pub rev: Option<String>,
@@ -63,8 +59,6 @@ pub struct RepoDeleted {
     pub description: Option<String>,
     pub tags: Vec<String>,
 }
-
-impl Event for RepoDeleted {}
 
 impl From<&Repo> for RepoDeleted {
     fn from(repo: &Repo) -> Self {
