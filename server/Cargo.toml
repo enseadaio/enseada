@@ -19,6 +19,7 @@ rbac = { path = "../rbac" }
 oci = { path = "../oci" }
 oauth = { path = "../oauth" }
 api = { path = "../api" }
+events = { path = "../events" }
 
 hold = "0.1.0-alpha.4"
 hold_s3 = "0.1.0-alpha.4"

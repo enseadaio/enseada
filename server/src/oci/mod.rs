@@ -9,7 +9,7 @@ use http::StatusCode;
 use serde::Deserialize;
 
 use enseada::couchdb::db::Database;
-use enseada::events::EventBus;
+use events::EventBus;
 use oci::header;
 use oci::service::{BlobService, ManifestService, RepoService, UploadService};
 

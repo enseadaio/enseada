@@ -6,7 +6,7 @@ use futures::FutureExt;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::{Entity, Repository};
-use enseada::events::EventHandler;
+use events::EventHandler;
 use enseada::storage::Provider;
 
 use crate::digest::Digest;

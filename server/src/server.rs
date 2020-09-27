@@ -19,7 +19,7 @@ use tokio::sync::RwLock;
 use url::Url;
 
 use ::rbac::{Enforcer, Watcher};
-use enseada::events::EventBus;
+use events::EventBus;
 use oauth;
 
 use crate::config::Configuration;

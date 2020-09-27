@@ -1242,6 +1242,7 @@ dependencies = [
  "derivative 1.0.4",
  "derive_more",
  "enseada",
+ "events",
  "futures",
  "glob",
  "hold",
@@ -1284,6 +1285,14 @@ dependencies = [
  "proc-macro2 1.0.23",
  "quote 1.0.7",
  "syn 1.0.42",
+]
+
+[[package]]
+name = "events"
+version = "0.1.0"
+dependencies = [
+ "actix 0.10.0",
+ "async-trait",
 ]
 
 [[package]]
@@ -2229,6 +2238,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "enseada",
+ "events",
  "futures",
  "hold",
  "http",
@@ -3758,6 +3768,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "enseada",
+ "events",
  "log",
  "serde 1.0.116",
  "tracing",

@@ -7,7 +7,7 @@ use futures::FutureExt;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::{Entity, Repository};
-use enseada::events::EventHandler;
+use events::EventHandler;
 
 use crate::digest::Digest;
 use crate::entity::Manifest;

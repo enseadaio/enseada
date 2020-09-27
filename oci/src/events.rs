@@ -1,5 +1,5 @@
 use enseada::couchdb::repository::Entity;
-use enseada::events::Event;
+use events::Event;
 use enseada::guid::Guid;
 
 use crate::entity::Repo;

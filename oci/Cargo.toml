@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 # Enseada
 enseada = { path = "../lib" }
+events = { path = "../events" }
 hold = "0.1.0-alpha.4"
 async-trait = "0.1"
 futures = "0.3"

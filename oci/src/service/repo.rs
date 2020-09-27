@@ -4,7 +4,7 @@ use async_trait::async_trait;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
-use enseada::events::EventBus;
+use events::EventBus;
 
 use crate::entity::Repo;
 use crate::events::{RepoCreated, RepoDeleted, RepoUpdated};

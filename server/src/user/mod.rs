@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use api::users::v1beta1::UserModel;
 use enseada::couchdb::db::Database;
-use enseada::events::EventBus;
+use events::EventBus;
 use users::{User, UserService};
 
 use crate::config::Configuration;
