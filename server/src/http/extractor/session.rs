@@ -50,7 +50,10 @@ impl FromRequest for TokenSession {
                 Some(token) => {
                     log::debug!("token found in header, fetching from db");
                     let oauth_handler = handler_fut.await?;
-                    let access_token: AccessToken = oauth_handler.get_token(&token).await?;
+                    let access_token: AccessToken = oauth_handler
+                        .get_token(&token)
+                        .await
+                        .map_err(|_err| ApiError::unauthorized())?;
                     if access_token.is_expired() {
                         log::debug!("token is expired");
                         TokenIntrospectionHandler::<AccessToken>::revoke_token(
