@@ -35,9 +35,8 @@ built for safety and speed.
 repositories, users and access control. CouchDB is a web-native database written in Erlang and based on web technologies
 like HTTP and JSON.
 
-Enseada stores packages in distributed and fault-tolerant data storage services. By default it stores them as file attachments
-in CouchDB, so no configuration is needed. This works well if the number and size of packages is fairly low.
-Cloud object storage services are also supported and are recommended for production use.
+Enseada stores packages in distributed and fault-tolerant object storage services. See [Supported storage providers](#supported-storage-providers) for the
+complete list.
 
 
 ## Supported package repositories
@@ -62,13 +61,7 @@ See the [configuration guide](https://docs.enseada.io/users/configuration.html) 
 
 At the moment, the following providers are supported:
 
-- CouchDB File Attachments
 - S3 compatible (AWS S3, Minio, DigitalOcean Spaces, Scaleway Object Storage, Ceph, etc)
-
-The CouchDB provider allows to store packages as [file attachments](https://docs.couchdb.org/en/stable/api/document/attachments.html) in CouchDB.
-This has the advantage of working out of the box and without requiring a third party service to store packages. However performance can become a problem
-if the number of stored packages is very high, or if files are very large. It also means that properly backing up and replicating the CouchDB cluster
-becomes of high importance. For real production workloads it is recommended to use a cloud object storage service instead. 
 
 ## HTTPS and HTTP/2 support
 
