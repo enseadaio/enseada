@@ -35,6 +35,10 @@ COPY couchdb .
 WORKDIR /app/enseada/lib
 COPY lib .
 
+# Events
+WORKDIR /app/enseada/events
+COPY events .
+
 # OAuth
 WORKDIR /app/enseada/oauth
 COPY oauth .
