@@ -9,10 +9,7 @@ pub enum Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let msg = match self {
-            Error::Parse(msg) => msg,
-        };
-
+        let Error::Parse(msg) = self;
         msg.fmt(f)
     }
 }
