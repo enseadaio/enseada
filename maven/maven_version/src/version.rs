@@ -1,6 +1,9 @@
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display, Formatter};
 
+#[cfg(feature = "serde")]
+use serde::{de::Error as DeError, Deserialize, Deserializer, Serialize, Serializer};
+
 use crate::error::Error;
 use crate::lexer::Lexer;
 use crate::parser::Item;
@@ -59,6 +62,27 @@ impl PartialEq for Version {
 impl PartialOrd for Version {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Self::parse(value).map_err(D::Error::custom)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for Version {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
+        self.value.serialize(serializer)
     }
 }
 

@@ -5,4 +5,4 @@ authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-maven_version = { path = "./maven_version" }
+maven_version = { path = "./maven_version", features = ["serde"] }

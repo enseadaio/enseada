@@ -70,9 +70,9 @@ impl Parser {
         }
 
         if !self.tokens.first().unwrap().is_int() {
-            return Err(Error::Parse(format!(
-                "Maven versions must begin with an integer"
-            )));
+            return Err(Error::Parse(
+                "Maven versions must begin with an integer".to_string(),
+            ));
         }
 
         Ok(Self::parse_list(&mut self.tokens.into_iter()))

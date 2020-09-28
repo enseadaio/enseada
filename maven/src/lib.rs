@@ -1,1 +1,1 @@
-use maven_version;
+pub use maven_version::*;

@@ -2028,6 +2028,7 @@ name = "maven_version"
 version = "0.1.0"
 dependencies = [
  "rstest",
+ "serde 1.0.116",
 ]
 
 [[package]]
