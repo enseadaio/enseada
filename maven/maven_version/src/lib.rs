@@ -1,12 +1,17 @@
+use std::cmp::Ordering;
+use std::fmt::{self, Debug, Display, Formatter};
+
 use crate::error::Error;
-use crate::lexer::{Lexer, Token, UnexpectedChar};
+use crate::lexer::Lexer;
 use crate::parser::Item;
 use crate::parser::Parser;
 
+mod compare;
 mod error;
 mod lexer;
 mod parser;
 
+#[derive(Debug, Eq)]
 pub struct Version {
     value: String,
     items: Item,
@@ -14,8 +19,8 @@ pub struct Version {
 
 impl Version {
     pub fn parse<S: AsRef<str>>(value: S) -> Result<Self, Error> {
-        let value = value.as_ref();
-        let mut lexer = Lexer::new(value);
+        let value = value.as_ref().to_lowercase();
+        let mut lexer = Lexer::new(&value);
         if lexer.any(|res| res.is_err()) {
             return Err(Error::Parse(format!("invalid Maven version: '{}'", value)));
         }
@@ -32,6 +37,39 @@ impl Version {
                 .parse()
                 .map_err(|err| Error::Parse(format!("{}, was '{}'", err, value)))?,
         })
+    }
+
+    pub fn is_snapshot(&self) -> bool {
+        self.items
+            .find(&|item| match item {
+                Item::String(s) => s == "snapshot",
+                _ => false,
+            })
+            .is_some()
+    }
+}
+
+impl Display for Version {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        std::fmt::Display::fmt(&self.value, f)
+    }
+}
+
+impl PartialEq for Version {
+    fn eq(&self, other: &Self) -> bool {
+        self.items == other.items
+    }
+}
+
+impl PartialOrd for Version {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Version {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.items.cmp(&other.items)
     }
 }
 
@@ -60,5 +98,36 @@ mod test {
         let res = Version::parse(input);
 
         assert!(res.is_err());
+    }
+
+    #[rstest(
+    first,
+    other,
+    ord,
+    case("1", "1.0", Ordering::Equal),                // 1
+    case("1", "1-ga", Ordering::Equal),               // 2
+    case("1-alpha", "1-a", Ordering::Equal),          // 3
+    case("1-beta", "1-b", Ordering::Equal),           // 4
+    case("1-milestone", "1-m", Ordering::Equal),      // 5
+    case("1-rc", "1-cr", Ordering::Equal),            // 6
+    case("1-ga", "1-final", Ordering::Equal),         // 7
+    case("1", "1-final", Ordering::Equal),            // 8
+    case("1.0", "2.0", Ordering::Less),               // 9
+    case("3.0-alpha", "1.0", Ordering::Greater),      // 10
+    case("1-alpha.1", "1-alpha.2", Ordering::Less),   // 11
+    case("1-beta.1", "1-alpha.2", Ordering::Greater), // 12
+    case("1-snapshot", "1-pippo", Ordering::Less)     // 13
+    )]
+    fn it_compares_versions(first: &str, other: &str, ord: Ordering) {
+        let v1 = Version::parse(first).unwrap();
+        let v2 = Version::parse(other).unwrap();
+        assert_eq!(ord, v1.cmp(&v2))
+    }
+
+    #[rstest(input, is, case("1.0", false), case("1.0-snapshot", true))]
+    fn it_checks_for_snapshots(input: &str, is: bool) {
+        let v = Version::parse(input).unwrap();
+
+        assert_eq!(is, v.is_snapshot());
     }
 }

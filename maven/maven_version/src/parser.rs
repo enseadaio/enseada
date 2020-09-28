@@ -1,9 +1,11 @@
+use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display, Formatter};
 
+use crate::compare::{cmp_integer, cmp_list, cmp_null, cmp_string};
 use crate::error::Error;
 use crate::lexer::Token;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Item {
     Integer(u64),
     String(String),
@@ -11,11 +13,48 @@ pub enum Item {
     Null,
 }
 
+impl Item {
+    pub fn find<P>(&self, predicate: &P) -> Option<&Item>
+    where
+        P: Fn(&Item) -> bool,
+    {
+        match self {
+            Item::List(list) => list
+                .iter()
+                .fold(None, |acc, item| acc.or_else(|| item.find(predicate))),
+            _ => {
+                if predicate(self) {
+                    Some(self)
+                } else {
+                    None
+                }
+            }
+        }
+    }
+}
+
 impl Display for Item {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut visitor = ItemVisitor::default();
         visitor.add(self);
         std::fmt::Display::fmt(&visitor.render(), f)
+    }
+}
+
+impl PartialOrd for Item {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Item {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self {
+            Item::Integer(i) => cmp_integer(i, other),
+            Item::String(s) => cmp_string(s, other),
+            Item::List(list) => cmp_list(list, other),
+            Item::Null => cmp_null(other),
+        }
     }
 }
 
@@ -203,5 +242,47 @@ mod test {
 
         let s = items.to_string();
         assert_eq!("1.0-alpha.10.5-c", s);
+    }
+
+    #[test]
+    fn it_can_find_some_item() {
+        let items = Item::List(vec![
+            Item::Integer(1),
+            Item::Integer(0),
+            Item::List(vec![
+                Item::String("alpha".to_string()),
+                Item::Integer(10),
+                Item::Integer(5),
+                Item::List(vec![Item::String("c".to_string())]),
+            ]),
+        ]);
+
+        let item = items.find(&|item| match item {
+            Item::String(s) => s == "alpha",
+            _ => false,
+        });
+
+        assert_eq!(Some(&Item::String("alpha".to_string())), item);
+    }
+
+    #[test]
+    fn it_cannot_find_missing_item() {
+        let items = Item::List(vec![
+            Item::Integer(1),
+            Item::Integer(0),
+            Item::List(vec![
+                Item::String("alpha".to_string()),
+                Item::Integer(10),
+                Item::Integer(5),
+                Item::List(vec![Item::String("c".to_string())]),
+            ]),
+        ]);
+
+        let item = items.find(&|item| match item {
+            Item::String(s) => s == "beta",
+            _ => false,
+        });
+
+        assert_eq!(None, item);
     }
 }
