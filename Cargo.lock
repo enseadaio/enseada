@@ -1204,6 +1204,7 @@ dependencies = [
  "base64 0.12.3",
  "chrono",
  "couchdb",
+ "futures",
  "hex",
  "hold",
  "http",
@@ -2216,6 +2217,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "enseada",
+ "events",
  "glob",
  "http",
  "log",
@@ -2224,6 +2226,7 @@ dependencies = [
  "tracing",
  "tracing-futures",
  "url",
+ "users",
 ]
 
 [[package]]

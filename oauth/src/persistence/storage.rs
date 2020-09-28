@@ -8,6 +8,8 @@ use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::{Entity, Repository};
 use enseada::guid::Guid;
 use enseada::pagination::Page;
+use events::EventHandler;
+use users::events::UserDeleted;
 
 use crate::client::Client;
 use crate::code::AuthorizationCode;
@@ -237,6 +239,21 @@ impl AuthorizationCodeStorage for CouchStorage {
 impl Repository<PersonalAccessToken> for CouchStorage {
     fn db(&self) -> &Database {
         &self.db
+    }
+}
+
+#[async_trait]
+impl EventHandler<UserDeleted> for CouchStorage {
+    async fn handle(&self, event: &UserDeleted) {
+        let user_id = &event.id;
+        if let Err(err) = self
+            .delete_all(serde_json::json!({
+                "session.user_id": user_id,
+            }))
+            .await
+        {
+            log::error!("{}", err);
+        }
     }
 }
 

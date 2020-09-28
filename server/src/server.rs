@@ -71,6 +71,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             .configure(crate::rbac::mount)
             .configure(crate::oauth::mount(
                 couch.database(crate::couchdb::name::OAUTH, true),
+                event_bus.clone(),
             ))
             .configure(observability::mount)
             .configure(oci::mount(

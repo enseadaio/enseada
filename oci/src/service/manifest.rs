@@ -55,31 +55,6 @@ impl ManifestService {
         log::debug!("reference is not a digest, looking it as tag");
         self.find(reference).await.map_err(Error::from)
     }
-
-    fn recursively_delete_for_repo<'a>(&'a self, image: &'a str) -> BoxFuture<'a, Result<()>> {
-        async move {
-            let page = self
-                .find_all(
-                    100,
-                    0,
-                    serde_json::json!({
-                      "image": image,
-                    }),
-                )
-                .await?;
-
-            for manifest in page.iter() {
-                self.delete(manifest).await?;
-            }
-
-            if page.is_last() {
-                Ok(())
-            } else {
-                self.recursively_delete_for_repo(image).await
-            }
-        }
-        .boxed()
-    }
 }
 
 impl Repository<Manifest> for ManifestService {
@@ -92,7 +67,12 @@ impl Repository<Manifest> for ManifestService {
 impl EventHandler<RepoDeleted> for ManifestService {
     async fn handle(&self, event: &RepoDeleted) {
         let image = format!("{}/{}", &event.group, &event.name);
-        if let Err(err) = self.recursively_delete_for_repo(&image).await {
+        if let Err(err) = self
+            .delete_all(serde_json::json!({
+              "image": image,
+            }))
+            .await
+        {
             log::error!("{}", err);
         }
     }

@@ -8,6 +8,7 @@ actix = "0.10"
 base64 = "0.12"
 couchdb = { path = "../couchdb" }
 chrono = { version = "0.4.15", features = ["serde"] }
+futures = "0.3"
 hold = "0.1.0-alpha.4"
 hex = "0.4"
 http = "0.2"

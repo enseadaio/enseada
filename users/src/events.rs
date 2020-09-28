@@ -1,14 +1,14 @@
 use enseada::couchdb::repository::Entity;
-use events::Event;
 use enseada::guid::Guid;
+use events::Event;
 
 use crate::User;
 
 #[derive(Debug, Event)]
 pub struct UserCreated {
-    id: Guid,
-    rev: Option<String>,
-    enabled: bool,
+    pub id: Guid,
+    pub rev: Option<String>,
+    pub enabled: bool,
 }
 
 impl From<&User> for UserCreated {
@@ -23,9 +23,9 @@ impl From<&User> for UserCreated {
 
 #[derive(Debug, Event)]
 pub struct UserUpdated {
-    id: Guid,
-    rev: Option<String>,
-    enabled: bool,
+    pub id: Guid,
+    pub rev: Option<String>,
+    pub enabled: bool,
 }
 
 impl From<&User> for UserUpdated {
@@ -40,9 +40,9 @@ impl From<&User> for UserUpdated {
 
 #[derive(Debug, Event)]
 pub struct UserDeleted {
-    id: Guid,
-    rev: Option<String>,
-    enabled: bool,
+    pub id: Guid,
+    pub rev: Option<String>,
+    pub enabled: bool,
 }
 
 impl From<&User> for UserDeleted {

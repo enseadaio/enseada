@@ -7,6 +7,8 @@ edition = "2018"
 [dependencies]
 # Enseada
 enseada = { path = "../lib" }
+events = { path = "../events" }
+users = { path = "../users" }
 
 # HTTP
 http = "0.2"

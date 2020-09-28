@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::sync::RwLock;
 
 use actix_web::get;
 use actix_web::web::{self, Json, ServiceConfig};
@@ -10,14 +11,15 @@ use ::oauth::handler::OAuthHandler;
 use ::oauth::persistence::CouchStorage;
 use ::oauth::request::{AuthorizationRequest, TokenRequest};
 use enseada::couchdb::db::Database;
+use events::EventBus;
 
 use crate::config::CONFIG;
 
 mod api;
 mod oauth;
 
-pub fn mount(db: Database) -> Box<impl FnOnce(&mut ServiceConfig)> {
-    Box::new(|cfg: &mut ServiceConfig| {
+pub fn mount(db: Database, bus: Arc<RwLock<EventBus>>) -> Box<impl FnOnce(&mut ServiceConfig)> {
+    Box::new(move |cfg: &mut ServiceConfig| {
         let storage = Arc::new(CouchStorage::new(db.clone()));
         let handler = OAuthHandler::new(
             storage.clone(),
@@ -27,8 +29,12 @@ pub fn mount(db: Database) -> Box<impl FnOnce(&mut ServiceConfig)> {
             CONFIG.secret_key(),
         );
 
-        cfg.data(CouchStorage::new(db));
+        cfg.data(CouchStorage::new(db.clone()));
         cfg.data(handler);
+
+        let couch_handler = CouchStorage::new(db);
+        let mut bus = bus.write().expect("oauth::mount EventBus unlock");
+        bus.subscribe(couch_handler);
 
         cfg.service(oauth::metadata);
         cfg.service(

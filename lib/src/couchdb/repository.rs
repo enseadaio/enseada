@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
 use async_trait::async_trait;
+use futures::future::BoxFuture;
+use futures::prelude::*;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -151,6 +153,27 @@ pub trait Repository<T: Entity>: Debug {
         self.db().delete(&id, &rev).await?;
         self.deleted(&entity).await;
         Ok(())
+    }
+
+    #[tracing::instrument]
+    fn delete_all(&self, selector: serde_json::Value) -> BoxFuture<Result<(), Error>>
+    where
+        Self: Sized + Sync,
+    {
+        async move {
+            let page = self.find_all(100, 0, selector.clone()).await?;
+
+            for manifest in page.iter() {
+                self.delete(manifest).await?;
+            }
+
+            if page.is_last() {
+                Ok(())
+            } else {
+                self.delete_all(selector).await
+            }
+        }
+        .boxed()
     }
 
     async fn deleted(&self, entity: &T) {}
