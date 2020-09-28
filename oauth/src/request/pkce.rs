@@ -60,13 +60,10 @@ pub enum TransformationMethod {
 }
 
 impl TransformationMethod {
-    pub fn validate<S: ToString>(&self, state: Option<S>) -> Result<(), Error> {
+    // We keep this method in case we will disable PLAIN method in the future
+    pub fn validate<S: ToString>(&self, _state: Option<S>) -> Result<(), Error> {
         match self {
-            TransformationMethod::PLAIN => Err(Error::with_state(
-                ErrorKind::InvalidRequest,
-                "transform algorithm not supported",
-                state,
-            )),
+            TransformationMethod::PLAIN => Ok(()),
             TransformationMethod::S256 => Ok(()),
         }
     }
