@@ -17,6 +17,7 @@ users = { path = "../users" }
 observability = { path = "../observability" }
 rbac = { path = "../rbac" }
 oci = { path = "../oci" }
+maven = { path = "../maven" }
 oauth = { path = "../oauth" }
 api = { path = "../api" }
 events = { path = "../events" }

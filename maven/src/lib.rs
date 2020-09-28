@@ -1,0 +1,1 @@
+use maven_version;

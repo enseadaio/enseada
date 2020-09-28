@@ -1253,6 +1253,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "log",
  "log4rs",
+ "maven",
  "mime_guess",
  "oauth",
  "observability",
@@ -2016,6 +2017,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ffc5c5338469d4d3ea17d269fa8ea3512ad247247c30bd2df69e68309ed0a08"
 
 [[package]]
+name = "maven"
+version = "0.1.0"
+dependencies = [
+ "maven_version",
+]
+
+[[package]]
+name = "maven_version"
+version = "0.1.0"
+dependencies = [
+ "rstest",
+]
+
+[[package]]
 name = "maybe-uninit"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2662,6 +2677,19 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "rstest"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dec448bc157977efdc0a71369cf923915b0c4806b1b2449c3fb011071d6f7c38"
+dependencies = [
+ "cfg-if",
+ "proc-macro2 1.0.23",
+ "quote 1.0.7",
+ "rustc_version",
+ "syn 1.0.42",
 ]
 
 [[package]]
