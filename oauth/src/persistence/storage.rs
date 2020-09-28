@@ -13,7 +13,7 @@ use crate::client::Client;
 use crate::code::AuthorizationCode;
 use crate::error::{Error, ErrorKind};
 use crate::persistence::client::ClientEntity;
-use crate::persistence::entity::auth_code::AuthorizationCodeEntity;
+use crate::persistence::entity::auth_code::{AuthorizationCodeEntity, PkceRequestEntity};
 use crate::persistence::entity::pat::PersonalAccessToken;
 use crate::persistence::entity::token::{AccessTokenEntity, RefreshTokenEntity};
 use crate::storage::{AuthorizationCodeStorage, ClientStorage, TokenStorage};
@@ -195,14 +195,16 @@ impl AuthorizationCodeStorage for CouchStorage {
                 return None;
             }
         };
-        code.map(|code| code.to_empty_code())
+        code.map(AuthorizationCodeEntity::into_anonymous_code)
     }
 
     async fn store_code(&self, sig: &str, code: AuthorizationCode) -> Result<AuthorizationCode> {
+        let pkce = code.pkce().cloned().map(PkceRequestEntity::from);
         let entity = AuthorizationCodeEntity::new(
             String::from(sig),
             code.session().clone(),
             code.expiration(),
+            pkce,
         );
         self.db
             .put(&entity.id().to_string(), &entity)

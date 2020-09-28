@@ -7,6 +7,7 @@ use enseada::guid::Guid;
 use enseada::secure::SecureSecret;
 
 use crate::code::AuthorizationCode;
+use crate::request::{PkceRequest, TransformationMethod};
 use crate::session::Session;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -18,6 +19,29 @@ pub struct AuthorizationCodeEntity {
     session: Session,
     #[serde(with = "ts_seconds")]
     expiration: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pkce: Option<PkceRequestEntity>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct PkceRequestEntity {
+    code_challenge: String,
+    code_challenge_method: TransformationMethod,
+}
+
+impl From<PkceRequest> for PkceRequestEntity {
+    fn from(req: PkceRequest) -> Self {
+        Self {
+            code_challenge: req.code_challenge().to_string(),
+            code_challenge_method: req.code_challenge_method().clone(),
+        }
+    }
+}
+
+impl Into<PkceRequest> for PkceRequestEntity {
+    fn into(self) -> PkceRequest {
+        PkceRequest::new(self.code_challenge, self.code_challenge_method)
+    }
 }
 
 impl Entity for AuthorizationCodeEntity {
@@ -44,6 +68,7 @@ impl AuthorizationCodeEntity {
         sig: String,
         session: Session,
         expiration: DateTime<Utc>,
+        pkce: Option<PkceRequestEntity>,
     ) -> AuthorizationCodeEntity {
         let id = Self::build_guid(&sig);
         AuthorizationCodeEntity {
@@ -51,6 +76,7 @@ impl AuthorizationCodeEntity {
             rev: None::<String>,
             session,
             expiration,
+            pkce,
         }
     }
 
@@ -58,8 +84,17 @@ impl AuthorizationCodeEntity {
         &self.session
     }
 
-    pub fn to_empty_code(&self) -> AuthorizationCode {
+    pub fn pkce(&self) -> Option<&PkceRequestEntity> {
+        self.pkce.as_ref()
+    }
+
+    pub fn into_anonymous_code(self) -> AuthorizationCode {
         let expires_in = self.expiration.signed_duration_since(Utc::now());
-        AuthorizationCode::new(SecureSecret::empty(), self.session().clone(), expires_in)
+        AuthorizationCode::new(
+            SecureSecret::empty(),
+            self.session,
+            expires_in,
+            self.pkce.map(Into::into),
+        )
     }
 }

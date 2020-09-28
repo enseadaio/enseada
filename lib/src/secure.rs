@@ -1,5 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
+use ring::digest::{Context, Digest, SHA256};
 use ring::hmac::{self, Key, HMAC_SHA512};
 use ring::rand::{SecureRandom, SystemRandom};
 
@@ -15,8 +16,8 @@ lazy_static! {
 pub struct SecureSecret(Vec<u8>);
 
 impl SecureSecret {
-    pub fn new(bytes: Vec<u8>) -> SecureSecret {
-        SecureSecret(bytes)
+    pub fn new<V: Into<Vec<u8>>>(bytes: V) -> SecureSecret {
+        SecureSecret(bytes.into())
     }
 
     pub fn empty() -> SecureSecret {
@@ -32,7 +33,7 @@ impl SecureSecret {
     }
 
     pub fn as_bytes(&self) -> &[u8] {
-        self.0.as_slice()
+        &self.0
     }
 }
 
@@ -65,9 +66,31 @@ pub fn verify_password(hash: &str, pwd: &str) -> Result<bool, String> {
     argon2::verify_encoded(hash, pwd.as_bytes()).map_err(|err| err.to_string())
 }
 
+pub fn sha256sum<S: AsRef<[u8]>>(s: S) -> SecureSecret {
+    let mut ctx = Context::new(&SHA256);
+    ctx.update(s.as_ref());
+    SecureSecret::new(ctx.finish().as_ref())
+}
+
+pub fn base64<S: AsRef<[u8]>>(s: S) -> String {
+    base64::encode(s)
+}
+
+pub fn base64url<S: AsRef<[u8]>>(s: S) -> String {
+    base64::encode_config(s, base64::URL_SAFE_NO_PAD)
+}
+
+pub fn pkce_challenge<V: AsRef<[u8]>>(code_verifier: V) -> String {
+    let sha = sha256sum(code_verifier);
+    let sha = sha.as_bytes();
+    base64url(sha)
+}
+
 #[cfg(test)]
 mod test {
-    use crate::secure::{generate_token, hash_password, verify_password};
+    use crate::secure::{
+        generate_token, hash_password, pkce_challenge, sha256sum, verify_password,
+    };
 
     #[test]
     fn it_generates_a_token() {
@@ -86,5 +109,22 @@ mod test {
         let r = verify_password(hash.as_str(), pwd);
         assert!(r.is_ok());
         assert!(r.unwrap());
+    }
+
+    #[test]
+    fn it_generates_a_sha256_checksum() {
+        let s = "this is a test string";
+        let exp_sha = "f6774519d1c7a3389ef327e9c04766b999db8cdfb85d1346c471ee86d65885bc";
+
+        let sha = sha256sum(s);
+        assert_eq!(exp_sha, sha.to_string());
+    }
+
+    #[test]
+    fn it_encodes_a_pkce_verifier() {
+        let verifier = "4a52ca3f5a6c4a47bb41c0c58105c3c2d848b69537464e8f86b9fb1f45815b9e2dadd0174fa440f89899dbab9d6f1400";
+        let exp_challenge = "EaFiihM2I1egNwxqkmXd9WMww277yL-xFVhUZuU3kxY";
+        let challenge = pkce_challenge(verifier);
+        assert_eq!(exp_challenge, challenge);
     }
 }

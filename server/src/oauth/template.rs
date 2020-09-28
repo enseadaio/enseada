@@ -1,5 +1,7 @@
 use askama::Template;
 
+use oauth::request::PkceRequest;
+
 use crate::assets;
 
 #[derive(Template)]
@@ -14,6 +16,8 @@ pub struct LoginForm {
     pub scope: String,
     pub state: String,
     pub error: Option<String>,
+    pub code_challenge: Option<String>,
+    pub code_challenge_method: Option<String>,
 }
 
 #[derive(Template)]

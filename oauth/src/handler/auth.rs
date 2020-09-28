@@ -30,6 +30,12 @@ where
     ) -> Result<Client> {
         self.validate_client(&req.client_id, Some(&req.redirect_uri), &req.scope)
             .await
+            .and_then(|client| {
+                if let Some(pkce) = &req.pkce {
+                    pkce.validate(req.state.as_deref())?;
+                }
+                Ok(client)
+            })
             .map_err(|mut err| {
                 err.set_state(req.state.as_deref());
                 err
@@ -45,7 +51,12 @@ where
         session.set_scope(req.scope.clone());
 
         let secret = secure::generate_token(16).unwrap();
-        let code = code::AuthorizationCode::new(secret, session.clone(), Duration::minutes(5));
+        let code = code::AuthorizationCode::new(
+            secret,
+            session.clone(),
+            Duration::minutes(5),
+            req.pkce.clone(),
+        );
         let code_sig = secure::generate_signature(code.to_string().as_str(), self.secret_key());
         log::debug!("Storing token with signature {}", code_sig);
         let code = self

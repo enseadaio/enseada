@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
 use enseada::error::Error;
-use events::EventBus;
 use enseada::secure;
+use events::EventBus;
 
 use crate::events::{UserCreated, UserDeleted, UserUpdated};
 use crate::User;
@@ -47,7 +47,7 @@ impl UserService {
         UserService { db, bus }
     }
 
-    #[tracing::instrument]
+    #[tracing::instrument(skip(password))]
     pub async fn authenticate_user(&self, username: &str, password: &str) -> Result<User, Error> {
         log::debug!("authenticating user {}", username);
         let user = match self.find(username).await? {

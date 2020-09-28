@@ -2,6 +2,7 @@ use std::fmt::{self, Debug, Display, Formatter};
 
 use serde::{Deserialize, Serialize};
 
+use crate::request::pkce::PkceRequest;
 use crate::scope::Scope;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -11,6 +12,8 @@ pub struct AuthorizationRequest {
     pub redirect_uri: String,
     pub scope: Scope,
     pub state: Option<String>,
+    #[serde(flatten)]
+    pub pkce: Option<PkceRequest>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

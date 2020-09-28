@@ -36,8 +36,9 @@ where
                 redirect_uri,
                 client_id,
                 client_secret,
+                code_verifier,
             } => {
-                log::debug!("Validating AuthorizationCode token request");
+                log::debug!("validating AuthorizationCode token request");
                 let client_id = client_id.as_deref().or(auth_client_id);
                 let client_id = match client_id {
                     Some(client_id) => client_id,
@@ -50,7 +51,7 @@ where
                 };
 
                 let code_sig = secure::generate_signature(code.as_str(), self.secret_key());
-                log::debug!("Received auth code with sig {}", &code_sig);
+                log::debug!("received auth code with sig {}", &code_sig);
                 let code = self
                     .authorization_code_storage
                     .get_code(code_sig.to_string().as_str())
@@ -66,7 +67,7 @@ where
                 };
 
                 if code.is_expired() {
-                    log::warn!("Authorization code is expired");
+                    log::warn!("authorization code is expired");
                     return Err(Error::new(
                         ErrorKind::InvalidRequest,
                         "invalid authorization code".to_string(),
@@ -87,6 +88,15 @@ where
                     .await?;
                 self.authenticate_client(&client, client_secret.as_deref().or(auth_client_secret))
                     .await?;
+
+                if let Some(pkce) = code.pkce() {
+                    log::debug!("verifying PKCE challenge");
+                    let code_verifier = code_verifier.as_ref().ok_or_else(|| {
+                        Error::new(ErrorKind::InvalidRequest, "code_verifier is required")
+                    })?;
+                    pkce.verify(code_verifier)?;
+                }
+
                 Ok(client)
             }
             TokenRequest::RefreshToken {

@@ -11,6 +11,7 @@ pub enum TokenRequest {
         redirect_uri: String,
         client_id: Option<String>,
         client_secret: Option<String>,
+        code_verifier: Option<String>,
     },
     RefreshToken {
         refresh_token: String,

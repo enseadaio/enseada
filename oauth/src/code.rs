@@ -5,6 +5,7 @@ use serde::{Serialize, Serializer};
 
 use enseada::secure::SecureSecret;
 
+use crate::request::PkceRequest;
 use crate::session::Session;
 use crate::Expirable;
 
@@ -13,19 +14,30 @@ pub struct AuthorizationCode {
     code: SecureSecret,
     session: Session,
     expiration: DateTime<Utc>,
+    pkce: Option<PkceRequest>,
 }
 
 impl AuthorizationCode {
-    pub fn new(code: SecureSecret, session: Session, expires_in: Duration) -> AuthorizationCode {
+    pub fn new(
+        code: SecureSecret,
+        session: Session,
+        expires_in: Duration,
+        pkce: Option<PkceRequest>,
+    ) -> AuthorizationCode {
         AuthorizationCode {
             code,
             session,
             expiration: Utc::now().add(expires_in),
+            pkce,
         }
     }
 
     pub fn session(&self) -> &Session {
         &self.session
+    }
+
+    pub fn pkce(&self) -> Option<&PkceRequest> {
+        self.pkce.as_ref()
     }
 }
 

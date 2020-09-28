@@ -19,7 +19,9 @@ use oauth::error::Error as OAuthError;
 use oauth::error::ErrorKind;
 use oauth::handler::{BasicAuth, RequestHandler};
 use oauth::persistence::CouchStorage;
-use oauth::request::{AuthorizationRequest, IntrospectionRequest, RevocationRequest, TokenRequest};
+use oauth::request::{
+    AuthorizationRequest, IntrospectionRequest, PkceRequest, RevocationRequest, TokenRequest,
+};
 use oauth::response::{IntrospectionResponse, RevocationResponse, TokenResponse};
 use oauth::session::Session;
 use oauth::CouchOAuthHandler;
@@ -63,6 +65,7 @@ pub async fn login_form(
         http_session.get::<String>("user_id")?
     );
 
+    log::error!("PKCE: {:?}", &auth.pkce);
     let form = LoginForm {
         stylesheet_path: assets::stylesheet_path(),
         favicon_path: assets::icon_path(),
@@ -73,6 +76,14 @@ pub async fn login_form(
         scope: auth.scope.to_string(),
         state: auth.state.as_deref().unwrap_or_else(|| "").to_string(),
         error: query.error.clone(),
+        code_challenge: auth
+            .pkce
+            .as_ref()
+            .map(|pkce| pkce.code_challenge().to_string()),
+        code_challenge_method: auth
+            .pkce
+            .as_ref()
+            .map(|pkce| pkce.code_challenge_method().to_string()),
     };
 
     if let Some(username) = http_session.get::<String>("user_id")? {
