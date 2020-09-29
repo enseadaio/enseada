@@ -1,5 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
+pub use base64;
 use ring::digest::{Context, Digest, SHA256};
 use ring::hmac::{self, Key, HMAC_SHA512};
 use ring::rand::{SecureRandom, SystemRandom};
@@ -72,18 +73,14 @@ pub fn sha256sum<S: AsRef<[u8]>>(s: S) -> SecureSecret {
     SecureSecret::new(ctx.finish().as_ref())
 }
 
-pub fn base64<S: AsRef<[u8]>>(s: S) -> String {
-    base64::encode(s)
-}
-
-pub fn base64url<S: AsRef<[u8]>>(s: S) -> String {
+pub fn base64url_encode<S: AsRef<[u8]>>(s: S) -> String {
     base64::encode_config(s, base64::URL_SAFE_NO_PAD)
 }
 
 pub fn pkce_challenge<V: AsRef<[u8]>>(code_verifier: V) -> String {
     let sha = sha256sum(code_verifier);
     let sha = sha.as_bytes();
-    base64url(sha)
+    base64url_encode(sha)
 }
 
 #[cfg(test)]

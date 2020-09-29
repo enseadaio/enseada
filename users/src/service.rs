@@ -43,8 +43,8 @@ impl Repository<User> for UserService {
 }
 
 impl UserService {
-    pub fn new(db: Database, bus: Arc<RwLock<EventBus>>) -> UserService {
-        UserService { db, bus }
+    pub fn new(db: Database, bus: Arc<RwLock<EventBus>>) -> Self {
+        Self { db, bus }
     }
 
     #[tracing::instrument(skip(password))]

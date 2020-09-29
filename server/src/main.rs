@@ -18,6 +18,7 @@ mod couchdb;
 mod dashboard;
 mod http;
 mod logger;
+mod maven;
 mod oauth;
 mod observability;
 mod oci;

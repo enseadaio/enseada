@@ -1,0 +1,10 @@
+{
+    "name": "oci",
+    "operations": [
+        {
+            "kind": "create_database",
+            "name": "maven",
+            "partitioned": true
+        }
+    ]
+}

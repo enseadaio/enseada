@@ -3,10 +3,10 @@ use hold_s3::{S3Config, S3Credentials, S3Provider};
 use enseada::error::Error;
 use enseada::storage::Provider;
 
-use crate::config::{Storage, CONFIG};
+use crate::config::{Configuration, Storage};
 
-pub fn new_provider() -> Result<Provider, Error> {
-    match CONFIG.storage() {
+pub fn new_provider(cfg: &Configuration) -> Result<Provider, Error> {
+    match cfg.storage() {
         Storage::S3 {
             bucket,
             endpoint,

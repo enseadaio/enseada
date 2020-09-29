@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use couchdb::responses::{FindResponse, RowsResponse};
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Page<T> {
     count: usize,
     total: usize,

@@ -1,11 +1,9 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use futures::future::BoxFuture;
-use futures::FutureExt;
 
 use enseada::couchdb::db::Database;
-use enseada::couchdb::repository::{Entity, Repository};
+use enseada::couchdb::repository::Repository;
 use enseada::storage::Provider;
 use events::EventHandler;
 

@@ -9,6 +9,7 @@ use http::StatusCode;
 use serde::Deserialize;
 
 use enseada::couchdb::db::Database;
+use enseada::storage::Provider;
 use events::EventBus;
 use oci::header;
 use oci::service::{BlobService, ManifestService, RepoService, UploadService};
@@ -30,26 +31,26 @@ pub fn mount(
     cfg: &Configuration,
     db: Database,
     bus: Arc<RwLock<EventBus>>,
+    store: Arc<Provider>,
 ) -> Box<impl FnOnce(&mut ServiceConfig)> {
     let host = cfg.oci().host();
 
     Box::new(move |cfg: &mut ServiceConfig| {
         let db = Arc::new(db);
-        let provider = Arc::new(storage::new_provider().expect("docker storage provider"));
 
         let repo = RepoService::new(db.clone(), bus.clone());
         cfg.data(repo);
 
         let mut bus = bus.write().expect("oci::mount EventBus unlock");
 
-        let repo = UploadService::new(db.clone(), provider.clone());
+        let repo = UploadService::new(db.clone(), store.clone());
         cfg.data(repo);
-        let repo_handler = UploadService::new(db.clone(), provider.clone());
+        let repo_handler = UploadService::new(db.clone(), store.clone());
         bus.subscribe(repo_handler);
 
-        let blob = BlobService::new(db.clone(), provider.clone());
+        let blob = BlobService::new(db.clone(), store.clone());
         cfg.data(blob);
-        let blob_handler = BlobService::new(db.clone(), provider.clone());
+        let blob_handler = BlobService::new(db.clone(), store.clone());
         bus.subscribe(blob_handler);
 
         let manifest = ManifestService::new(db.clone());

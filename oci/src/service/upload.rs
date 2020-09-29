@@ -5,8 +5,8 @@ use hold::blob::Blob as StorageBlob;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
-use events::EventHandler;
 use enseada::storage::Provider;
+use events::EventHandler;
 
 use crate::digest::Digest;
 use crate::entity::{Repo, Upload, UploadChunk};

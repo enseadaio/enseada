@@ -5,4 +5,18 @@ authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+enseada = { path = "../lib" }
 maven_version = { path = "./maven_version", features = ["serde"] }
+events = { path = "../events" }
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+
+# Async
+async-trait = "0.1"
+
+# Olly
+log = "0.4"
+tracing = "0.1.15"
+tracing-futures = "0.2.4"
+

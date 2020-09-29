@@ -64,7 +64,8 @@ derivative = "1.0"
 lazy_static = "1.4"
 
 # Observability
-tracing = { version = "0.1", features = ["log-always"] }
+#tracing = { version = "0.1", features = ["log-always"] }
+tracing = { version = "0.1", features = [] }
 tracing-subscriber = { version = "0.2", default-features = false, features = ["env-filter", "smallvec", "fmt", "ansi", "chrono", "json"] }
 tracing-futures = "0.2"
 

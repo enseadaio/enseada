@@ -10,6 +10,7 @@ pub mod name {
     pub const USERS: &str = "users";
     pub const RBAC: &str = "rbac";
     pub const OCI: &str = "oci";
+    pub const MAVEN: &str = "maven";
 }
 
 lazy_static! {

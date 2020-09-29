@@ -15,15 +15,11 @@ pub enum Error {
     Base64Decode { source: base64::DecodeError },
     #[snafu(display("{}", source))]
     Database { source: couchdb::error::Error },
+    #[snafu(display("{}", source))]
+    Storage { source: hold::error::Error },
     #[snafu(display("{}", message))]
     Generic { message: String },
 }
-
-// pub struct Error {
-//     status: Option<StatusCode>,
-//     message: String,
-//     source: Option<Box<dyn std::error::Error>>,
-// }
 
 impl Error {
     pub fn not_found(typ: &str, id: &str) -> Self {
@@ -79,5 +75,11 @@ impl From<base64::DecodeError> for Error {
 impl From<FromUtf8Error> for Error {
     fn from(err: FromUtf8Error) -> Self {
         Error::FromUtf8 { source: err }
+    }
+}
+
+impl From<hold::error::Error> for Error {
+    fn from(err: hold::error::Error) -> Self {
+        Error::Storage { source: err }
     }
 }

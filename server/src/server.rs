@@ -25,7 +25,7 @@ use oauth;
 use crate::config::Configuration;
 use crate::couchdb::{self, name as dbname};
 use crate::http::error;
-use crate::{dashboard, observability, oci, routes, user};
+use crate::{dashboard, maven, observability, oci, routes, storage, user};
 
 pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let address = format!("0.0.0.0:{}", cfg.port());
@@ -41,6 +41,8 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let enforcer = Arc::new(RwLock::new(enforcer));
     let watcher = Watcher::new(rbac_db.clone(), enforcer.clone());
     watcher.start().expect("Watcher::start()");
+
+    let store = Arc::new(storage::new_provider(cfg).expect("storage provider"));
 
     let event_bus = Arc::new(std::sync::RwLock::new(EventBus::new()));
 
@@ -78,6 +80,12 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
                 cfg,
                 couch.database(crate::couchdb::name::OCI, true),
                 event_bus.clone(),
+                store.clone(),
+            ))
+            .configure(maven::mount(
+                couch.database(crate::couchdb::name::MAVEN, true),
+                event_bus.clone(),
+                store.clone(),
             ))
             .configure(routes::mount)
             .configure(dashboard::mount)
