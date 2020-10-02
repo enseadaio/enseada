@@ -43,15 +43,15 @@ impl RepoService {
     ) -> Result<File<'f>> {
         let key = storage::file_key(repo.location(), version, filename);
         match self.store.get_blob(&key).await? {
-            Some(blob) => Ok(File::new(filename, version, blob.content().clone())),
+            Some(blob) => Ok(File::new(filename, version, vec![])),
             None => Err(Error::not_found("Maven file", &key)),
         }
     }
 
     pub async fn store_file<'a, 'f>(&'f self, repo: &Repo, file: File<'f>) -> Result<()> {
         let key = storage::file_key(repo.location(), file.version(), file.filename());
-        let blob = Blob::new(key, file.into_content());
-        self.store.store_blob(blob).await?;
+        // let blob = Blob::new(key, file.into_content());
+        // self.store.store_blob(blob).await?;
         Ok(())
     }
 }

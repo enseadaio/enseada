@@ -3,6 +3,9 @@ use crate::config::Configuration;
 pub fn init(cfg: &Configuration) {
     let fmt = cfg.log().format();
     let cfg = cfg.tracing();
+    if !cfg.log() {
+        return;
+    }
 
     let builder = tracing_subscriber::fmt().with_max_level(cfg.level());
     let res = if fmt.ne("json") {

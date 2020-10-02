@@ -4,8 +4,8 @@
 port: 9623
 log:
   format: text
-  level: debug
-  rootlevel: info
+  level: info
+  root_level: error
 
 secret.key: Y7o3UYJTdympbipV54to2e57r5bjTMcq
 public.host: http://localhost:9623
@@ -14,7 +14,7 @@ root.password: supersecret
 # Tracing
 tracing:
   log: false
-  level: info
+  level: error
 
 # Database
 couchdb:
@@ -33,8 +33,10 @@ storage:
 # HTTPS
 tls:
   enabled: false
-  cert.path: .github/cert.pem
-  key.path: .github/key.pem
+  cert:
+    path: .github/cert.pem
+  key:
+    path: .github/key.pem
 
 # OCI registry
 oci:

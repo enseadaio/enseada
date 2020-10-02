@@ -9,7 +9,8 @@ base64 = "0.12"
 couchdb = { path = "../couchdb" }
 chrono = { version = "0.4.15", features = ["serde"] }
 futures = "0.3"
-hold = "0.1.0-alpha.4"
+bytes = "0.5"
+hold = "0.1.0-alpha.5"
 hex = "0.4"
 http = "0.2"
 lazy_static = "1.4"

@@ -19,7 +19,7 @@ pub struct Configuration {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Logging {
     level: String,
-    rootlevel: String,
+    root_level: String,
     format: Option<String>,
 }
 
@@ -73,6 +73,7 @@ pub enum Storage {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct OCI {
     host: String,
+    max_body_size: usize,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -86,7 +87,7 @@ impl Configuration {
         let mut c = Config::new();
 
         c.merge(File::with_name("enseada").required(false))?;
-        c.merge(Environment::with_prefix("enseada").separator("_"))?;
+        c.merge(Environment::with_prefix("enseada").separator("__"))?;
 
         // Defaults
         c.set_default("port", 9623)?;
@@ -103,9 +104,10 @@ impl Configuration {
         c.set_default("public.host", format!("{}://localhost:{}", proto, port))?;
 
         c.set_default("log.level", "info")?;
-        c.set_default("log.rootlevel", "warn")?;
+        c.set_default("log.root_level", "warn")?;
         c.set_default("couchdb.url", "http://localhost:5984")?;
         c.set_default("oci.host", "containers.localhost")?;
+        c.set_default("oci.max_body_size", 10_737_418_240)?; // 10 Gib
         c.set_default("tracing.log", false)?;
         c.set_default("tracing.level", "info")?;
 
@@ -175,7 +177,7 @@ impl Logging {
     }
 
     pub fn root_level(&self) -> String {
-        self.rootlevel.clone()
+        self.root_level.clone()
     }
 
     pub fn format(&self) -> String {
@@ -224,6 +226,10 @@ impl TLS {
 impl OCI {
     pub fn host(&self) -> String {
         self.host.clone()
+    }
+
+    pub fn max_body_size(&self) -> usize {
+        self.max_body_size
     }
 }
 

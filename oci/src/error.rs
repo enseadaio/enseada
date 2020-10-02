@@ -5,6 +5,7 @@ use http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 use enseada::couchdb::error::Error as CouchError;
+use enseada::storage;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Error {
@@ -21,6 +22,11 @@ impl Error {
             message: message.to_string(),
             detail: HashMap::new(),
         }
+    }
+
+    pub fn with_detail<K: ToString, V: ToString>(mut self, k: K, v: V) -> Self {
+        self.detail.insert(k.to_string(), v.to_string());
+        self
     }
 
     pub fn code(&self) -> &ErrorCode {
@@ -92,12 +98,12 @@ impl From<CouchError> for Error {
     }
 }
 
-impl From<hold::error::Error> for Error {
-    fn from(err: hold::error::Error) -> Self {
-        log::error!("{}", &err);
+impl From<storage::error::Error> for Error {
+    fn from(err: storage::error::Error) -> Self {
         match err {
-            hold::error::Error::IDNotFound { .. } => Self::from(ErrorCode::BlobUnknown),
-            hold::error::Error::ProviderError { .. } => Self::from(ErrorCode::Internal),
+            storage::error::Error::IDNotFound { .. } => Self::from(ErrorCode::BlobUnknown),
+            storage::error::Error::ProviderError { .. } => Self::from(ErrorCode::Internal),
+            storage::error::Error::BodyError { .. } => Self::from(ErrorCode::Internal),
         }
     }
 }

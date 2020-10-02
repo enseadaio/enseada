@@ -8,7 +8,7 @@ use enseada::guid::Guid;
 
 use crate::storage;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Upload {
     #[serde(rename = "_id")]
     id: Guid,
@@ -29,6 +29,10 @@ impl Upload {
 
     pub fn chunks(&self) -> Vec<&UploadChunk> {
         self.chunks.iter().collect()
+    }
+
+    pub fn chunks_mut(&mut self) -> Vec<&mut UploadChunk> {
+        self.chunks.iter_mut().collect()
     }
 
     pub fn add_chunk(&mut self, chunk: UploadChunk) -> &mut Self {
@@ -76,22 +80,19 @@ impl Entity for Upload {
     }
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct UploadChunk {
     start_range: usize,
     end_range: usize,
     storage_key: Option<String>,
-    #[serde(skip)]
-    content: Vec<u8>,
 }
 
 impl UploadChunk {
-    pub fn new(start_range: usize, end_range: usize, content: Vec<u8>) -> Self {
+    pub fn new(start_range: usize, end_range: usize) -> Self {
         UploadChunk {
             start_range,
             end_range,
             storage_key: None,
-            content,
         }
     }
     pub fn start_range(&self) -> usize {
@@ -102,6 +103,10 @@ impl UploadChunk {
         self.end_range
     }
 
+    pub fn size(&self) -> usize {
+        self.end_range - self.start_range
+    }
+
     pub fn storage_key(&self) -> Option<&str> {
         self.storage_key.as_deref()
     }
@@ -109,10 +114,6 @@ impl UploadChunk {
     pub fn set_storage_key(&mut self, key: String) -> &mut Self {
         self.storage_key = Some(key);
         self
-    }
-
-    pub fn content(&self) -> Vec<u8> {
-        self.content.clone()
     }
 }
 

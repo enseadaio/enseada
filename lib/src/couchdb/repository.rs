@@ -11,8 +11,9 @@ use couchdb::error::Error;
 
 use crate::guid::Guid;
 use crate::pagination::Page;
+use std::pin::Pin;
 
-pub trait Entity: Clone + Debug + Serialize + DeserializeOwned + Send + Sync {
+pub trait Entity: Debug + Serialize + DeserializeOwned + Send + Sync {
     fn build_guid(id: &str) -> Guid;
 
     fn id(&self) -> &Guid;
@@ -92,6 +93,42 @@ pub trait Repository<T: Entity>: Debug {
         Ok(Page::from_find_response(res, limit, offset, count))
     }
 
+    async fn find_all_stream(
+        &self,
+        selector: serde_json::Value,
+    ) -> Result<Box<dyn TryStream<Item = Result<T, Error>, Ok = T, Error = Error>>, Error>
+    where
+        Self: Sized,
+        T: 'async_trait + Entity,
+    {
+        let id = T::build_guid("");
+        let partition = id.partition().unwrap();
+        let db = self.db();
+        let count = db.count_partitioned(partition).await?;
+
+        let s = stream::try_unfold((0, false), |(offset, done)| async move {
+            if done {
+                return Ok(None);
+            }
+            let res = db
+                .find_partitioned::<T>(partition, selector, 100, offset)
+                .await?;
+
+            if let Some(warning) = &res.warning {
+                log::warn!("{}", warning);
+            }
+            let page = Page::from_find_response(res, 100, offset, count);
+            let done = page.is_last();
+
+            Ok(Some((page, (offset, done))))
+        })
+        .map_ok(stream::iter)
+        .into_stream()
+        .flatten();
+
+        Ok(Box::new(s))
+    }
+
     #[tracing::instrument]
     async fn find(&self, id: &str) -> Result<Option<T>, Error>
     where
@@ -163,8 +200,8 @@ pub trait Repository<T: Entity>: Debug {
         async move {
             let page = self.find_all(100, 0, selector.clone()).await?;
 
-            for manifest in page.iter() {
-                self.delete(manifest).await?;
+            for el in page.iter() {
+                self.delete(el).await?;
             }
 
             if page.is_last() {

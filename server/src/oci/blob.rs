@@ -54,7 +54,7 @@ pub async fn get(
     Ok(HttpResponse::Ok()
         .header(http::header::CONTENT_TYPE, "application/octet-stream")
         .header(header::CONTENT_DIGEST, digest_s)
-        .body(content))
+        .streaming(content))
 }
 
 #[head("/{group}/{name}/blobs/{digest}")]

@@ -1,6 +1,6 @@
 use actix_web::body::MessageBody;
 use actix_web::dev::ServiceResponse;
-use actix_web::error::BlockingError;
+use actix_web::error::{BlockingError, PayloadError};
 use actix_web::http::StatusCode;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
 use actix_web::{Error as HttpError, HttpResponse, ResponseError};
@@ -14,6 +14,7 @@ use enseada::error::Error;
 use oauth::error::{Error as OAuthError, ErrorKind};
 use oci::error::Error as OCIError;
 use rbac::EvaluationError;
+use std::io;
 
 #[derive(Debug, Display, PartialEq, Eq)]
 #[allow(dead_code)]

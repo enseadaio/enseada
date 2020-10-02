@@ -1,8 +1,9 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use actix_web::http::HeaderMap;
-use actix_web::web::{Bytes, Data, Path, Query};
+use actix_web::web::{Bytes, Data, Path, Payload, Query};
 use actix_web::{delete, get, patch, post, put, HttpRequest, HttpResponse};
+use futures::TryStreamExt;
 use serde::Deserialize;
 use tokio::sync::RwLock;
 
@@ -18,6 +19,7 @@ use rbac::Enforcer;
 use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::oci::{RepoPath, Result};
+use std::io;
 
 #[derive(Debug, Deserialize)]
 pub struct DigestParam {
@@ -49,14 +51,14 @@ pub async fn start(
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
     let upload = uploads.start_upload(repo).await?;
-    let upload_id = upload.id().id();
+    let upload_id = upload.id().id().to_string();
     match query {
         Some(query) => {
             let digest = &query.digest;
-            let chunk = chunk_from_request(req.headers().into(), body)?;
+            let chunk = chunk_from_request(req.headers().into(), body.len())?;
             // TODO: check digest matches chunk
             uploads
-                .complete_upload(upload_id, digest, Some(chunk))
+                .complete_upload(upload, digest, Some((chunk, body)))
                 .await?;
             let blob = Blob::new(digest.clone(), group, name);
             blobs.save(blob).await?;
@@ -144,11 +146,16 @@ pub async fn push(
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
+    let upload = uploads
+        .find(upload_id)
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::BlobUploadUnknown))?;
+
     log::debug!("building chunk");
-    let chunk = chunk_from_request(req.headers(), body)?;
+    let chunk = chunk_from_request(req.headers(), body.len())?;
 
     log::debug!("pushing chunk");
-    let upload = uploads.push_chunk(upload_id, chunk).await?;
+    let upload = uploads.push_chunk(upload, chunk, body).await?;
 
     Ok(HttpResponse::Accepted()
         .header(
@@ -195,17 +202,22 @@ pub async fn complete(
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
+    let upload = uploads
+        .find(upload_id)
+        .await?
+        .ok_or_else(|| Error::from(ErrorCode::BlobUploadUnknown))?;
+
     let chunk = match body {
         Some(body) => {
             log::debug!("building chunk");
-            Some(chunk_from_request(req.headers(), body)?)
+            Some((chunk_from_request(req.headers(), body.len())?, body))
         }
         None => None,
     };
 
     log::debug!("completing upload");
     // TODO: check digest matches chunk
-    let upload = uploads.complete_upload(upload_id, &digest, chunk).await?;
+    let upload = uploads.complete_upload(upload, &digest, chunk).await?;
     let digest_s = digest.to_string();
     let blob = Blob::new(digest.clone(), group, name);
     blobs.save(blob).await?;
@@ -258,12 +270,12 @@ pub async fn delete(
     Ok(HttpResponse::NoContent().finish())
 }
 
-fn chunk_from_request(headers: &HeaderMap, body: Bytes) -> Result<UploadChunk> {
+fn chunk_from_request(headers: &HeaderMap, size: usize) -> Result<UploadChunk> {
     let content_length = headers
         .get(http::header::CONTENT_LENGTH)
         .and_then(|h| h.to_str().ok())
         .and_then(|h| h.parse().ok())
-        .unwrap_or_else(|| body.len());
+        .unwrap_or(size);
 
     let content_range = headers.get(http::header::CONTENT_RANGE);
     let (start_range, end_range) = if let Some(hdr) = content_range {
@@ -278,5 +290,5 @@ fn chunk_from_request(headers: &HeaderMap, body: Bytes) -> Result<UploadChunk> {
         (0, content_length)
     };
 
-    Ok(UploadChunk::new(start_range, end_range, body.to_vec()))
+    Ok(UploadChunk::new(start_range, end_range))
 }

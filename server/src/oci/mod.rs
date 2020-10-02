@@ -34,6 +34,7 @@ pub fn mount(
     store: Arc<Provider>,
 ) -> Box<impl FnOnce(&mut ServiceConfig)> {
     let host = cfg.oci().host();
+    let max_body_size = cfg.oci().max_body_size();
 
     Box::new(move |cfg: &mut ServiceConfig| {
         let db = Arc::new(db);
@@ -74,7 +75,7 @@ pub fn mount(
                         .handler(StatusCode::UNAUTHORIZED, error::handle_unauthorized_request),
                 )
                 .app_data(actix_web::web::Bytes::configure(|cfg| {
-                    cfg.limit(1_073_741_824) // Set max file size to 1 Gib
+                    cfg.limit(max_body_size)
                 }))
                 .service(root)
                 // Tags

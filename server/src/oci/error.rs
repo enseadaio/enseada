@@ -13,6 +13,7 @@ use oci::mime::MediaType;
 use rbac::EvaluationError;
 
 use crate::config::CONFIG;
+use enseada::storage;
 
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse(Error);
@@ -62,8 +63,8 @@ impl From<enseada::couchdb::error::Error> for ErrorResponse {
     }
 }
 
-impl From<hold::error::Error> for ErrorResponse {
-    fn from(err: hold::error::Error) -> Self {
+impl From<storage::error::Error> for ErrorResponse {
+    fn from(err: storage::error::Error) -> Self {
         ErrorResponse(Error::from(err))
     }
 }

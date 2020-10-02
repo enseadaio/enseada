@@ -4,7 +4,7 @@ use async_trait::async_trait;
 
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
-use enseada::storage::Provider;
+use enseada::storage::{ByteChunk, Provider};
 use events::EventHandler;
 
 use crate::digest::Digest;
@@ -12,6 +12,7 @@ use crate::entity::Blob;
 use crate::error::{Error, ErrorCode};
 use crate::events::RepoDeleted;
 use crate::{storage, Result};
+use futures::Stream;
 
 #[derive(Debug)]
 pub struct BlobService {
@@ -24,11 +25,11 @@ impl BlobService {
         Self { db, store }
     }
 
-    pub async fn fetch_content(&self, digest: &Digest) -> Result<Vec<u8>> {
+    pub async fn fetch_content(&self, digest: &Digest) -> Result<impl Stream<Item = ByteChunk>> {
         let storage_key = storage::blob_key(digest);
         let blob = self.store.get_blob(&storage_key).await?;
         match blob {
-            Some(blob) => Ok(blob.content().clone()),
+            Some(blob) => Ok(blob.into_byte_stream()),
             None => Err(Error::from(ErrorCode::BlobUnknown)),
         }
     }

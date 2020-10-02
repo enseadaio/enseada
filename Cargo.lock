@@ -1202,6 +1202,7 @@ dependencies = [
  "actix 0.10.0",
  "async-trait",
  "base64 0.12.3",
+ "bytes",
  "chrono",
  "couchdb",
  "futures",
@@ -1246,7 +1247,6 @@ dependencies = [
  "events",
  "futures",
  "glob",
- "hold",
  "hold_s3",
  "http",
  "include_dir",
@@ -1619,19 +1619,21 @@ dependencies = [
 
 [[package]]
 name = "hold"
-version = "0.1.0-alpha.4"
+version = "0.1.0-alpha.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acfe79f6b7a1dff5bd4763868ed6c4bbd904294a90d5ee89d18cc32e138df426"
+checksum = "86d34cefc234966d5c54f779086260f285976c48505862c256f9ca0e5a54fda6"
 dependencies = [
  "async-trait",
+ "bytes",
+ "futures",
  "snafu",
 ]
 
 [[package]]
 name = "hold_s3"
-version = "0.1.0-alpha.4"
+version = "0.1.0-alpha.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92957db89c47edad8ec7fdbc67459bdcd8a5852b21b92a284370a99a9f11e6e9"
+checksum = "a74568e0780d35feae42a2017602ca40aa2234629c857c5f7df1055953fa6d00"
 dependencies = [
  "async-trait",
  "futures",
@@ -2275,11 +2277,11 @@ dependencies = [
  "enseada",
  "events",
  "futures",
- "hold",
  "http",
  "log",
  "serde 1.0.116",
  "serde_json",
+ "tokio-util 0.3.1",
  "tracing",
  "tracing-futures",
  "url",

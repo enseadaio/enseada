@@ -87,8 +87,9 @@ mod test {
         let repo = Repo::new("io.enseada.test", "test-repo", true);
         let id = repo.id();
         let location = repo.location();
+        let loc_b64 = secure::base64::encode(location);
 
-        assert_eq!("maven_repo:/io/enseada/test/test-repo", id.to_string());
+        assert_eq!(format!("maven_repo:{}", loc_b64), id.to_string());
         assert_eq!("/io/enseada/test/test-repo", location);
     }
 }

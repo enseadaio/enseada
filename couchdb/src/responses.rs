@@ -55,14 +55,14 @@ pub struct FindResponse<T> {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct RowsResponse<T: Clone> {
+pub struct RowsResponse<T> {
     pub offset: usize,
     pub rows: Vec<RawDocResponse<T>>,
     pub total_rows: usize,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct RawDocResponse<T: Clone> {
+pub struct RawDocResponse<T> {
     pub id: String,
     pub key: String,
     pub value: RawDocValue,

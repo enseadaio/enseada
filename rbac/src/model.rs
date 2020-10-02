@@ -1,12 +1,17 @@
 use std::cmp::{Eq, PartialEq};
 use std::collections::{HashMap, HashSet};
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
 use glob::Pattern;
 
-#[derive(Debug)]
 pub struct Model {
     principals: HashMap<String, Principal>,
+}
+
+impl Debug for Model {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Model").finish()
+    }
 }
 
 impl Model {

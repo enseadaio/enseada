@@ -14,7 +14,7 @@ pub struct Page<T> {
     items: Vec<T>,
 }
 
-impl<T: Clone + Debug> Page<T> {
+impl<T> Page<T> {
     pub fn from_slice(items: Vec<T>, offset: usize, limit: usize, total: usize) -> Self {
         let count = items.len();
         Page {

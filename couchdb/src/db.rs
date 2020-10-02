@@ -4,7 +4,7 @@ use std::str::from_utf8;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures::{stream, StreamExt};
+use futures::{stream, Stream, StreamExt, TryStreamExt};
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -107,7 +107,7 @@ impl Database {
         }
     }
 
-    pub async fn list_partitioned<R: DeserializeOwned + Clone>(
+    pub async fn list_partitioned<R: DeserializeOwned>(
         &self,
         partition: &str,
         limit: usize,
@@ -117,7 +117,7 @@ impl Database {
         self.do_list(&path, limit, skip).await
     }
 
-    pub async fn list<R: DeserializeOwned + Clone>(
+    pub async fn list<R: DeserializeOwned>(
         &self,
         limit: usize,
         skip: usize,
@@ -126,7 +126,30 @@ impl Database {
         self.do_list(&path, limit, skip).await
     }
 
-    async fn do_list<R: DeserializeOwned + Clone>(
+    pub fn stream<R: DeserializeOwned>(&self) -> impl Stream<Item = R> {
+        let path = format!("{}/_all_docs", &self.name);
+        let client = self.client.clone();
+        let s = stream::try_unfold(0, |skip| async move {
+            let query = Some(ListQuery {
+                include_docs: true,
+                limit: 100,
+                skip,
+            });
+            match client.get::<ListQuery, RowsResponse<R>>(&path, query).await {
+                Ok(res) => {
+                    if res.rows.len() == 0 {
+                        Ok(None)
+                    } else {
+                        Ok(Some((res.rows, skip + 100)))
+                    }
+                }
+                Err(err) => Err(Error::from(err)),
+            }
+        })
+        .try_next();
+    }
+
+    async fn do_list<R: DeserializeOwned>(
         &self,
         path: &str,
         limit: usize,
@@ -140,7 +163,7 @@ impl Database {
         self.client.get(path, query).await.map_err(Error::from)
     }
 
-    pub async fn list_all_partitioned<R: DeserializeOwned + Clone>(
+    pub async fn list_all_partitioned<R: DeserializeOwned>(
         &self,
         partition: &str,
     ) -> Result<RowsResponse<R>> {
