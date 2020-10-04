@@ -55,7 +55,6 @@ pub async fn login_form(
     let client_auth = client_auth.as_ref();
     let auth = &query.auth_request;
     if let Err(mut err) = handler.validate(auth, client_auth).await {
-        log::error!("{}", err);
         err.set_state(auth.state.as_deref());
         return Err(err.into());
     }
@@ -65,7 +64,6 @@ pub async fn login_form(
         http_session.get::<String>("user_id")?
     );
 
-    log::error!("PKCE: {:?}", &auth.pkce);
     let form = LoginForm {
         stylesheet_path: assets::stylesheet_path(),
         favicon_path: assets::icon_path(),

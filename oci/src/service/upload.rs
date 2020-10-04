@@ -85,10 +85,6 @@ impl UploadService {
 
         let mut blobs = Vec::new();
         let mut chunks = upload.chunks_mut();
-        let storage_keys: Vec<String> = chunks
-            .iter()
-            .map(|chunk| chunk.storage_key().unwrap().to_string())
-            .collect();
         chunks.sort_unstable_by_key(|c| c.start_range());
         for chunk in &chunks {
             let chunk_key = chunk.storage_key().unwrap();
@@ -130,17 +126,26 @@ impl UploadService {
         log::debug!("deleting upload");
         self.delete(&upload).await?;
         log::debug!("upload deleted");
-
-        for chunk_key in storage_keys {
-            self.store.delete_blob(&chunk_key).await?;
-        }
         Ok(upload)
     }
 }
 
+#[async_trait]
 impl Repository<Upload> for UploadService {
     fn db(&self) -> &Database {
         self.db.as_ref()
+    }
+
+    async fn deleted(&self, upload: &Upload) {
+        let storage_keys: Vec<String> = upload.chunks()
+            .iter()
+            .map(|chunk| chunk.storage_key().unwrap().to_string())
+            .collect();
+        for chunk_key in storage_keys {
+            if let Err(err) = self.store.delete_blob(&chunk_key).await {
+                log::error!("upload blob deletion failed: {}", err);
+            }
+        }
     }
 }
 
@@ -148,20 +153,15 @@ impl Repository<Upload> for UploadService {
 impl EventHandler<RepoDeleted> for UploadService {
     async fn handle(&self, event: &RepoDeleted) {
         let image = format!("{}/{}", &event.group, &event.name);
-        match self
-            .find_all(
-                100,
-                0,
+        if let Err(err) = self
+            .delete_all(
                 serde_json::json!({
                   "image": image,
                 }),
             )
             .await
         {
-            Ok(page) => {}
-            Err(err) => {
-                log::error!("{}", err);
-            }
+            log::error!("{}", err);
         }
     }
 }

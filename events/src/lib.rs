@@ -45,9 +45,14 @@ impl EventBus {
         }
     }
 
-    pub fn subscribe<E: Event, H: 'static + EventHandler<E>>(&mut self, h: H) {
-        let a = Arc::new(h);
-        let sub = Subscriber(a);
+    /// Wrap the subscriber in an Arc and create a subscription
+    pub fn subscribe_wrap<E: Event, H: 'static + EventHandler<E>>(&mut self, h: H) {
+       self.subscribe(Arc::new(h))
+    }
+
+    /// Create a subscription
+    pub fn subscribe<E: Event, H: 'static + EventHandler<E>>(&mut self, h: Arc<H>) {
+        let sub = Subscriber(h.clone());
         let sub = Supervisor::start_in_arbiter(&self.arbiter, |_ctx| sub).recipient();
         let event_id = TypeId::of::<E>();
         let subs = self.subscribers.entry(event_id).or_insert_with(Vec::new);

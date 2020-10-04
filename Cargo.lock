@@ -1017,6 +1017,7 @@ dependencies = [
  "derivative 2.1.1",
  "futures",
  "log",
+ "percent-encoding",
  "reqwest",
  "rustls 0.18.1",
  "serde 1.0.116",

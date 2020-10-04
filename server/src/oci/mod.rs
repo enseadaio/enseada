@@ -47,17 +47,17 @@ pub fn mount(
         let repo = UploadService::new(db.clone(), store.clone());
         cfg.data(repo);
         let repo_handler = UploadService::new(db.clone(), store.clone());
-        bus.subscribe(repo_handler);
+        bus.subscribe_wrap(repo_handler);
 
         let blob = BlobService::new(db.clone(), store.clone());
         cfg.data(blob);
         let blob_handler = BlobService::new(db.clone(), store.clone());
-        bus.subscribe(blob_handler);
+        bus.subscribe_wrap(blob_handler);
 
         let manifest = ManifestService::new(db.clone());
         cfg.data(manifest);
         let manifest_handler = ManifestService::new(db.clone());
-        bus.subscribe(manifest_handler);
+        bus.subscribe_wrap(manifest_handler);
 
         cfg.service(api::list_repos);
         cfg.service(api::create_repo);

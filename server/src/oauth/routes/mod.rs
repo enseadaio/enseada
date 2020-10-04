@@ -34,7 +34,7 @@ pub fn mount(db: Database, bus: Arc<RwLock<EventBus>>) -> Box<impl FnOnce(&mut S
 
         let couch_handler = CouchStorage::new(db);
         let mut bus = bus.write().expect("oauth::mount EventBus unlock");
-        bus.subscribe(couch_handler);
+        bus.subscribe_wrap(couch_handler);
 
         cfg.service(oauth::metadata);
         cfg.service(

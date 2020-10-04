@@ -7,20 +7,27 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub struct Guid {
     partition: Option<String>,
     id: String,
+    value: String,
 }
 
 impl Guid {
-    pub fn simple(id: &str) -> Self {
+    pub fn simple<S: ToString>(id: S) -> Self {
+        let id = id.to_string();
+        let value = id.to_string();
         Guid {
             partition: None,
-            id: id.to_string(),
+            id,
+            value,
         }
     }
 
-    pub fn partitioned(partition: &str, id: &str) -> Self {
+    pub fn partitioned<P: ToString, I: ToString>(partition: P, id: I) -> Self {
+        let partition = partition.to_string();
+        let id = id.to_string();
         Guid {
-            partition: Some(partition.to_string()),
-            id: id.to_string(),
+            value: format!("{}:{}", partition, id),
+            partition: Some(partition),
+            id,
         }
     }
 
@@ -35,11 +42,7 @@ impl Guid {
 
 impl Display for Guid {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let partition = self
-            .partition()
-            .map(|s| format!("{}:", s))
-            .unwrap_or_else(|| "".to_string());
-        write!(f, "{}{}", partition, &self.id)
+        write!(f, "{}", &self.value)
     }
 }
 
@@ -47,14 +50,11 @@ impl From<String> for Guid {
     fn from(s: String) -> Self {
         if s.contains(':') {
             let p: Vec<&str> = s.splitn(2, ':').collect();
-            let partition = p.get(0).take().cloned().map(String::from);
-            let id = p.get(1).take().cloned().map(String::from).unwrap();
-            Guid { partition, id }
+            let partition = p.get(0).unwrap();
+            let id = p.get(1).unwrap();
+            Guid::partitioned(partition, id)
         } else {
-            Guid {
-                partition: None,
-                id: s,
-            }
+            Guid::simple(s)
         }
     }
 }
@@ -67,20 +67,32 @@ impl<'a> From<&'a str> for Guid {
 
 impl Serialize for Guid {
     fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
-    where
-        S: Serializer,
+        where
+            S: Serializer,
     {
-        self.to_string().serialize(serializer)
+        self.value.serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for Guid {
     fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
-    where
-        D: Deserializer<'de>,
+        where
+            D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         Ok(Guid::from(s))
+    }
+}
+
+impl AsRef<[u8]> for Guid {
+    fn as_ref(&self) -> &[u8] {
+        self.value.as_bytes()
+    }
+}
+
+impl AsRef<str> for Guid {
+    fn as_ref(&self) -> &str {
+        &self.value
     }
 }
 
