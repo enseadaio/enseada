@@ -5,6 +5,17 @@
             "kind": "create_database",
             "name": "maven",
             "partitioned": true
+        },
+        {
+            "kind": "create_index",
+            "name": "repo_location_idx",
+            "database": "maven",
+            "design_doc": "maven_indexes",
+            "index": {
+                "fields": [
+                    "decoded_location"
+                ]
+            }
         }
     ]
 }

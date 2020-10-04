@@ -7,12 +7,9 @@ use std::sync::Arc;
 use actix_cors::Cors;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
-use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::middleware::normalize::TrailingSlash;
 use actix_web::middleware::{Compress, DefaultHeaders, Logger, NormalizePath};
-use actix_web::web::Data;
 use actix_web::{App, HttpServer};
-use http::StatusCode;
 use rustls::internal::pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
 use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
 use tokio::sync::RwLock;
@@ -20,11 +17,9 @@ use url::Url;
 
 use ::rbac::{Enforcer, Watcher};
 use events::EventBus;
-use oauth;
 
 use crate::config::Configuration;
 use crate::couchdb::{self, name as dbname};
-use crate::http::error;
 use crate::{dashboard, maven, observability, oci, routes, storage, user};
 
 pub async fn run(cfg: &'static Configuration) -> io::Result<()> {

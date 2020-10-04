@@ -2026,9 +2026,11 @@ dependencies = [
  "async-trait",
  "enseada",
  "events",
+ "futures",
  "log",
  "maven_version",
  "serde 1.0.116",
+ "serde_json",
  "tracing",
  "tracing-futures",
 ]

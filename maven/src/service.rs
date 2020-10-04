@@ -25,33 +25,55 @@ impl RepoService {
         Self { db, bus, store }
     }
 
-    pub async fn file_exists(
+    pub async fn find_by_location(&self, location: &str) -> Result<Option<Repo>> {
+        let location = location.trim_start_matches('/');
+        self.find_one(serde_json::json!({
+            "decoded_location": location,
+        }))
+        .await
+        .map_err(Error::from)
+    }
+
+    pub async fn is_file_present(
         &self,
         repo: &Repo,
         version: &Version,
         filename: &str,
     ) -> Result<bool> {
-        let key = storage::file_key(repo.location(), version, filename);
+        let key = storage::versioned_file_key(repo.location(), version, filename);
         self.store.is_blob_present(&key).await.map_err(Error::from)
     }
 
     pub async fn get_file<'a, 'f>(
         &self,
         repo: &Repo,
-        version: &'f Version,
+        version: Option<&'f Version>,
         filename: &'f str,
     ) -> Result<File<'f>> {
-        let key = storage::file_key(repo.location(), version, filename);
+        let key = match version {
+            Some(version) => storage::versioned_file_key(repo.location(), version, filename),
+            None => storage::file_key(repo.location(), filename),
+        };
+
         match self.store.get_blob(&key).await? {
-            Some(blob) => Ok(File::new(filename, version, vec![])),
-            None => Err(Error::not_found("Maven file", &key)),
+            Some(blob) => Ok(File::new(
+                filename,
+                version,
+                blob.size(),
+                blob.into_byte_stream(),
+            )),
+            None => Err(Error::not_found("Maven file", filename)),
         }
     }
 
     pub async fn store_file<'a, 'f>(&'f self, repo: &Repo, file: File<'f>) -> Result<()> {
-        let key = storage::file_key(repo.location(), file.version(), file.filename());
-        // let blob = Blob::new(key, file.into_content());
-        // self.store.store_blob(blob).await?;
+        let filename = file.filename();
+        let key = match file.version() {
+            Some(version) => storage::versioned_file_key(repo.location(), version, filename),
+            None => storage::file_key(repo.location(), filename),
+        };
+        let blob = Blob::new(key, file.size(), file.into_byte_stream());
+        self.store.store_blob(blob).await?;
         Ok(())
     }
 }

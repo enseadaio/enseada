@@ -11,8 +11,8 @@ use couchdb::error::Error;
 
 use crate::guid::Guid;
 use crate::pagination::Page;
-use std::pin::Pin;
 use futures::stream::BoxStream;
+use std::pin::Pin;
 
 pub trait Entity: Debug + Serialize + DeserializeOwned + Send + Sync {
     fn build_guid(id: &str) -> Guid;
@@ -81,12 +81,13 @@ pub trait Repository<T: Entity>: Debug {
         let id = T::build_guid("");
         let partition = id.partition().unwrap();
         let db = self.db();
+        let dbg_sel = format!("{}", &selector);
         let res = db
             .find_partitioned(partition, selector, limit, offset)
             .await?;
 
         if let Some(warning) = &res.warning {
-            log::warn!("{}", warning);
+            log::warn!("{} query: {}", warning, dbg_sel);
         }
 
         let count = db.count_partitioned(partition).await?;
@@ -94,10 +95,7 @@ pub trait Repository<T: Entity>: Debug {
         Ok(Page::from_find_response(res, limit, offset, count))
     }
 
-    fn find_all_stream(
-        &self,
-        selector: serde_json::Value,
-    ) -> BoxStream<Result<T, Error>>
+    fn find_all_stream(&self, selector: serde_json::Value) -> BoxStream<Result<T, Error>>
     where
         Self: Sized,
         T: 'static + Entity,
@@ -116,6 +114,25 @@ pub trait Repository<T: Entity>: Debug {
     {
         let guid = T::build_guid(id).to_string();
         self.db().get(guid.as_str()).await.map_err(Error::from)
+    }
+
+    #[tracing::instrument]
+    async fn find_one(&self, selector: serde_json::Value) -> Result<Option<T>, Error>
+    where
+        Self: Sized,
+        T: 'async_trait + Entity,
+    {
+        let id = T::build_guid("");
+        let partition = id.partition().unwrap();
+        let db = self.db();
+        let dbg_sel = format!("{}", &selector);
+        let res = db.find_partitioned(partition, selector, 1, 0).await?;
+
+        if let Some(warning) = &res.warning {
+            log::warn!("{} query: {}", warning, dbg_sel);
+        }
+
+        Ok(res.docs.into_iter().next())
     }
 
     #[tracing::instrument]

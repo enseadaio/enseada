@@ -9,6 +9,7 @@ use events::EventBus;
 use maven::service::RepoService;
 
 mod api;
+mod files;
 
 pub fn mount(
     db: Database,
@@ -23,5 +24,7 @@ pub fn mount(
         cfg.service(api::create_repo);
         cfg.service(api::get_repo);
         cfg.service(api::delete_repo);
+
+        cfg.service(files::get);
     })
 }

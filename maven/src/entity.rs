@@ -48,10 +48,15 @@ impl Repo {
     pub fn is_public(&self) -> bool {
         self.public
     }
+    
+    #[inline]
+    pub fn is_private(&self) -> bool {
+        !self.is_public()
+    }
 
     pub fn build_id<G: ToString, A: ToString>(group_id: G, artifact_id: A) -> String {
         let location = format!(
-            "/{}/{}",
+            "{}/{}",
             group_id.to_string().replace('.', "/"),
             artifact_id.to_string()
         );
@@ -90,6 +95,6 @@ mod test {
         let loc_b64 = secure::base64::encode(location);
 
         assert_eq!(format!("maven_repo:{}", loc_b64), id.to_string());
-        assert_eq!("/io/enseada/test/test-repo", location);
+        assert_eq!("io/enseada/test/test-repo", location);
     }
 }
