@@ -40,6 +40,8 @@ export const SCOPES = {
     'maven:repos:read',
     'maven:repos:manage',
     'maven:repos:delete',
+    'maven:repos:push',
+    'maven:repos:pull',
   ],
 };
 

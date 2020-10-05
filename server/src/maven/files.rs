@@ -1,40 +1,50 @@
+use std::sync::Arc;
+
 use actix_web::web::{Bytes, Data, Path};
 use actix_web::{get, put, HttpResponse};
-use serde::Deserialize;
+use http::StatusCode;
+use tokio::sync::RwLock;
 
+use enseada::couchdb::repository::Entity;
 use enseada::error::Error;
+use maven::entity::Repo;
 use maven::file::{parse_file_path, File};
 use maven::service::RepoService;
+use oauth::scope::Scope;
+use rbac::Enforcer;
 
 use crate::http::error::ApiError;
+use crate::http::extractor::scope::OAuthScope;
+use crate::http::extractor::user::CurrentUser;
 use crate::http::ApiResult;
-use http::StatusCode;
-
-#[derive(Debug, Deserialize)]
-pub struct MavenPath {
-    tail: String,
-}
-
-impl MavenPath {
-    pub fn segments(&self) -> Vec<&str> {
-        self.tail.split('/').collect()
-    }
-}
 
 #[get("/maven/{tail:.*}")]
-pub async fn get(repos: Data<RepoService>, path: Path<MavenPath>) -> ApiResult<HttpResponse> {
-    let location = &path.tail;
-    let file_pointer = parse_file_path(location)
+pub async fn get(
+    repos: Data<RepoService>,
+    Path(location): Path<String>,
+    current_user: Option<CurrentUser>,
+    scope: Option<OAuthScope>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+) -> ApiResult<HttpResponse> {
+    let file_pointer = parse_file_path(&location)
         .ok_or_else(|| ApiError::invalid(format!("{} is not a valid Maven path", location)))?;
 
     let repo = repos.find_by_location(file_pointer.prefix()).await?;
     let repo = match repo {
         Some(repo) => repo,
-        None => Err(Error::not_found("Maven repository", file_pointer.prefix()))?,
+        None => return Err(Error::not_found("Maven repository", file_pointer.prefix()).into()),
     };
 
     if repo.is_private() {
-        // TODO(matteojoliveau): authc/authz
+        if let Some((current_user, scope)) = Option::zip(current_user, scope) {
+            Scope::from("maven:repos:pull").matches(&scope)?;
+            let enforcer = enforcer.read().await;
+            enforcer.check(
+                current_user.id(),
+                &Repo::build_guid(file_pointer.prefix()),
+                "pull",
+            )?;
+        }
     }
 
     let file = repos
@@ -48,21 +58,31 @@ pub async fn get(repos: Data<RepoService>, path: Path<MavenPath>) -> ApiResult<H
 #[put("/maven/{tail:.*}")]
 pub async fn put(
     repos: Data<RepoService>,
-    path: Path<MavenPath>,
+    Path(location): Path<String>,
     body: Bytes,
+    current_user: Option<CurrentUser>,
+    scope: Option<OAuthScope>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
 ) -> ApiResult<HttpResponse> {
-    let location = &path.tail;
-    let file_pointer = parse_file_path(location)
+    let file_pointer = parse_file_path(&location)
         .ok_or_else(|| ApiError::invalid(format!("{} is not a valid Maven path", location)))?;
 
     let repo = repos.find_by_location(file_pointer.prefix()).await?;
     let repo = match repo {
         Some(repo) => repo,
-        None => Err(Error::not_found("Maven repository", file_pointer.prefix()))?,
+        None => return Err(Error::not_found("Maven repository", file_pointer.prefix()).into()),
     };
 
     if repo.is_private() {
-        // TODO(matteojoliveau): authc/authz
+        if let Some((current_user, scope)) = Option::zip(current_user, scope) {
+            Scope::from("maven:repos:push").matches(&scope)?;
+            let enforcer = enforcer.read().await;
+            enforcer.check(
+                current_user.id(),
+                &Repo::build_guid(file_pointer.prefix()),
+                "push",
+            )?;
+        }
     }
 
     let filename = file_pointer.filename();

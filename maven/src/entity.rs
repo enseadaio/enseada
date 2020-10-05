@@ -48,25 +48,24 @@ impl Repo {
     pub fn is_public(&self) -> bool {
         self.public
     }
-    
+
     #[inline]
     pub fn is_private(&self) -> bool {
         !self.is_public()
     }
 
     pub fn build_id<G: ToString, A: ToString>(group_id: G, artifact_id: A) -> String {
-        let location = format!(
+        format!(
             "{}/{}",
             group_id.to_string().replace('.', "/"),
             artifact_id.to_string()
-        );
-        secure::base64::encode(location)
+        )
     }
 }
 
 impl Entity for Repo {
     fn build_guid(location: &str) -> Guid {
-        Guid::partitioned("maven_repo", location)
+        Guid::partitioned("maven_repo", secure::base64::encode(location))
     }
 
     fn id(&self) -> &Guid {
