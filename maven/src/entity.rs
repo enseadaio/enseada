@@ -20,11 +20,9 @@ impl Repo {
     pub fn new<G: ToString, A: ToString>(group_id: G, artifact_id: A, public: bool) -> Self {
         let group_id = group_id.to_string();
         let artifact_id = artifact_id.to_string();
-        let location = Self::build_id(&group_id, &artifact_id);
-        let decoded_location =
-            String::from_utf8_lossy(&secure::base64::decode(&location).unwrap()).to_string();
+        let decoded_location = Self::build_id(&group_id, &artifact_id);
         Self {
-            id: Self::build_guid(&location),
+            id: Self::build_guid(&decoded_location),
             rev: None,
             group_id,
             artifact_id,

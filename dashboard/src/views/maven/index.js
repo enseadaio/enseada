@@ -1,6 +1,9 @@
-import Home from './Home';
-const routes = [
-  { path: '/maven', name: 'maven', component: Home, },
-];
+import Home from './Home'
+import CreateForm from './CreateForm'
 
-export { routes };
+const routes = [
+  { path: '/maven', name: 'maven', component: Home },
+  { path: '/maven/new', name: 'create-maven-repo', component: CreateForm }
+]
+
+export { routes }

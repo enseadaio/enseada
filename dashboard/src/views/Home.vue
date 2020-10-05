@@ -50,11 +50,19 @@ export default {
     async fetchContainersCount () {
       const { count } = await this.$containers.list()
       this.containersCount = count
+    },
+    async fetchCount (object) {
+      const { count } = await this[`$${object}`].list()
+      this[`${object}Count`] = count
     }
   },
   mounted () {
     if (this.check('oci_repos', 'read')) {
-      this.fetchContainersCount().catch((err) => this.$emit('error', err))
+      this.fetchCount('containers').catch((err) => this.$emit('error', err))
+    }
+
+    if (this.check('maven_repos', 'read')) {
+      this.fetchCount('maven').catch((err) => this.$emit('error', err))
     }
   }
 }

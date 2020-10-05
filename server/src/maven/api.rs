@@ -104,14 +104,13 @@ pub async fn get_repo(
     let group_id = &path.group_id;
     let artifact_id = &path.artifact_id;
     let id = &Repo::build_id(group_id, artifact_id);
+    log::warn!("{}", Repo::build_guid(id));
     enforcer.check(current_user.id(), &Repo::build_guid(id), "read")?;
 
-    let repo = service.find(id).await?.ok_or_else(|| {
-        ApiError::not_found(&format!(
-            "OCI repository '{}/{}' not found",
-            group_id, artifact_id
-        ))
-    })?;
+    let repo = service
+        .find(id)
+        .await?
+        .ok_or_else(|| ApiError::not_found(&format!("OCI repository '{}' not found", id)))?;
 
     Ok(Json(RepoResponse::from(repo)))
 }

@@ -5,6 +5,7 @@ use actix_web::{get, put, HttpResponse};
 use http::StatusCode;
 use tokio::sync::RwLock;
 
+use enseada::backports;
 use enseada::couchdb::repository::Entity;
 use enseada::error::Error;
 use maven::entity::Repo;
@@ -18,7 +19,7 @@ use crate::http::extractor::scope::OAuthScope;
 use crate::http::extractor::user::CurrentUser;
 use crate::http::ApiResult;
 
-#[get("/maven/{tail:.*}")]
+#[get("/maven2/{tail:.*}")]
 pub async fn get(
     repos: Data<RepoService>,
     Path(location): Path<String>,
@@ -36,7 +37,7 @@ pub async fn get(
     };
 
     if repo.is_private() {
-        if let Some((current_user, scope)) = Option::zip(current_user, scope) {
+        if let Some((current_user, scope)) = backports::option::zip(current_user, scope) {
             Scope::from("maven:repos:pull").matches(&scope)?;
             let enforcer = enforcer.read().await;
             enforcer.check(
@@ -55,7 +56,7 @@ pub async fn get(
         .streaming(file.into_byte_stream()))
 }
 
-#[put("/maven/{tail:.*}")]
+#[put("/maven2/{tail:.*}")]
 pub async fn put(
     repos: Data<RepoService>,
     Path(location): Path<String>,
@@ -74,7 +75,7 @@ pub async fn put(
     };
 
     if repo.is_private() {
-        if let Some((current_user, scope)) = Option::zip(current_user, scope) {
+        if let Some((current_user, scope)) = backports::option::zip(current_user, scope) {
             Scope::from("maven:repos:push").matches(&scope)?;
             let enforcer = enforcer.read().await;
             enforcer.check(

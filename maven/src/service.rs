@@ -1,5 +1,7 @@
 use std::sync::{Arc, RwLock};
 
+use async_trait::async_trait;
+
 use enseada::couchdb::db::Database;
 use enseada::couchdb::repository::Repository;
 use enseada::error::Error;
@@ -78,8 +80,11 @@ impl RepoService {
     }
 }
 
+#[async_trait]
 impl Repository<Repo> for RepoService {
     fn db(&self) -> &Database {
         &self.db
     }
+
+    async fn deleted(&self, repo: &Repo) {}
 }

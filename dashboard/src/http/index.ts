@@ -14,6 +14,7 @@ const VueHttp = {
       permissions: (id) => createService(`/api/v1beta1/roles/${id}/permissions`)
     })
     vm.prototype.$containers = createService('/api/oci/v1beta1/repositories')
+    vm.prototype.$maven = createService('/api/maven/v1beta1/repositories')
     vm.prototype.$pats = createService('/api/oauth/v1beta1/pats')
   },
 };
