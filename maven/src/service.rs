@@ -68,15 +68,23 @@ impl RepoService {
         }
     }
 
-    pub async fn store_file<'a, 'f>(&'f self, repo: &Repo, file: File<'f>) -> Result<()> {
+    pub async fn store_file<'a, 'f>(&'f self, mut repo: Repo, file: File<'f>) -> Result<Repo> {
         let filename = file.filename();
         let key = match file.version() {
             Some(version) => storage::versioned_file_key(repo.location(), version, filename),
             None => storage::file_key(repo.location(), filename),
         };
+        let file_path = format!(
+            "{}{}",
+            file.version()
+                .map(|v| v.to_string() + "/")
+                .unwrap_or_else(String::new),
+            filename
+        );
         let blob = Blob::new(key, file.size(), file.into_byte_stream());
         self.store.store_blob(blob).await?;
-        Ok(())
+        repo.add_file(file_path);
+        self.save(repo).await.map_err(Error::from)
     }
 }
 
@@ -86,5 +94,12 @@ impl Repository<Repo> for RepoService {
         &self.db
     }
 
-    async fn deleted(&self, repo: &Repo) {}
+    async fn deleted(&self, repo: &Repo) {
+        for filename in repo.files() {
+            let key = storage::file_key(repo.location(), filename);
+            if let Err(err) = self.store.delete_blob(&key).await {
+                log::error!("{}", err)
+            }
+        }
+    }
 }

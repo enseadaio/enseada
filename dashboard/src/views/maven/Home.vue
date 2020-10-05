@@ -1,6 +1,6 @@
 <template>
   <section class="section">
-    <h1 class="title">Containers</h1>
+    <h1 class="title">Maven repositories</h1>
     <div class="level">
       <div class="level-right">
         <router-link :to="{name: 'create-maven-repo'}"
@@ -14,7 +14,6 @@
       </div>
     </div>
     <b-table :checked-rows.sync="checked"
-             :columns="columns"
              :data="items"
              :loading="loading"
              :per-page="limit"
@@ -22,7 +21,17 @@
              @page-change="onPageChange"
              backend-pagination
              checkable
-             paginated></b-table>
+             paginated>
+      <b-table-column label="Name" v-slot="{ row }">
+        <router-link :to="{ name: 'maven-repo', params: { group_id: row.group_id, artifact_id: row.artifact_id }}">
+          {{ row.group_id }}:{{ row.artifact_id }}
+        </router-link>
+      </b-table-column>
+
+      <b-table-column field="public" label="Public" v-slot="{ row }">
+        {{ row.public }}
+      </b-table-column>
+    </b-table>
   </section>
 </template>
 

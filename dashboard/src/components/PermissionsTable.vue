@@ -6,13 +6,13 @@
            backend-pagination
            paginated>
     <b-table-column field="subject" label="Subject" v-slot="{ row }">
-      {{ row.subject }}
+      {{ row.subject | truncate(50) }}
     </b-table-column>
     <b-table-column field="object" label="Object" v-slot="{ row }">
-      {{ row.object }}
+      {{ row.object | truncate(50) }}
     </b-table-column>
     <b-table-column field="action" label="Action" v-slot="{ row }">
-      {{ row.action }}
+      {{ row.action | truncate(50) }}
     </b-table-column>
     <b-table-column v-slot="{ row }">
       <div class="buttons has-addons">

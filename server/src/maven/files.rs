@@ -101,7 +101,7 @@ pub async fn put(
     }
 
     let file = File::from_bytes(file_pointer.version(), filename, body);
-    repos.store_file(&repo, file).await?;
+    repos.store_file(repo, file).await?;
 
     Ok(HttpResponse::Accepted().finish())
 }

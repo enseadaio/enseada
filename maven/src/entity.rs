@@ -14,6 +14,7 @@ pub struct Repo {
     artifact_id: String,
     decoded_location: String,
     public: bool,
+    files: Vec<String>,
 }
 
 impl Repo {
@@ -28,6 +29,7 @@ impl Repo {
             artifact_id,
             decoded_location,
             public,
+            files: Vec::new(),
         }
     }
 
@@ -45,6 +47,15 @@ impl Repo {
 
     pub fn is_public(&self) -> bool {
         self.public
+    }
+
+    pub fn files(&self) -> &[String] {
+        &self.files
+    }
+
+    pub fn add_file<F: ToString>(&mut self, file: F) -> &mut Self {
+        self.files.push(file.to_string());
+        self
     }
 
     #[inline]

@@ -23,6 +23,7 @@ pub fn mount(
         cfg.service(api::list_repos);
         cfg.service(api::create_repo);
         cfg.service(api::get_repo);
+        cfg.service(api::get_repo_files);
         cfg.service(api::delete_repo);
 
         cfg.service(files::get);

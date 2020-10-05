@@ -115,6 +115,30 @@ pub async fn get_repo(
     Ok(Json(RepoResponse::from(repo)))
 }
 
+#[get("/api/maven/v1beta1/repositories/{group_id}/{artifact_id}/files")]
+pub async fn get_repo_files(
+    service: Data<RepoService>,
+    enforcer: Data<Arc<RwLock<Enforcer>>>,
+    scope: OAuthScope,
+    current_user: CurrentUser,
+    path: Path<RepoPath>,
+) -> ApiResult<Json<Vec<String>>> {
+    Scope::from("maven:repos:read").matches(&scope)?;
+    let enforcer = enforcer.read().await;
+    let group_id = &path.group_id;
+    let artifact_id = &path.artifact_id;
+    let id = &Repo::build_id(group_id, artifact_id);
+    log::warn!("{}", Repo::build_guid(id));
+    enforcer.check(current_user.id(), &Repo::build_guid(id), "read")?;
+
+    let repo = service
+        .find(id)
+        .await?
+        .ok_or_else(|| ApiError::not_found(&format!("OCI repository '{}' not found", id)))?;
+
+    Ok(Json(Vec::from(repo.files())))
+}
+
 #[delete("/api/maven/v1beta1/repositories/{group_id}/{artifact_id}")]
 pub async fn delete_repo(
     service: Data<RepoService>,
