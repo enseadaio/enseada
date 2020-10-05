@@ -26,5 +26,6 @@ pub fn mount(
         cfg.service(api::delete_repo);
 
         cfg.service(files::get);
+        cfg.service(files::put);
     })
 }

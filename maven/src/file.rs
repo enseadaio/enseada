@@ -1,6 +1,6 @@
 use futures::{stream, Stream};
 
-use enseada::storage::{ByteChunk, Bytes, ByteStream};
+use enseada::storage::{ByteChunk, ByteStream, Bytes};
 use maven_version::Version;
 
 pub struct File<'a> {
@@ -11,7 +11,12 @@ pub struct File<'a> {
 }
 
 impl<'a> File<'a> {
-    pub fn new<S: Stream<Item = ByteChunk> + Send + Sync + 'static>(filename: &'a str, version: Option<&'a Version>, size: usize, content: S) -> Self {
+    pub fn new<S: Stream<Item = ByteChunk> + Send + Sync + 'static>(
+        version: Option<&'a Version>,
+        filename: &'a str,
+        size: usize,
+        content: S,
+    ) -> Self {
         Self {
             filename,
             version,
@@ -36,8 +41,13 @@ impl<'a> File<'a> {
         self.content
     }
 
-    pub fn from_bytes(filename: &'a str, version: Option<&'a Version>, bytes: Bytes) -> Self {
-        Self::new(filename, version, bytes.len(), stream::once(async move { Ok(bytes) }))
+    pub fn from_bytes(version: Option<&'a Version>, filename: &'a str, bytes: Bytes) -> Self {
+        Self::new(
+            version,
+            filename,
+            bytes.len(),
+            stream::once(async move { Ok(bytes) }),
+        )
     }
 }
 
@@ -62,11 +72,15 @@ impl FilePointer {
 pub fn parse_file_path(path: &str) -> Option<FilePointer> {
     let mut reversed = path.trim_start_matches('/').split('/').rev();
     let filename = reversed.nth(0);
-    if filename.is_none() { return None }
+    if filename.is_none() {
+        return None;
+    }
     let filename = filename.unwrap().to_string();
 
     let maybe_version = reversed.nth(0);
-    if maybe_version.is_none() { return None }
+    if maybe_version.is_none() {
+        return None;
+    }
     let maybe_version = maybe_version.unwrap().to_string();
     let mut rest: Vec<String> = reversed.rev().map(str::to_string).collect();
     let version = Version::parse(&maybe_version).ok();
@@ -84,7 +98,6 @@ pub fn parse_file_path(path: &str) -> Option<FilePointer> {
             prefix: rest.join("/"),
         })
     }
-
 }
 
 #[cfg(test)]

@@ -57,8 +57,8 @@ impl RepoService {
 
         match self.store.get_blob(&key).await? {
             Some(blob) => Ok(File::new(
-                filename,
                 version,
+                filename,
                 blob.size(),
                 blob.into_byte_stream(),
             )),
