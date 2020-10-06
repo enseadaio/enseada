@@ -1,0 +1,34 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}API Documentation{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css">
+<script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+<script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js" charset="UTF-8"></script>
+{% endblock %}
+
+{% block content %}
+<div id="swagger" data-url='{{ spec_url }}'></div>
+<script>
+    window.onload = function () {
+        const el = document.getElementById('swagger')
+        const ui = SwaggerUIBundle({
+            url: el.dataset.url,
+            domNode: el,
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+            layout: 'StandaloneLayout',
+            oauth2RedirectUrl: window.origin + '/api/docs/oauth-redirect'
+        })
+
+        ui.initOAuth({
+            clientId: 'enseada-docs',
+            appName: 'Enseada Docs',
+            usePkceWithAuthorizationCodeGrant: true
+        })
+    }
+</script>
+{% endblock %}

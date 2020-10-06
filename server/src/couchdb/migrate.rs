@@ -57,6 +57,16 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     )
     .await?;
 
+    create_oauth_client(
+        &oauth_db,
+        Client::public(
+            "enseada-docs".to_string(),
+            Scope::from("*"),
+            HashSet::from_iter(vec![public_host.join("/api/docs/oauth-redirect").unwrap()]),
+        ),
+    )
+    .await?;
+
     let root_pwd = cfg.root_password();
     create_root_user(&users_db, root_pwd).await?;
 
