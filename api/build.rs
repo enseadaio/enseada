@@ -11,6 +11,7 @@ fn main() -> std::io::Result<()> {
             }
         }
     }
+    Command::new("yarn").arg("install").status()?;
     Command::new("yarn").arg("build").status()?;
     Ok(())
 }

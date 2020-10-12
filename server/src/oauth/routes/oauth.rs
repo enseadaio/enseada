@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use enseada::couchdb::repository::{Entity, Repository};
-use enseada::secure;
+use enseada::{backports, secure};
 use oauth::error::Error as OAuthError;
 use oauth::error::ErrorKind;
 use oauth::handler::{BasicAuth, RequestHandler};
@@ -28,7 +28,6 @@ use oauth::CouchOAuthHandler;
 use users::UserService;
 
 use crate::assets;
-use crate::config::CONFIG;
 use crate::http::error::ApiError;
 use crate::http::responses;
 use crate::oauth::template::{LoginForm, Logout};
@@ -86,7 +85,7 @@ pub async fn login_form(
 
     if let Some(username) = http_session.get::<String>("user_id")? {
         if let Some(_user) = users.find(&username).await? {
-            return match do_login(
+            return match do_authorize(
                 handler,
                 users,
                 Form(LoginFormBody {
@@ -135,14 +134,14 @@ pub struct LoginFormBody {
 }
 
 #[post("/authorize")]
-pub async fn login(
+pub async fn authorize(
     handler: Data<CouchOAuthHandler>,
     users: Data<UserService>,
     form: Form<LoginFormBody>,
     http_session: HttpSession,
     req: HttpRequest,
 ) -> OAuthResult<HttpResponse> {
-    match do_login(handler, users, form, http_session, &req).await {
+    match do_authorize(handler, users, form, http_session, &req).await {
         Ok(res) => Ok(res),
         Err(err) => {
             if let ErrorKind::AuthenticationFailed = err.kind() {
@@ -164,7 +163,7 @@ pub async fn login(
     }
 }
 
-async fn do_login(
+async fn do_authorize(
     handler: Data<CouchOAuthHandler>,
     users: Data<UserService>,
     form: Form<LoginFormBody>,
@@ -298,7 +297,7 @@ pub async fn logout(http_session: HttpSession) -> Result<Logout, ApiError> {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct OAuthMetadata {
-    issuer: Url,
+    issuer: String,
     authorization_endpoint: Url,
     token_endpoint: Url,
     revocation_endpoint: Url,
@@ -315,37 +314,32 @@ pub struct OAuthMetadata {
     service_documentation: Url,
 }
 
-lazy_static! {
-    static ref METADATA: OAuthMetadata = {
-        let issuer: &Url = CONFIG.public_host();
-        OAuthMetadata {
-            issuer: issuer.clone(),
-            authorization_endpoint: issuer.join("/oauth/authorize").unwrap(),
-            token_endpoint: issuer.join("/oauth/token").unwrap(),
-            revocation_endpoint: issuer.join("/oauth/revoke").unwrap(),
-            introspection_endpoint: issuer.join("/oauth/introspect").unwrap(),
-            end_session_endpoint: issuer.join("/oauth/logout").unwrap(),
-            userinfo_endpoint: issuer.join("/api/v1beta1/users/me").unwrap(),
-            grant_types_supported: vec![
-                "authorization_code".to_string(),
-                "refresh_token".to_string(),
-            ],
-            response_types_supported: vec!["code".to_string()],
-            response_modes_supported: vec!["query".to_string()],
-            code_challenge_methods_supported: vec!["plain".to_string(), "S256".to_string()],
-            token_endpoint_auth_methods_supported: vec![
-                "client_secret_basic".to_string(),
-                "client_secret_post".to_string(),
-            ],
-            revocation_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
-            introspection_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
-            service_documentation: Url::parse("https://docs.enseada.io").unwrap(),
-        }
-    };
-}
 #[get("/.well-known/oauth-authorization-server")]
-pub async fn metadata() -> OAuthResult<Json<&'static OAuthMetadata>> {
-    Ok(Json(&*METADATA))
+pub async fn metadata(req: HttpRequest) -> OAuthResult<Json<OAuthMetadata>> {
+    let authorization_endpoint = req.url_for_static("authorize")?;
+    Ok(Json(OAuthMetadata {
+        issuer: authorization_endpoint.origin().unicode_serialization(),
+        authorization_endpoint,
+        token_endpoint: req.url_for_static("token")?,
+        revocation_endpoint: req.url_for_static("revoke")?,
+        introspection_endpoint: req.url_for_static("introspect")?,
+        end_session_endpoint: req.url_for_static("logout")?,
+        userinfo_endpoint: req.url_for_static("me")?,
+        grant_types_supported: vec![
+            "authorization_code".to_string(),
+            "refresh_token".to_string(),
+        ],
+        response_types_supported: vec!["code".to_string()],
+        response_modes_supported: vec!["query".to_string()],
+        code_challenge_methods_supported: vec!["plain".to_string(), "S256".to_string()],
+        token_endpoint_auth_methods_supported: vec![
+            "client_secret_basic".to_string(),
+            "client_secret_post".to_string(),
+        ],
+        revocation_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
+        introspection_endpoint_auth_methods_supported: vec!["client_secret_basic".to_string()],
+        service_documentation: Url::parse("https://docs.enseada.io").unwrap(),
+    }))
 }
 
 pub fn redirect_to_client<T: Serialize>(redirect_uri: &mut Url, data: T) -> HttpResponse {

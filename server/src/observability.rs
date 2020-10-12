@@ -3,6 +3,7 @@ use actix_web::web::ServiceConfig;
 use actix_web::web::{Data, Json};
 use serde::Serialize;
 
+use enseada::couchdb::Couch;
 use observability::{Status, StatusService};
 
 use crate::couchdb;
@@ -10,12 +11,13 @@ use crate::http::error::ApiError;
 use crate::http::error::ApiError::ServiceUnavailable;
 use crate::http::responses;
 
-pub fn mount(cfg: &mut ServiceConfig) {
-    let couch = couchdb::from_global_config();
-    let status = StatusService::new(couch);
-    cfg.data(status);
+pub fn mount(couch: Couch) -> Box<impl FnOnce(&mut ServiceConfig)> {
+    Box::new(|cfg: &mut ServiceConfig| {
+        let status = StatusService::new(couch);
+        cfg.data(status);
 
-    cfg.service(get);
+        cfg.service(get);
+    })
 }
 
 #[derive(Debug, Serialize, PartialEq)]

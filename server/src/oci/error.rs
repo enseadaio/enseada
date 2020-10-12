@@ -12,7 +12,6 @@ use oci::error::{Error, ErrorCode};
 use oci::mime::MediaType;
 use rbac::EvaluationError;
 
-use crate::config::CONFIG;
 use enseada::storage;
 
 #[derive(Debug, Serialize)]

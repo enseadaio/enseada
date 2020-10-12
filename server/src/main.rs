@@ -10,7 +10,7 @@ use async_trait::async_trait;
 
 use events::{Event, EventBus, EventHandler};
 
-use crate::config::CONFIG;
+use crate::config::Configuration;
 
 mod assets;
 mod config;
@@ -32,15 +32,17 @@ mod user;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    logger::init(&CONFIG);
+    let cfg = Configuration::new().expect("failed to create configuration");
 
-    tracing::init(&CONFIG);
+    logger::init(&cfg);
 
-    couchdb::migrate(&CONFIG).await?;
+    tracing::init(&cfg);
+
+    couchdb::migrate(&cfg).await?;
 
     log::info!("Starting Enseada...");
 
-    server::run(&CONFIG).await?;
+    server::run(cfg).await?;
 
     log::info!("Stopping Enseada...");
 

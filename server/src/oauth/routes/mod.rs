@@ -13,12 +13,17 @@ use ::oauth::request::{AuthorizationRequest, TokenRequest};
 use enseada::couchdb::db::Database;
 use events::EventBus;
 
-use crate::config::CONFIG;
+use crate::config::Configuration;
 
 mod api;
 mod oauth;
 
-pub fn mount(db: Database, bus: Arc<RwLock<EventBus>>) -> Box<impl FnOnce(&mut ServiceConfig)> {
+pub fn mount(
+    cfg: &Configuration,
+    db: Database,
+    bus: Arc<RwLock<EventBus>>,
+) -> Box<impl FnOnce(&mut ServiceConfig)> {
+    let secret_key = cfg.secret_key();
     Box::new(move |cfg: &mut ServiceConfig| {
         let storage = Arc::new(CouchStorage::new(db.clone()));
         let handler = OAuthHandler::new(
@@ -26,7 +31,7 @@ pub fn mount(db: Database, bus: Arc<RwLock<EventBus>>) -> Box<impl FnOnce(&mut S
             storage.clone(),
             storage.clone(),
             storage,
-            CONFIG.secret_key(),
+            secret_key,
         );
 
         cfg.data(CouchStorage::new(db.clone()));
@@ -46,7 +51,7 @@ pub fn mount(db: Database, bus: Arc<RwLock<EventBus>>) -> Box<impl FnOnce(&mut S
                     oauth::handle_form_errors,
                 ))
                 .service(oauth::login_form)
-                .service(oauth::login)
+                .service(oauth::authorize)
                 .service(oauth::token)
                 .service(oauth::introspect)
                 .service(oauth::revoke)

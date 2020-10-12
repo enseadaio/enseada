@@ -7,6 +7,7 @@ use actix_web::{HttpResponse, ResponseError};
 use http::StatusCode;
 use url::ParseError;
 
+use actix_web::error::UrlGenerationError;
 use oauth::error::{Error, ErrorKind};
 pub use routes::mount;
 
@@ -39,6 +40,13 @@ impl From<actix_web::error::Error> for ErrorResponse {
 impl From<url::ParseError> for ErrorResponse {
     fn from(err: ParseError) -> Self {
         let err = Error::new(ErrorKind::InvalidRequest, err);
+        ErrorResponse(err)
+    }
+}
+
+impl From<UrlGenerationError> for ErrorResponse {
+    fn from(err: UrlGenerationError) -> Self {
+        let err = Error::new(ErrorKind::ServerError, err);
         ErrorResponse(err)
     }
 }

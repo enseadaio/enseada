@@ -1,7 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 
 pub use base64;
-use ring::digest::{Context, Digest, SHA256};
+use ring::digest::{Context, SHA256};
 use ring::hmac::{self, Key, HMAC_SHA512};
 use ring::rand::{SecureRandom, SystemRandom};
 

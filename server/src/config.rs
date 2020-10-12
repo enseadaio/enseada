@@ -249,9 +249,3 @@ impl Tracing {
         }
     }
 }
-
-// Throw the Config struct into a CONFIG lazy_static to avoid multiple processing
-lazy_static! {
-    pub static ref CONFIG: Configuration =
-        Configuration::new().expect("failed to load configuration");
-}

@@ -14,7 +14,7 @@ use events::EventBus;
 use oci::header;
 use oci::service::{BlobService, ManifestService, RepoService, UploadService};
 
-use crate::config::{Configuration, CONFIG};
+use crate::config::Configuration;
 use crate::http::extractor::session::TokenSession;
 use crate::storage;
 

@@ -11,6 +11,7 @@ pub struct Error {
     error_description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     error_uri: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     state: Option<String>,
 }
 

@@ -22,13 +22,13 @@ use crate::config::Configuration;
 use crate::couchdb::{self, name as dbname};
 use crate::{dashboard, maven, observability, oci, routes, storage, user};
 
-pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
+pub async fn run(cfg: Configuration) -> io::Result<()> {
     let address = format!("0.0.0.0:{}", cfg.port());
-    let public_host: &Url = cfg.public_host();
+    let public_host = cfg.public_host();
     let secret_key = cfg.secret_key();
     let tls = cfg.tls();
 
-    let couch = couchdb::from_config(cfg);
+    let couch = couchdb::from_config(&cfg);
     let rbac_db = couch.database(dbname::RBAC, true);
 
     let mut enforcer = Enforcer::new(rbac_db.clone());
@@ -37,11 +37,14 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
     let watcher = Watcher::new(rbac_db.clone(), enforcer.clone());
     watcher.start().expect("Watcher::start()");
 
-    let store = Arc::new(storage::new_provider(cfg).expect("storage provider"));
+    let store = Arc::new(storage::new_provider(&cfg).expect("storage provider"));
 
     let event_bus = Arc::new(std::sync::RwLock::new(EventBus::new()));
 
+    let server_cfg = cfg.clone();
     let server = HttpServer::new(move || {
+        let public_host = server_cfg.public_host();
+        let tls = server_cfg.tls();
         App::new()
             .wrap(NormalizePath::new(TrailingSlash::Trim))
             .wrap(Logger::default().exclude("/health"))
@@ -56,7 +59,7 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
                     .same_site(SameSite::Strict),
             )
             .wrap(Cors::default())
-            .wrap(default_headers(cfg))
+            .wrap(default_headers(&server_cfg))
             // (matteojoliveau) This requires to inject the Enforcer as `Data<RwLock<Enforcer>>`
             // because app_data() stuff is not accessible in nested scopes.
             // Should hopefully be fixed with Actix Web 3.0
@@ -67,12 +70,13 @@ pub async fn run(cfg: &'static Configuration) -> io::Result<()> {
             ))
             .configure(crate::rbac::mount)
             .configure(crate::oauth::mount(
+                &server_cfg,
                 couch.database(crate::couchdb::name::OAUTH, true),
                 event_bus.clone(),
             ))
-            .configure(observability::mount)
+            .configure(observability::mount(couch.clone()))
             .configure(oci::mount(
-                cfg,
+                &server_cfg,
                 couch.database(crate::couchdb::name::OCI, true),
                 event_bus.clone(),
                 store.clone(),
