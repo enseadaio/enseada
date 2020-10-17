@@ -11,6 +11,11 @@ services:
     volumes:
       - couchdb_data:/opt/couchdb/data
 
+  minio-init:
+    image: busybox
+    command: mkdir -p /data/enseada
+    volumes:
+      - minio_data:/data
   minio:
     image: minio/minio
     container_name: enseada_server_minio
@@ -18,6 +23,8 @@ services:
       MINIO_ACCESS_KEY: enseada
       MINIO_SECRET_KEY: enseadaminio
     command: server /data
+    depends_on:
+      - minio-init
     ports:
       - "9000:9000"
     volumes:

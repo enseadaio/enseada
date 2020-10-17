@@ -20,7 +20,6 @@ COPY dashboard/yarn.lock .
 
 RUN yarn --frozen-lockfile install
 COPY dashboard .
-RUN yarn build
 
 # Workspace
 WORKDIR /app/enseada
@@ -38,6 +37,10 @@ COPY lib .
 # Events
 WORKDIR /app/enseada/events
 COPY events .
+
+# Maven
+WORKDIR /app/enseada/maven
+COPY maven .
 
 # OAuth
 WORKDIR /app/enseada/oauth
@@ -78,7 +81,6 @@ RUN cargo vendor > .cargo/config
 
 COPY server .
 
-RUN yarn --frozen-lockfile install
 RUN cargo build --release
 
 # final stage

@@ -1,16 +1,11 @@
-# Example Configuration
-
 ## Generic
-service:
-  host: 0.0.0.0
-  port: 9623
 log:
   format: text
-  level: info
-  root_level: info
+  level: debug
+  root_level: error
 
 secret.key: Y7o3UYJTdympbipV54to2e57r5bjTMcq
-public.host: http://localhost:9623
+public.url: http://minikube
 root.password: supersecret
 
 # Tracing
@@ -20,7 +15,7 @@ tracing:
 
 # Database
 couchdb:
-  url: http://localhost:5984
+  url: http://couchdb:5984
   username: enseada
   password: enseada
 
@@ -28,18 +23,12 @@ couchdb:
 storage:
   provider: s3
   bucket: enseada
-  endpoint: http://localhost:9000
+  endpoint: http://minio:9000
   access_key_id: enseada
   secret_access_key: enseadaminio
 
 # HTTPS
-tls:
-  enabled: false
-  cert:
-    path: .github/cert.pem
-  key:
-    path: .github/key.pem
+tls.enabled: false
 
 # OCI registry
-oci:
-  host: containers.localhost
+oci.host: containers.localhost

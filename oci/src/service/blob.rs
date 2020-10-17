@@ -25,7 +25,7 @@ impl BlobService {
         Self { db, store }
     }
 
-    pub async fn fetch_content(&self, digest: &Digest) -> Result<impl Stream<Item=ByteChunk>> {
+    pub async fn fetch_content(&self, digest: &Digest) -> Result<impl Stream<Item = ByteChunk>> {
         let storage_key = storage::blob_key(digest);
         let blob = self.store.get_blob(&storage_key).await?;
         match blob {

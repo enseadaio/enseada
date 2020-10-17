@@ -25,7 +25,12 @@ impl ManifestService {
         Self { db }
     }
 
-    pub async fn find_by_ref(&self, reference: &str) -> Result<Option<Manifest>> {
+    pub async fn find_by_ref(
+        &self,
+        group: &str,
+        name: &str,
+        reference: &str,
+    ) -> Result<Option<Manifest>> {
         log::debug!("finding manifest by ref '{}'", reference);
         if let Ok(digest) = Digest::try_from(reference.to_string()) {
             let id = Manifest::build_guid(reference);
@@ -53,7 +58,8 @@ impl ManifestService {
         }
 
         log::debug!("reference is not a digest, looking it as tag");
-        self.find(reference).await.map_err(Error::from)
+        let id = Manifest::build_id(group, name, reference);
+        self.find(&id).await.map_err(Error::from)
     }
 }
 

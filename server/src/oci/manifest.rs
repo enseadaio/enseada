@@ -51,7 +51,7 @@ pub async fn get(
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
     let manifest = manifests
-        .find_by_ref(reference)
+        .find_by_ref(group, name, reference)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::ManifestUnknown))?;
 
@@ -65,6 +65,7 @@ pub async fn get(
         .json(manifest))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn put(
     manifests: Data<ManifestService>,
     repos: Data<RepoService>,
@@ -89,7 +90,7 @@ pub async fn put(
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
-    let manifest = Manifest::new(reference, group, name, body.into_inner());
+    let manifest = Manifest::new(group, name, reference, body.into_inner());
     let manifest = manifests.save(manifest).await?;
 
     log::debug!("Checking if ref '{}' is a tag", reference);
@@ -140,7 +141,7 @@ pub async fn delete(
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
     let manifest = manifests
-        .find_by_ref(reference)
+        .find_by_ref(group, name, reference)
         .await?
         .ok_or_else(|| Error::from(ErrorCode::ManifestUnknown))?;
 

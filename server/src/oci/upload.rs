@@ -55,7 +55,7 @@ pub async fn start(
     match query {
         Some(query) => {
             let digest = &query.digest;
-            let chunk = chunk_from_request(req.headers().into(), body.len())?;
+            let chunk = chunk_from_request(req.headers(), body.len())?;
             // TODO: check digest matches chunk
             uploads
                 .complete_upload(upload, digest, Some((chunk, body)))

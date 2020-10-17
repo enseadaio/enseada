@@ -55,8 +55,8 @@ impl TryFrom<&str> for Digest {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let parts: Vec<&str> = value.split(':').collect();
-        let algo = parts.first().cloned().unwrap_or("");
-        let digest = parts.last().cloned().unwrap_or("");
+        let algo = *parts.first().unwrap_or(&"");
+        let digest = *parts.last().unwrap_or(&"");
         match algo {
             "sha256" => Ok(Digest::sha256(digest.to_string())),
             "sha512" => Ok(Digest::sha512(digest.to_string())),

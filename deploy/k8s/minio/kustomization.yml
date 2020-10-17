@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/component: minio
+resources:
+  - sts.yml
+  - service.yml
+secretGenerator:
+  - name: minio-creds
+    literals:
+      - MINIO_ACCESS_KEY=enseada
+      - MINIO_SECRET_KEY=enseadaminio

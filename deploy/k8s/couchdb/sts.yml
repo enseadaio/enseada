@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: couchdb
+  labels:
+    app.kubernetes.io/name: couchdb
+spec:
+  replicas: 3
+  serviceName: couchdb-headless
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: couchdb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: couchdb
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: db
+          image: couchdb:3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5984
+            - name: epmd
+              containerPort: 4369
+            - containerPort: 9100
+          env:
+            - name: COUCHDB_SECRET
+              value: enseada
+            - name: ERL_FLAGS
+              value: "-name couchdb -setcookie enseada"
+          envFrom:
+            - secretRef:
+                name: couchdb-user
+          volumeMounts:
+            - name: couchdb
+              mountPath: /opt/couchdb/data
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /_up
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /_up
+  volumeClaimTemplates:
+    - metadata:
+        name: couchdb
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 512Mi

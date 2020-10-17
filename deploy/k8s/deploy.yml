@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enseada
+  labels:
+    app.kubernetes.io/name: enseada
+    app.kubernetes.io/component: server
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: enseada
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: enseada
+        app.kubernetes.io/component: server
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: server
+          image: enseada/enseada:edge
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9623
+          volumeMounts:
+            - name: config
+              mountPath: "/app/enseada/enseada.yml"
+              subPath: enseada.yml
+              readOnly: true
+      initContainers:
+        - name: wait-for-couchdb
+          image: busybox:1
+          command:
+            [
+                "sh",
+                "-c",
+                "until nslookup couchdb; do echo waiting for couchdb; sleep 2; done;",
+            ]
+        - name: wait-for-minio
+          image: busybox:1
+          command:
+            [
+                "sh",
+                "-c",
+                "until nslookup minio; do echo waiting for minio; sleep 2; done;",
+            ]
+
+      volumes:
+        - name: config
+          secret:
+            secretName: enseada-config

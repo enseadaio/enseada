@@ -7,10 +7,12 @@ use std::sync::Arc;
 
 use actix::System;
 use async_trait::async_trait;
+use structopt::StructOpt;
 
 use events::{Event, EventBus, EventHandler};
 
 use crate::config::Configuration;
+use std::path::PathBuf;
 
 mod assets;
 mod config;
@@ -30,9 +32,17 @@ mod template;
 mod tracing;
 mod user;
 
+#[derive(Debug, StructOpt)]
+#[structopt(name = "enseada-server", about = "Enseada registry server")]
+struct Cli {
+    #[structopt(short, long, default_value = "enseada")]
+    config: PathBuf,
+}
+
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-    let cfg = Configuration::new().expect("failed to create configuration");
+    let args = Cli::from_args();
+    let cfg = Configuration::new(&args.config).expect("failed to create configuration");
 
     logger::init(&cfg);
 

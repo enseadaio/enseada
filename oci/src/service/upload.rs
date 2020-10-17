@@ -81,8 +81,6 @@ impl UploadService {
             digest
         );
 
-        let upload_latest_offset = upload.latest_offset();
-
         let mut blobs = Vec::new();
         let mut chunks = upload.chunks_mut();
         chunks.sort_unstable_by_key(|c| c.start_range());
@@ -97,12 +95,6 @@ impl UploadService {
             blobs.push(blob);
         }
 
-        let latest_offset = chunk
-            .as_ref()
-            .map(|(chunk, _)| chunk)
-            .map(UploadChunk::end_range)
-            .unwrap_or(upload_latest_offset);
-
         if let Some((chunk, body)) = chunk {
             // we don't care about the storage key because this blob will never be stored
             // see stream mapping a few line below
@@ -114,13 +106,14 @@ impl UploadService {
             blobs.push(blob);
         }
 
+        let size = blobs.iter().map(StorageBlob::size).sum();
         let buf = stream::iter(blobs.into_iter())
             .map(StorageBlob::into_byte_stream)
             .flatten();
 
         let blob_key = storage::blob_key(digest);
         log::debug!("storing blob {}", blob_key);
-        let blob = StorageBlob::new(blob_key, latest_offset, buf);
+        let blob = StorageBlob::new(blob_key, size, buf);
         self.store.store_blob(blob).await?;
         log::debug!("blob stored");
         log::debug!("deleting upload");
@@ -137,7 +130,8 @@ impl Repository<Upload> for UploadService {
     }
 
     async fn deleted(&self, upload: &Upload) {
-        let storage_keys: Vec<String> = upload.chunks()
+        let storage_keys: Vec<String> = upload
+            .chunks()
             .iter()
             .map(|chunk| chunk.storage_key().unwrap().to_string())
             .collect();
@@ -154,11 +148,9 @@ impl EventHandler<RepoDeleted> for UploadService {
     async fn handle(&self, event: &RepoDeleted) {
         let image = format!("{}/{}", &event.group, &event.name);
         if let Err(err) = self
-            .delete_all(
-                serde_json::json!({
-                  "image": image,
-                }),
-            )
+            .delete_all(serde_json::json!({
+              "image": image,
+            }))
             .await
         {
             log::error!("{}", err);

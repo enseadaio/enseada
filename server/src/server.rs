@@ -23,8 +23,8 @@ use crate::couchdb::{self, name as dbname};
 use crate::{dashboard, maven, observability, oci, routes, storage, user};
 
 pub async fn run(cfg: Configuration) -> io::Result<()> {
-    let address = format!("0.0.0.0:{}", cfg.port());
-    let public_host = cfg.public_host();
+    let address = format!("{}:{}", cfg.service_host(), cfg.service_port());
+    let public_host = cfg.public_url();
     let secret_key = cfg.secret_key();
     let tls = cfg.tls();
 
@@ -43,7 +43,7 @@ pub async fn run(cfg: Configuration) -> io::Result<()> {
 
     let server_cfg = cfg.clone();
     let server = HttpServer::new(move || {
-        let public_host = server_cfg.public_host();
+        let public_host = server_cfg.public_url();
         let tls = server_cfg.tls();
         App::new()
             .wrap(NormalizePath::new(TrailingSlash::Trim))
@@ -109,7 +109,11 @@ pub async fn run(cfg: Configuration) -> io::Result<()> {
         server.bind(&address)
     }?;
 
-    log::info!("Server started listening on {}", &address);
+    log::info!(
+        "Server started listening on {}://{}",
+        cfg.service_protocol(),
+        &address
+    );
     server.run().await?;
     watcher.stop();
 

@@ -67,8 +67,8 @@ impl<'a> From<&'a str> for Guid {
 
 impl Serialize for Guid {
     fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         self.value.serialize(serializer)
     }
@@ -76,8 +76,8 @@ impl Serialize for Guid {
 
 impl<'de> Deserialize<'de> for Guid {
     fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
         Ok(Guid::from(s))

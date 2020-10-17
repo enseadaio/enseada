@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  labels:
+    app.kubernetes.io/name: minio
+spec:
+  serviceName: minio
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: server
+          image: minio/minio
+          imagePullPolicy: IfNotPresent
+          args:
+            - server
+            - /data
+          ports:
+            - name: http
+              containerPort: 9000
+          envFrom:
+            - secretRef:
+                name: minio-creds
+          volumeMounts:
+            - name: minio
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /minio/health/live
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /minio/health/ready
+      initContainers:
+        - name: create-bucket
+          image: busybox
+          command:
+            - mkdir
+            - -p
+            - /data/enseada
+          volumeMounts:
+            - name: minio
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: minio
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 512Mi

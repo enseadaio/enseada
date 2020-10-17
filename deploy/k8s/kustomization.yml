@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: enseada
+commonLabels:
+  app: enseada
+  app.kubernetes.io/part-of: enseada
+resources:
+  - deploy.yml
+  - service.yml
+  - ingress.yml
+  - couchdb
+  - minio
+secretGenerator:
+  - name: enseada-config
+    files:
+      - enseada.yml

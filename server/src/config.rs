@@ -1,13 +1,14 @@
 use config::{Config, ConfigError, Environment, File};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use url::Url;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Configuration {
-    port: i16,
     log: Logging,
     couchdb: CouchDB,
     tls: TLS,
+    service: Service,
     public: Public,
     secret: Secret,
     root: Root,
@@ -43,13 +44,19 @@ struct WithOptionalPath {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-struct Public {
-    host: Url,
+struct Service {
+    host: String,
+    port: i16,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 struct Secret {
     key: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct Public {
+    url: Url,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -83,25 +90,26 @@ pub struct Tracing {
 }
 
 impl Configuration {
-    pub fn new() -> Result<Self, ConfigError> {
+    pub fn new(config_file: &PathBuf) -> Result<Self, ConfigError> {
         let mut c = Config::new();
 
-        c.merge(File::with_name("enseada").required(false))?;
+        c.merge(File::with_name(config_file.to_str().unwrap()).required(false))?;
         c.merge(Environment::with_prefix("enseada").separator("__"))?;
 
         // Defaults
-        c.set_default("port", 9623)?;
+        c.set_default("service.host", "0.0.0.0")?;
+        c.set_default("service.port", 9623)?;
         c.set_default("tls.enabled", false)?;
         c.set_default("tls.cert.path", None::<String>)?;
         c.set_default("tls.key.path", None::<String>)?;
 
-        let port = c.get_int("port")?;
+        let port = c.get_int("service.port")?;
         let proto = if c.get_bool("tls.enabled")? {
             "https"
         } else {
             "http"
         };
-        c.set_default("public.host", format!("{}://localhost:{}", proto, port))?;
+        c.set_default("public.url", format!("{}://localhost:{}", proto, port))?;
 
         c.set_default("log.level", "info")?;
         c.set_default("log.root_level", "warn")?;
@@ -130,12 +138,24 @@ impl Configuration {
         c.try_into()
     }
 
-    pub fn port(&self) -> i16 {
-        self.port
+    pub fn service_host(&self) -> &str {
+        &self.service.host
     }
 
-    pub fn public_host(&self) -> &Url {
-        &self.public.host
+    pub fn service_protocol(&self) -> &str {
+        if self.tls.enabled {
+            "https"
+        } else {
+            "http"
+        }
+    }
+
+    pub fn service_port(&self) -> i16 {
+        self.service.port
+    }
+
+    pub fn public_url(&self) -> &Url {
+        &self.public.url
     }
 
     pub fn log(&self) -> &Logging {

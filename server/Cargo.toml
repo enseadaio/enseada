@@ -65,7 +65,8 @@ lazy_static = "1.4"
 # Observability
 #tracing = { version = "0.1", features = ["log-always"] }
 tracing = { version = "0.1", features = [] }
-tracing-subscriber = { version = "0.2", default-features = false, features = ["env-filter", "smallvec", "fmt", "ansi", "chrono", "json"] }
+tracing-subscriber = "0.2"
+#tracing-subscriber = { version = "0.2", default-features = false, features = ["env-filter", "smallvec", "fmt", "ansi", "chrono", "json"] }
 tracing-futures = "0.2"
 
 # Miscellaneous
@@ -79,16 +80,17 @@ snafu = "0.6"
 url = { version = "2.1", features = ["serde"] }
 uuid = { version = "0.8", features = ["v4"] }
 base64 = "0.12"
+structopt = { version = "0.3", default-features = false }
 
 [dependencies.log4rs]
 version = "0.10"
 features = [
-"console_appender",
-"compound_policy",
-"delete_roller",
-"fixed_window_roller",
-"size_trigger",
-"json_encoder",
-"pattern_encoder",
-"threshold_filter"
+    "console_appender",
+    "compound_policy",
+    "delete_roller",
+    "fixed_window_roller",
+    "size_trigger",
+    "json_encoder",
+    "pattern_encoder",
+    "threshold_filter"
 ]

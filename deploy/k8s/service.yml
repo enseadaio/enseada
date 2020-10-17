@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: enseada
+spec:
+  selector:
+    app.kubernetes.io/name: enseada
+    app.kubernetes.io/component: server
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9623
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enseada-lb
+spec:
+  selector:
+    app.kubernetes.io/name: enseada-lb
+    app.kubernetes.io/component: server
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 9623
+      targetPort: http

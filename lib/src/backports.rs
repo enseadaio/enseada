@@ -11,6 +11,8 @@ pub mod option {
     /// # Examples
     ///
     /// ```
+    /// use enseada::backports::option::zip;
+    ///
     /// let x = Some(1);
     /// let y = Some("hi");
     /// let z = None::<u8>;
@@ -32,6 +34,7 @@ pub mod option {
     /// # Examples
     ///
     /// ```
+    /// use enseada::backports::option::zip_with;
     ///
     /// #[derive(Debug, PartialEq)]
     /// struct Point {

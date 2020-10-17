@@ -17,15 +17,19 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    pub fn new(reference: &str, group: &str, name: &str, manifest: ImageManifest) -> Self {
+    pub fn new(group: &str, name: &str, reference: &str, manifest: ImageManifest) -> Self {
         let mut manifest = Self::from(manifest);
-        manifest.id = Self::build_guid(reference);
+        manifest.id = Self::build_guid(&Self::build_id(group, name, reference));
         manifest.image = format!("{}/{}", group, name);
         manifest
     }
 
     pub fn into_inner(self) -> ImageManifest {
         self.manifest
+    }
+
+    pub fn build_id(group: &str, name: &str, reference: &str) -> String {
+        format!("{}-{}:{}", group, name, reference)
     }
 }
 

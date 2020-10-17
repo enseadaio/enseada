@@ -46,7 +46,7 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     let oauth_db = couch.database(crate::couchdb::name::OAUTH, true);
     let users_db = couch.database(crate::couchdb::name::USERS, true);
 
-    let public_host = cfg.public_host();
+    let public_host = cfg.public_url();
     create_oauth_client(
         &oauth_db,
         Client::public(

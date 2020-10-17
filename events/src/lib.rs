@@ -47,7 +47,7 @@ impl EventBus {
 
     /// Wrap the subscriber in an Arc and create a subscription
     pub fn subscribe_wrap<E: Event, H: 'static + EventHandler<E>>(&mut self, h: H) {
-       self.subscribe(Arc::new(h))
+        self.subscribe(Arc::new(h))
     }
 
     /// Create a subscription

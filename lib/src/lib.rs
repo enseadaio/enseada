@@ -2,6 +2,7 @@
 extern crate lazy_static;
 
 pub mod app;
+pub mod backports;
 pub mod couchdb;
 pub mod error;
 pub mod expiration;
@@ -10,5 +11,4 @@ pub mod pagination;
 pub mod predicate;
 pub mod secure;
 pub mod storage;
-pub mod backports;
 pub mod urn;

@@ -4,7 +4,7 @@ use std::str::from_utf8;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures::{stream, Stream, StreamExt, TryStreamExt, TryStream};
+use futures::{stream, Stream, StreamExt, TryStream, TryStreamExt};
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -18,8 +18,8 @@ use crate::responses::{
     FindResponse, JsonIndexResponse, JsonIndexResultStatus, Partition, PutResponse, RowsResponse,
 };
 use crate::Result;
-use std::borrow::Cow;
 use percent_encoding::{percent_encode, AsciiSet, CONTROLS};
+use std::borrow::Cow;
 
 const ESCAPED: &AsciiSet = &CONTROLS
     .add(b' ')
@@ -139,32 +139,39 @@ impl Database {
         self.do_list(&path, limit, skip).await
     }
 
-    pub fn stream<R: DeserializeOwned>(&self) -> impl Stream<Item=Result<R>> {
+    pub fn stream<R: DeserializeOwned>(&self) -> impl Stream<Item = Result<R>> {
         let path = format!("{}/_all_docs", &self.name);
-        stream::try_unfold((0, path, self.client.clone()), |(skip, path, client)| async move {
-            let query = Some(ListQuery {
-                include_docs: true,
-                limit: 100,
-                skip,
-            });
-            match client.get::<ListQuery, RowsResponse<R>>(&path, query).await {
-                Ok(res) => {
-                    if res.rows.len() == 0 {
-                        Ok(None)
-                    } else {
-                        let rows = res.rows.into_iter().map(|raw| raw.doc.unwrap()).collect::<Vec<R>>();
-                        Ok(Some((rows, (skip + 100, path, client))))
+        stream::try_unfold(
+            (0, path, self.client.clone()),
+            |(skip, path, client)| async move {
+                let query = Some(ListQuery {
+                    include_docs: true,
+                    limit: 100,
+                    skip,
+                });
+                match client.get::<ListQuery, RowsResponse<R>>(&path, query).await {
+                    Ok(res) => {
+                        if res.rows.len() == 0 {
+                            Ok(None)
+                        } else {
+                            let rows = res
+                                .rows
+                                .into_iter()
+                                .map(|raw| raw.doc.unwrap())
+                                .collect::<Vec<R>>();
+                            Ok(Some((rows, (skip + 100, path, client))))
+                        }
                     }
+                    Err(err) => Err(Error::from(err)),
                 }
-                Err(err) => Err(Error::from(err)),
-            }
+            },
+        )
+        .map(|res| match res {
+            Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
+            Err(err) => vec![Err(err)],
         })
-            .map(|res| match res {
-                Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
-                Err(err) => vec!(Err(err)),
-            })
-            .map(stream::iter)
-            .flatten()
+        .map(stream::iter)
+        .flatten()
     }
 
     async fn do_list<R: DeserializeOwned>(
@@ -193,7 +200,11 @@ impl Database {
             .map_err(Error::from)
     }
 
-    pub async fn put<T: Serialize, ID: AsRef<[u8]>>(&self, id: ID, entity: T) -> Result<PutResponse> {
+    pub async fn put<T: Serialize, ID: AsRef<[u8]>>(
+        &self,
+        id: ID,
+        entity: T,
+    ) -> Result<PutResponse> {
         let id = percent_encode(id.as_ref(), ESCAPED).to_string();
         let path = format!("{}/{}", &self.name, &id);
         log::debug!("Putting {} into couch", &path);
@@ -255,7 +266,7 @@ impl Database {
     pub fn find_stream<R: DeserializeOwned>(
         &self,
         selector: serde_json::Value,
-    ) -> impl Stream<Item=Result<R>> {
+    ) -> impl Stream<Item = Result<R>> {
         let path = format!("{}/_find", &self.name);
         self.do_find_stream(path, selector)
     }
@@ -264,7 +275,7 @@ impl Database {
         &self,
         partition: &str,
         selector: serde_json::Value,
-    ) -> impl Stream<Item=Result<R>> {
+    ) -> impl Stream<Item = Result<R>> {
         let partition = percent_encode(partition.as_bytes(), ESCAPED).to_string();
         let path = format!("{}/_partition/{}/_find", &self.name, partition);
         self.do_find_stream(path, selector)
@@ -274,34 +285,44 @@ impl Database {
         &self,
         path: String,
         selector: serde_json::Value,
-    ) -> impl Stream<Item=Result<R>> {
-        stream::try_unfold((0, path, self.client.clone(), selector), |(skip, path, client, selector)| async move {
-            let body = serde_json::json!({
-                "selector": &selector,
-                "limit": 100,
-                "skip": skip,
-            });
-            match client.post::<serde_json::Value, bool, FindResponse<R>>(&path, Some(body), None::<bool>).await {
-                Ok(res) => {
-                    if let Some(warning) = &res.warning {
-                        log::warn!("{}", warning);
-                    }
+    ) -> impl Stream<Item = Result<R>> {
+        stream::try_unfold(
+            (0, path, self.client.clone(), selector),
+            |(skip, path, client, selector)| async move {
+                let body = serde_json::json!({
+                    "selector": &selector,
+                    "limit": 100,
+                    "skip": skip,
+                });
+                match client
+                    .post::<serde_json::Value, bool, FindResponse<R>>(
+                        &path,
+                        Some(body),
+                        None::<bool>,
+                    )
+                    .await
+                {
+                    Ok(res) => {
+                        if let Some(warning) = &res.warning {
+                            log::warn!("{}", warning);
+                        }
 
-                    if res.docs.len() == 0 {
-                        Ok(None)
-                    } else {
-                        Ok(Some((res.docs, (skip + 100, path, client, selector))))
+                        if res.docs.len() == 0 {
+                            Ok(None)
+                        } else {
+                            Ok(Some((res.docs, (skip + 100, path, client, selector))))
+                        }
                     }
+                    Err(err) => Err(Error::from(err)),
                 }
-                Err(err) => Err(Error::from(err)),
-            }
+            },
+        )
+        .map(|res| match res {
+            Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
+            Err(err) => vec![Err(err)],
         })
-            .map(|res| match res {
-                Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
-                Err(err) => vec!(Err(err)),
-            })
-            .map(stream::iter)
-            .flatten()
+        .map(stream::iter)
+        .flatten()
     }
 
     pub async fn delete(&self, id: &str, rev: &str) -> Result<()> {
@@ -320,7 +341,7 @@ impl Database {
         Ok(res)
     }
 
-    pub async fn changes(&self) -> Result<impl futures::Stream<Item=ChangeEvent>> {
+    pub async fn changes(&self) -> Result<impl futures::Stream<Item = ChangeEvent>> {
         let path = format!("{}/_changes", &self.name);
         let query = Some(&[("feed", "continuous"), ("since", "now")]);
         let stream = self.client.stream(&path, query).await?;
