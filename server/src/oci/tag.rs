@@ -25,8 +25,8 @@ pub struct TagList {
 
 #[derive(Debug, Deserialize)]
 pub struct TagPagination {
-    n: Option<usize>,
-    last: usize,
+    n: usize,
+    last: Option<String>,
 }
 
 #[get("/{group}/{name}/tags/list")]
@@ -51,28 +51,37 @@ pub async fn list(
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
+    log::error!("{:?}", page);
+    let tags = repos.list_all_repo_tags(&repo).await?;
     let mut res = HttpResponse::Ok();
     let res = if let Some(page) = page {
-        let limit = page.n.map(|n| min(max(n, 1), 50)).unwrap_or(25);
-        let offset = max(page.last, 1) - 1;
-        let tags = repos.list_repo_tags(&repo, limit, offset).await?;
+        let n = page.n;
+        let tags: Vec<String> = if let Some(last) = &page.last {
+            tags.into_iter()
+                .skip_while(|tag| tag != last)
+                .skip(1) // we do not include the `last` tag
+                .take(n)
+                .collect()
+        } else {
+            tags.into_iter().take(n).collect()
+        };
+        let new_last = tags
+            .last()
+            .map(|last| format!("&last={}", last))
+            .unwrap_or_else(String::new);
         let list = TagList {
             name: repo.full_name(),
-            tags: tags.into_iter().collect(),
+            tags,
         };
         res.header(
             http::header::LINK,
             format!(
                 "</v2/{}/{}/tags/list?n={}&last={}>; rel=\"next\"",
-                group,
-                name,
-                limit,
-                offset + limit
+                group, name, n, new_last
             ),
         )
         .json(list)
     } else {
-        let tags = repos.list_all_repo_tags(&repo).await?;
         res.json(TagList {
             name: repo.full_name(),
             tags,

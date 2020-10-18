@@ -85,7 +85,7 @@ impl View {
             "{}{}_design/{}/_view/{}",
             self.db_name, partition, self.ddoc, self.name
         );
-        let query = ViewQueryPage {
+        let body = ViewQueryPage {
             key: Some(serde_json::to_value(key).unwrap()),
             list: ListQuery {
                 include_docs,
@@ -94,7 +94,7 @@ impl View {
             },
         };
         self.client
-            .get(&path, Some(query))
+            .post(&path, Some(body), None::<bool>)
             .await
             .map_err(Error::from)
     }
