@@ -11,7 +11,6 @@ pub struct RepoCreated {
     pub group: String,
     pub name: String,
     pub description: Option<String>,
-    pub tags: Vec<String>,
 }
 
 impl From<&Repo> for RepoCreated {
@@ -22,7 +21,6 @@ impl From<&Repo> for RepoCreated {
             group: repo.group().to_string(),
             name: repo.name().to_string(),
             description: repo.description().map(str::to_string),
-            tags: repo.tags().clone(),
         }
     }
 }
@@ -34,7 +32,6 @@ pub struct RepoUpdated {
     pub group: String,
     pub name: String,
     pub description: Option<String>,
-    pub tags: Vec<String>,
 }
 
 impl From<&Repo> for RepoUpdated {
@@ -45,7 +42,6 @@ impl From<&Repo> for RepoUpdated {
             group: repo.group().to_string(),
             name: repo.name().to_string(),
             description: repo.description().map(str::to_string),
-            tags: repo.tags().clone(),
         }
     }
 }
@@ -57,7 +53,6 @@ pub struct RepoDeleted {
     pub group: String,
     pub name: String,
     pub description: Option<String>,
-    pub tags: Vec<String>,
 }
 
 impl From<&Repo> for RepoDeleted {
@@ -68,7 +63,6 @@ impl From<&Repo> for RepoDeleted {
             group: repo.group().to_string(),
             name: repo.name().to_string(),
             description: repo.description().map(str::to_string),
-            tags: repo.tags().clone(),
         }
     }
 }

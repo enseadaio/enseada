@@ -85,22 +85,13 @@ pub async fn put(
     enforcer.check(current_user.id(), &Repo::build_guid(&repo_id), "image:push")?;
 
     log::debug!("looking for repo {}/{}", group, name);
-    let repo = repos
+    repos
         .find(&Repo::build_id(group, name))
         .await?
         .ok_or_else(|| Error::from(ErrorCode::NameUnknown))?;
 
     let manifest = Manifest::new(group, name, reference, body.into_inner());
     let manifest = manifests.save(manifest).await?;
-
-    log::debug!("Checking if ref '{}' is a tag", reference);
-    if Digest::try_from(reference).is_err() {
-        log::debug!("Ref '{}' is indeed a tag", reference);
-        // Reference is a tag
-        let mut repo = repo;
-        repo.push_tag(reference.clone());
-        repos.save(repo).await?;
-    }
 
     let manifest = manifest.into_inner();
 

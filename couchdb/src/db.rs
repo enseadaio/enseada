@@ -4,23 +4,23 @@ use std::str::from_utf8;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures::{stream, Stream, StreamExt, TryStream, TryStreamExt};
+use futures::{stream, Stream, StreamExt};
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::changes::ChangeEvent;
 use crate::client::Client;
-use crate::design_document::{DesignDocument, View};
+use crate::design_document::{DesignDocument, ViewDoc};
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
 use crate::responses::{
     FindResponse, JsonIndexResponse, JsonIndexResultStatus, Partition, PutResponse, RowsResponse,
 };
+use crate::view::View;
 use crate::Result;
 use percent_encoding::{percent_encode, AsciiSet, CONTROLS};
-use std::borrow::Cow;
 
 const ESCAPED: &AsciiSet = &CONTROLS
     .add(b' ')
@@ -48,6 +48,30 @@ impl Database {
 
     pub fn name(&self) -> &String {
         &self.name
+    }
+
+    pub fn view<D: ToString, N: ToString>(&self, ddoc: D, name: N) -> View {
+        View::new(
+            self.client.clone(),
+            self.name.clone(),
+            ddoc.to_string(),
+            name.to_string(),
+        )
+    }
+
+    pub fn partitioned_view<D: ToString, P: ToString, N: ToString>(
+        &self,
+        ddoc: D,
+        partition: P,
+        name: N,
+    ) -> View {
+        View::partitioned(
+            self.client.clone(),
+            self.name.clone(),
+            ddoc.to_string(),
+            partition.to_string(),
+            name.to_string(),
+        )
     }
 
     pub async fn get_self(&self) -> Result<responses::DBInfo> {
@@ -86,7 +110,7 @@ impl Database {
         }
     }
 
-    pub async fn create_view(&self, ddoc: &str, view: View) -> Result<()> {
+    pub async fn create_view(&self, ddoc: &str, view: ViewDoc) -> Result<()> {
         let id = format!("_design/{}", ddoc);
 
         let mut design_doc = self
@@ -97,7 +121,7 @@ impl Database {
 
         let path = format!("{}/{}", &self.name, id);
         self.client
-            .put::<DesignDocument, bool, serde_json::Value>(&path, Some(design_doc), None::<bool>)
+            .put::<DesignDocument, bool, PutResponse>(&path, Some(design_doc), None::<bool>)
             .await?;
         Ok(())
     }
@@ -324,7 +348,7 @@ impl Database {
                             log::warn!("{}", warning);
                         }
 
-                        if res.docs.len() == 0 {
+                        if res.docs.is_empty() {
                             Ok(None)
                         } else {
                             Ok(Some((res.docs, (skip + 100, path, client, selector))))
@@ -402,7 +426,7 @@ impl Debug for Database {
 }
 
 #[derive(Serialize)]
-struct ListQuery {
+pub(super) struct ListQuery {
     pub include_docs: bool,
     pub limit: usize,
     pub skip: usize,

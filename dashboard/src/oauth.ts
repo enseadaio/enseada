@@ -35,6 +35,7 @@ export const SCOPES = {
     'oci:repos:delete',
     'oci:image:push',
     'oci:image:pull',
+    'oci:image:delete',
   ],
   maven: [
     'maven:repos:read',

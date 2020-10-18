@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use snafu::{ResultExt, Snafu};
 
-use crate::design_document::View;
+use crate::design_document::ViewDoc;
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::Couch;
@@ -193,9 +193,9 @@ impl<'c> Migrator<'c> {
                     op: op.clone(),
                 }
             })?;
-            View::from_map_reduce(name, map_fun, reduce_fun)
+            ViewDoc::from_map_reduce(name, map_fun, reduce_fun)
         } else {
-            View::from_map(name, map_fun)
+            ViewDoc::from_map(name, map_fun)
         };
 
         db.create_view(ddoc, view).await.context(RunError { op })?;

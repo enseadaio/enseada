@@ -4,7 +4,6 @@ use enseada::couchdb::repository::Entity;
 use enseada::guid::Guid;
 
 use crate::manifest::ImageManifest;
-use crate::mime::MediaType;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Manifest {
@@ -14,14 +13,18 @@ pub struct Manifest {
     rev: Option<String>,
     manifest: ImageManifest,
     image: String,
+    reference: String,
 }
 
 impl Manifest {
     pub fn new(group: &str, name: &str, reference: &str, manifest: ImageManifest) -> Self {
-        let mut manifest = Self::from(manifest);
-        manifest.id = Self::build_guid(&Self::build_id(group, name, reference));
-        manifest.image = format!("{}/{}", group, name);
-        manifest
+        Self {
+            id: Self::build_guid(&Self::build_id(group, name, reference)),
+            rev: None,
+            image: format!("{}/{}", group, name),
+            reference: reference.to_string(),
+            manifest,
+        }
     }
 
     pub fn into_inner(self) -> ImageManifest {
@@ -33,20 +36,9 @@ impl Manifest {
     }
 }
 
-impl From<ImageManifest> for Manifest {
-    fn from(manifest: ImageManifest) -> Self {
-        Self {
-            id: Self::build_guid(&manifest.digest().to_string()),
-            rev: None,
-            manifest,
-            image: String::new(),
-        }
-    }
-}
-
 impl Entity for Manifest {
     fn build_guid(id: &str) -> Guid {
-        Guid::partitioned(&MediaType::ImageManifest.name(), id)
+        Guid::partitioned("oci_manifest", id)
     }
 
     fn id(&self) -> &Guid {

@@ -1,15 +1,11 @@
-use std::convert::TryFrom;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use futures::future::BoxFuture;
-use futures::FutureExt;
 
 use enseada::couchdb::db::Database;
-use enseada::couchdb::repository::{Entity, Repository};
+use enseada::couchdb::repository::Repository;
 use events::EventHandler;
 
-use crate::digest::Digest;
 use crate::entity::Manifest;
 use crate::error::Error;
 use crate::events::RepoDeleted;
@@ -32,32 +28,6 @@ impl ManifestService {
         reference: &str,
     ) -> Result<Option<Manifest>> {
         log::debug!("finding manifest by ref '{}'", reference);
-        if let Ok(digest) = Digest::try_from(reference.to_string()) {
-            let id = Manifest::build_guid(reference);
-            let partition = id.partition().unwrap();
-            log::debug!(
-                "reference is a digest, looking it up in partition '{}'",
-                partition
-            );
-            let res = self
-                .db
-                .find_partitioned(
-                    partition,
-                    serde_json::json!({
-                        "manifest.config.digest": digest.to_string()
-                    }),
-                    1,
-                    0,
-                )
-                .await?;
-            if let Some(warn) = &res.warning {
-                log::warn!("{}", warn);
-            }
-
-            return Ok(res.docs.first().cloned());
-        }
-
-        log::debug!("reference is not a digest, looking it as tag");
         let id = Manifest::build_id(group, name, reference);
         self.find(&id).await.map_err(Error::from)
     }
@@ -65,7 +35,7 @@ impl ManifestService {
 
 impl Repository<Manifest> for ManifestService {
     fn db(&self) -> &Database {
-        self.db.as_ref()
+        &self.db
     }
 }
 

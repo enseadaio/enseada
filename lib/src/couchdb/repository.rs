@@ -12,7 +12,6 @@ use couchdb::error::Error;
 use crate::guid::Guid;
 use crate::pagination::Page;
 use futures::stream::BoxStream;
-use std::pin::Pin;
 
 pub trait Entity: Debug + Serialize + DeserializeOwned + Send + Sync {
     fn build_guid(id: &str) -> Guid;

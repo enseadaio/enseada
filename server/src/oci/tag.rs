@@ -23,15 +23,6 @@ pub struct TagList {
     tags: Vec<String>,
 }
 
-impl From<&Repo> for TagList {
-    fn from(repo: &Repo) -> Self {
-        Self {
-            name: repo.full_name(),
-            tags: repo.tags().clone(),
-        }
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct TagPagination {
     n: Option<usize>,
@@ -62,13 +53,12 @@ pub async fn list(
 
     let mut res = HttpResponse::Ok();
     let res = if let Some(page) = page {
-        let n = page.n.map(|n| min(max(n, 1), 50)).unwrap_or(25);
-        let last = page.last;
-        let tags = repo.tags().clone();
-        let tags = tags.into_iter().skip(max(last, 1) - 1).take(n).collect();
+        let limit = page.n.map(|n| min(max(n, 1), 50)).unwrap_or(25);
+        let offset = max(page.last, 1) - 1;
+        let tags = repos.list_repo_tags(&repo, limit, offset).await?;
         let list = TagList {
             name: repo.full_name(),
-            tags,
+            tags: tags.into_iter().collect(),
         };
         res.header(
             http::header::LINK,
@@ -76,13 +66,17 @@ pub async fn list(
                 "</v2/{}/{}/tags/list?n={}&last={}>; rel=\"next\"",
                 group,
                 name,
-                n,
-                last + n
+                limit,
+                offset + limit
             ),
         )
         .json(list)
     } else {
-        res.json(TagList::from(&repo))
+        let tags = repos.list_all_repo_tags(&repo).await?;
+        res.json(TagList {
+            name: repo.full_name(),
+            tags,
+        })
     };
 
     Ok(res)

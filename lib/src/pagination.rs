@@ -15,7 +15,7 @@ pub struct Page<T> {
 }
 
 impl<T> Page<T> {
-    pub fn from_slice(items: Vec<T>, offset: usize, limit: usize, total: usize) -> Self {
+    pub fn from_slice(items: Vec<T>, limit: usize, offset: usize, total: usize) -> Self {
         let count = items.len();
         Page {
             count,
@@ -38,7 +38,7 @@ impl<T> Page<T> {
                 .into_iter()
                 .map(|raw| raw.doc.expect("RowResponse does not contain docs"))
                 .collect();
-            Page::from_slice(items, offset, limit, total)
+            Page::from_slice(items, limit, offset, total)
         } else {
             let mut res = res;
             res.rows.remove(res.rows.len() - 1);
@@ -47,7 +47,7 @@ impl<T> Page<T> {
                 .into_iter()
                 .map(|raw| raw.doc.expect("RowResponse does not contain docs"))
                 .collect();
-            Page::from_slice(items, offset, limit, total)
+            Page::from_slice(items, limit, offset, total)
         }
     }
 

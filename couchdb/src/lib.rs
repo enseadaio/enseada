@@ -16,6 +16,7 @@ pub mod index;
 pub mod migrator;
 pub mod responses;
 pub mod status;
+pub mod view;
 
 pub type Result<T> = std::result::Result<T, Error>;
 

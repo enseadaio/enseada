@@ -13,7 +13,9 @@ pub struct Descriptor {
     digest: Digest,
     #[serde(default)]
     size: usize,
+    #[serde(rename = "urls", skip_serializing_if = "Option::is_none")]
     urls: Option<Vec<Url>>,
+    #[serde(rename = "annotations", skip_serializing_if = "Option::is_none")]
     annotations: Option<HashMap<String, String>>,
 }
 
@@ -23,6 +25,7 @@ pub struct ImageManifest {
     schema_version: u8,
     config: Descriptor,
     layers: Vec<Descriptor>,
+    #[serde(rename = "annotations", skip_serializing_if = "Option::is_none")]
     annotations: Option<HashMap<String, String>>,
 }
 

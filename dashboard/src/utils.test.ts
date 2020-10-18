@@ -3,8 +3,8 @@ import { buildFileTree } from "./utils";
 describe('buildFileTree', () => {
   it('builds a file tree ', () => {
     const files = [
-      '/test/hello/world.txt',
-      '/test/hello/tree.txt',
+      '/test/scripts/world.txt',
+      '/test/scripts/tree.txt',
       'another/test/file.js'
     ];
     const tree = buildFileTree(files);
@@ -16,7 +16,7 @@ describe('buildFileTree', () => {
           name: 'test',
           children: [
             {
-              name: 'hello',
+              name: 'scripts',
               children: [
                 {
                   name: 'world.txt',

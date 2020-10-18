@@ -70,8 +70,12 @@ pub struct RawDocResponse<T> {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct RawDocValue {
-    pub rev: String,
+#[serde(untagged)]
+pub enum RawDocValue {
+    Rev {
+        rev: String,
+    },
+    String(String)
 }
 
 #[derive(Deserialize, Debug)]

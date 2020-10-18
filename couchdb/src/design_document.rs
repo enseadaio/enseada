@@ -11,7 +11,7 @@ pub struct DesignDocument {
     rev: Option<String>,
     language: String,
     options: HashMap<String, serde_json::Value>,
-    views: HashMap<String, View>,
+    views: HashMap<String, ViewDoc>,
 }
 
 impl DesignDocument {
@@ -31,7 +31,7 @@ impl DesignDocument {
         }
     }
 
-    pub fn add_view(&mut self, view: View) -> &mut Self {
+    pub fn add_view(&mut self, view: ViewDoc) -> &mut Self {
         self.views.insert(view.name.clone(), view);
         self
     }
@@ -42,13 +42,13 @@ impl DesignDocument {
     pub fn options(&self) -> &HashMap<String, serde_json::Value> {
         &self.options
     }
-    pub fn views(&self) -> &HashMap<String, View> {
+    pub fn views(&self) -> &HashMap<String, ViewDoc> {
         &self.views
     }
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct View {
+pub struct ViewDoc {
     #[serde(skip)]
     name: String,
     map: String,
@@ -56,7 +56,7 @@ pub struct View {
     reduce: Option<String>,
 }
 
-impl View {
+impl ViewDoc {
     pub fn from_map_reduce<N: ToString, M: ToString, R: ToString>(
         name: N,
         map_fun: M,

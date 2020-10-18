@@ -12,7 +12,6 @@ pub struct Repo {
     group: String,
     name: String,
     description: Option<String>,
-    tags: Vec<String>,
 }
 
 impl Repo {
@@ -28,7 +27,6 @@ impl Repo {
             group: group.to_string(),
             name: name.to_string(),
             description,
-            tags: Vec::new(),
         }
     }
 
@@ -46,15 +44,6 @@ impl Repo {
 
     pub fn description(&self) -> Option<&str> {
         self.description.as_deref()
-    }
-
-    pub fn tags(&self) -> &Vec<String> {
-        &self.tags
-    }
-
-    pub fn push_tag(&mut self, tag: String) -> &mut Self {
-        self.tags.push(tag);
-        self
     }
 }
 
