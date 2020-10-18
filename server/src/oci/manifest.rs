@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use std::sync::Arc;
 
 use actix_web::web::{Data, Json, Path};
@@ -8,7 +7,6 @@ use tokio::sync::RwLock;
 
 use enseada::couchdb::repository::{Entity, Repository};
 use oauth::scope::Scope;
-use oci::digest::Digest;
 use oci::entity::{Manifest, Repo};
 use oci::error::{Error, ErrorCode};
 use oci::header;
@@ -18,7 +16,6 @@ use oci::service::{ManifestService, RepoService};
 use rbac::Enforcer;
 
 use crate::http::extractor::scope::OAuthScope;
-use crate::http::extractor::session::TokenSession;
 use crate::http::extractor::user::CurrentUser;
 use crate::oci::{RepoPath, Result};
 

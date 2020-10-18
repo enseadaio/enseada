@@ -6,5 +6,6 @@ stdenv.mkDerivation {
       openssl.dev
       yarn
       unstable.nodejs-14_x
+      go
     ];
 }
