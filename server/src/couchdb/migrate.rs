@@ -1,12 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::io::{Error, ErrorKind};
 use std::iter::FromIterator;
 
-use include_dir::{Dir, File};
+use include_dir::Dir;
 
 use couchdb::db::Database;
 use couchdb::migrator::Migrator;
-use couchdb::status::Status;
 use couchdb::{Couch, Result};
 use enseada::couchdb::repository::Entity;
 use oauth::client::Client;
@@ -34,13 +33,32 @@ async fn run(couch: &Couch, cfg: &Configuration) -> Result<()> {
     let migs: Vec<String> = MIGRATION_DIR
         .files()
         .iter()
-        .map(File::contents_utf8)
-        .filter(Option::is_some)
-        .map(Option::unwrap)
-        .map(str::to_string)
+        .filter_map(map_file_with_ext("json"))
         .collect();
 
-    let migrator = Migrator::new(couch, migs)?;
+    let scripts = if let Some(scripts_dir) = MIGRATION_DIR.get_dir("scripts") {
+        let files = scripts_dir.files();
+        files.iter().filter(filter_file_with_ext("js")).fold(
+            HashMap::with_capacity(files.len()),
+            |mut map, file| {
+                if let Some(content) = file.contents_utf8() {
+                    map.insert(
+                        file.path()
+                            .file_name()
+                            .unwrap()
+                            .to_string_lossy()
+                            .to_string(),
+                        content.to_string(),
+                    );
+                }
+                map
+            },
+        )
+    } else {
+        HashMap::new()
+    };
+
+    let migrator = Migrator::new(couch, migs, scripts)?;
     migrator.run().await?;
 
     let oauth_db = couch.database(crate::couchdb::name::OAUTH, true);
@@ -95,4 +113,28 @@ async fn create_root_user(db: &Database, password: String) -> Result<()> {
     }
 
     db.put(&user.id().to_string(), user).await.map(|_| ())
+}
+
+fn filter_file_with_ext(ext: &'static str) -> Box<dyn FnMut(&&include_dir::File) -> bool> {
+    Box::new(move |file: &&include_dir::File| {
+        if let Some(file_ext) = file.path().extension() {
+            ext == file_ext
+        } else {
+            false
+        }
+    })
+}
+
+fn map_file_with_ext(ext: &'static str) -> Box<dyn FnMut(&include_dir::File) -> Option<String>> {
+    Box::new(move |file: &include_dir::File| {
+        if let Some(file_ext) = file.path().extension() {
+            if ext == file_ext {
+                file.contents_utf8().map(str::to_string)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    })
 }

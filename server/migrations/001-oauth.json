@@ -2,12 +2,12 @@
     "name": "oauth",
     "operations": [
         {
-            "kind": "create_database",
+            "action": "create_database",
             "name": "oauth",
             "partitioned": true
         },
         {
-            "kind": "create_index",
+            "action": "create_index",
             "name": "pat_user_idx",
             "database": "oauth",
             "design_doc": "oauth_indexes",

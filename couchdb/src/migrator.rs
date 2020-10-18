@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 use snafu::{ResultExt, Snafu};
 
+use crate::design_document::View;
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::Couch;
@@ -9,6 +12,8 @@ use crate::Couch;
 pub enum MigrationError {
     #[snafu(display("Failed to read migration: {}", source))]
     DeserializationError { source: serde_json::Error },
+    #[snafu(display("Failed to run migration {}: view file {} not found", op, file))]
+    MissingViewFileError { file: String, op: String },
     #[snafu(display("Failed to run migration {}: {}", op, source))]
     RunError { op: String, source: Error },
 }
@@ -20,7 +25,7 @@ impl From<serde_json::Error> for MigrationError {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "action", rename_all = "snake_case")]
 pub enum MigrationOperation {
     CreateDatabase {
         name: String,
@@ -31,6 +36,13 @@ pub enum MigrationOperation {
         database: String,
         index: serde_json::Value,
         design_doc: Option<String>,
+    },
+    CreateView {
+        name: String,
+        database: String,
+        design_doc: String,
+        map_file: String,
+        reduce_file: Option<String>,
     },
 }
 
@@ -43,10 +55,15 @@ pub struct Migration {
 pub struct Migrator<'c> {
     client: &'c Couch,
     migrations: Vec<Migration>,
+    scripts: HashMap<String, String>,
 }
 
 impl<'c> Migrator<'c> {
-    pub fn new(client: &'c Couch, migrations: Vec<String>) -> Result<Self, MigrationError> {
+    pub fn new(
+        client: &'c Couch,
+        migrations: Vec<String>,
+        scripts: HashMap<String, String>,
+    ) -> Result<Self, MigrationError> {
         let mut migs = Vec::new();
         for mig in &migrations {
             let mig = serde_json::from_str(mig)?;
@@ -55,6 +72,7 @@ impl<'c> Migrator<'c> {
         Ok(Migrator {
             client,
             migrations: migs,
+            scripts,
         })
     }
 
@@ -84,6 +102,23 @@ impl<'c> Migrator<'c> {
                             database,
                             design_doc.clone(),
                             index.clone(),
+                            mig.name.clone(),
+                        )
+                        .await?
+                    }
+                    MigrationOperation::CreateView {
+                        name,
+                        database,
+                        design_doc,
+                        map_file,
+                        reduce_file,
+                    } => {
+                        self.create_view(
+                            name,
+                            database,
+                            design_doc,
+                            map_file,
+                            reduce_file.as_deref(),
                             mig.name.clone(),
                         )
                         .await?
@@ -130,6 +165,40 @@ impl<'c> Migrator<'c> {
             log::debug!("Index {} already exists. Skipping", name);
         }
 
+        Ok(())
+    }
+
+    async fn create_view(
+        &self,
+        name: &str,
+        database: &str,
+        ddoc: &str,
+        map_file: &str,
+        reduce_file: Option<&str>,
+        op: String,
+    ) -> Result<(), MigrationError> {
+        let db = self.client.database(database, true);
+
+        let map_fun =
+            self.scripts
+                .get(map_file)
+                .ok_or_else(|| MigrationError::MissingViewFileError {
+                    file: map_file.to_string(),
+                    op: op.clone(),
+                })?;
+        let view = if let Some(reduce_file) = reduce_file {
+            let reduce_fun = self.scripts.get(reduce_file).ok_or_else(|| {
+                MigrationError::MissingViewFileError {
+                    file: reduce_file.to_string(),
+                    op: op.clone(),
+                }
+            })?;
+            View::from_map_reduce(name, map_fun, reduce_fun)
+        } else {
+            View::from_map(name, map_fun)
+        };
+
+        db.create_view(ddoc, view).await.context(RunError { op })?;
         Ok(())
     }
 }

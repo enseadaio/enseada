@@ -11,6 +11,7 @@ use serde::Serialize;
 
 use crate::changes::ChangeEvent;
 use crate::client::Client;
+use crate::design_document::{DesignDocument, View};
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
@@ -83,6 +84,22 @@ impl Database {
             JsonIndexResultStatus::Created => Ok(true),
             JsonIndexResultStatus::Exists => Ok(false),
         }
+    }
+
+    pub async fn create_view(&self, ddoc: &str, view: View) -> Result<()> {
+        let id = format!("_design/{}", ddoc);
+
+        let mut design_doc = self
+            .get::<DesignDocument>(&id)
+            .await?
+            .unwrap_or_else(|| DesignDocument::new(ddoc, true));
+        design_doc.add_view(view);
+
+        let path = format!("{}/{}", &self.name, id);
+        self.client
+            .put::<DesignDocument, bool, serde_json::Value>(&path, Some(design_doc), None::<bool>)
+            .await?;
+        Ok(())
     }
 
     pub async fn count_partitioned(&self, partition: &str) -> Result<usize> {

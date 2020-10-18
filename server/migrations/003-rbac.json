@@ -2,12 +2,12 @@
     "name": "rbac",
     "operations": [
         {
-            "kind": "create_database",
+            "action": "create_database",
             "name": "rbac",
             "partitioned": true
         },
         {
-            "kind": "create_index",
+            "action": "create_index",
             "name": "rule_sub_idx",
             "database": "rbac",
             "design_doc": "rbac_indexes",
@@ -18,7 +18,7 @@
             }
         },
         {
-            "kind": "create_index",
+            "action": "create_index",
             "name": "role_subject_idx",
             "database": "rbac",
             "design_doc": "rbac_indexes",

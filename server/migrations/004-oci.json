@@ -2,23 +2,23 @@
     "name": "oci",
     "operations": [
         {
-            "kind": "create_database",
+            "action": "create_database",
             "name": "oci",
             "partitioned": true
         },
         {
-            "kind": "create_index",
-            "name": "manifest_digest_idx",
+            "action": "create_index",
+            "name": "manifest_reference_idx",
             "database": "oci",
             "design_doc": "oci_indexes",
             "index": {
                 "fields": [
-                    "manifest.config.digest"
+                    "reference"
                 ]
             }
         },
         {
-            "kind": "create_index",
+            "action": "create_index",
             "name": "image_idx",
             "database": "oci",
             "design_doc": "oci_indexes",
@@ -27,6 +27,13 @@
                     "image"
                 ]
             }
+        },
+        {
+            "action": "create_view",
+            "name": "image_tags",
+            "database": "oci",
+            "design_doc": "image_views",
+            "map_file": "image_tags_map.js"
         }
     ]
 }

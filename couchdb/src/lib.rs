@@ -10,6 +10,7 @@ use crate::status::Status;
 pub mod changes;
 pub mod client;
 pub mod db;
+pub mod design_document;
 pub mod error;
 pub mod index;
 pub mod migrator;
