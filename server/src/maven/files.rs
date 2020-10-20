@@ -37,7 +37,7 @@ pub async fn get(
     };
 
     if repo.is_private() {
-        if let Some((current_user, scope)) = backports::option::zip(current_user, scope) {
+        if let Some((current_user, scope)) = Option::zip(current_user, scope) {
             Scope::from("maven:repos:pull").matches(&scope)?;
             let enforcer = enforcer.read().await;
             enforcer.check(
@@ -75,7 +75,7 @@ pub async fn put(
     };
 
     if repo.is_private() {
-        if let Some((current_user, scope)) = backports::option::zip(current_user, scope) {
+        if let Some((current_user, scope)) = Option::zip(current_user, scope) {
             Scope::from("maven:repos:push").matches(&scope)?;
             let enforcer = enforcer.read().await;
             enforcer.check(
