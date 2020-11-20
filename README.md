@@ -3,7 +3,7 @@
   
 [![version](https://img.shields.io/github/v/release/enseadaio/enseada?sort=semver)](https://github.com/enseadaio/enseada/releases/latest)
 ![build status](https://github.com/enseadaio/enseada/workflows/master/badge.svg)
-[![docker pulls](https://img.shields.io/docker/pulls/enseada/enseada)](https://hub.docker.com/r/enseada/enseada)
+[![Docker Repository on Quay](https://quay.io/repository/enseada/enseada/status "Docker Repository on Quay")](https://quay.io/repository/enseada/enseada)
 [![license](https://img.shields.io/github/license/enseadaio/enseada)](./LICENSE)
 [![Discord Badge](https://discordapp.com/api/guilds/667303788532465665/widget.png?style=shield)](https://discord.gg/A34Qt8A)
 

@@ -45,11 +45,11 @@ jobs:
     needs: [lint-and-test]
     steps:
       - uses: actions/checkout@v1
-      - name: Login to Docker Hub
+      - name: Login to Quay
         run: |
-          echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+          echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin quay.io
       - name: Build the Docker image
         run: |
-          docker pull enseada/enseada:edge || true
-          docker build --file Dockerfile --tag enseada/enseada:edge --cache-from enseada/enseada:edge .
-          docker push enseada/enseada:edge
+          docker pull quay.io/enseada/enseada:edge || true
+          docker build --file Dockerfile --tag quay.io/enseada/enseada:edge --cache-from quay.io/enseada/enseada:edge .
+          docker push quay.io/enseada/enseada:edge
