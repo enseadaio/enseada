@@ -84,7 +84,7 @@ COPY server .
 RUN cargo build --release
 
 # final stage
-FROM bitnami/minideb:buster
+FROM quay.io/bitnami/minideb:buster
 
 RUN install_packages ca-certificates
 
