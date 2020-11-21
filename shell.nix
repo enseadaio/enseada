@@ -5,7 +5,7 @@ stdenv.mkDerivation {
       pkgconfig
       openssl.dev
       yarn
-      unstable.nodejs-14_x
+      nodejs-14_x
       go
     ];
 }

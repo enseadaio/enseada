@@ -1,7 +1,7 @@
 version: '3'
 services:
   couchdb:
-    image: couchdb:3
+    image: quay.io/bitnami/couchdb:3
     container_name: enseada_server_couchdb
     environment:
       COUCHDB_USER: enseada
@@ -12,12 +12,12 @@ services:
       - couchdb_data:/opt/couchdb/data
 
   minio-init:
-    image: busybox
+    image: quay.io/prometheus/busybox
     command: mkdir -p /data/enseada
     volumes:
       - minio_data:/data
   minio:
-    image: minio/minio
+    image: quay.io/bitnami/minio
     container_name: enseada_server_minio
     environment:
       MINIO_ACCESS_KEY: enseada

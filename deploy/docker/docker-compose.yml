@@ -1,7 +1,7 @@
 version: '3'
 services:
   enseada:
-    image: enseada/enseada:edge
+    image: quay.io/enseada/enseada:edge
     build:
       context: .
     environment:

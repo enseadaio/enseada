@@ -8,18 +8,12 @@ The following is a set of guidelines for contributing to Enseada and its package
 <!-- toc -->
 
 - [Code of Conduct](#code-of-conduct)
-- [I don't want to read this whole thing I just have a question!!!](#i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
-- [What should I know before I get started?](#what-should-i-know-before-i-get-started)
-  * [Read the Guidelines](#read-the-guidelines)
-- [How Can I Contribute?](#how-can-i-contribute)
-  * [Reporting Bugs](#reporting-bugs)
-    + [Before Submitting A Bug Report](#before-submitting-a-bug-report)
-    + [How Do I Submit A (Good) Bug Report?](#how-do-i-submit-a-good-bug-report)
-  * [Suggesting Enhancements](#suggesting-enhancements)
-    + [Before Submitting An Enhancement Suggestion](#before-submitting-an-enhancement-suggestion)
-    + [How Do I Submit A (Good) Enhancement Suggestion?](#how-do-i-submit-a-good-enhancement-suggestion)
-  * [Your First Code Contribution](#your-first-code-contribution)
-    + [Local development](#local-development)
+- [Getting started](#getting-started)
+  * [Fork the repository](#fork-the-repository)
+  * [Folder structure](#folder-structure)
+  * [Local development](#local-development)
+  * [Running tests](#running-tests)
+  * [Linting](#linting)
   * [Pull Requests](#pull-requests)
   * [Sign your work](#sign-your-work)
 - [Styleguides](#styleguides)
@@ -30,103 +24,106 @@ The following is a set of guidelines for contributing to Enseada and its package
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Enseada Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. <!-- Please report unacceptable behavior to [we-need-an@email.com](mailto:we-need-an@email.com). -->
+This project and everyone participating in it is governed by the [Enseada Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. <!-- Please report unacceptable behavior to [enseada@pm.me](mailto:enseada@pm.me). -->
 
-## I don't want to read this whole thing I just have a question!!!
+## Getting started
 
-No worries! Just [open an issue](https://github.com/enseadaio/enseada/issues/new?assignees=&labels=question&template=question.md&title=) with the correct template and ask away.
+### Fork the repository
 
-## What should I know before I get started?
+If you are not a maintainer of the project you'll need to fork the codebase to your personal Github account.
+Once done you can clone it locally by running `git clone git@github.com:$YOUR_ACCOUNT/enseada.git`.
 
-### Read the Guidelines
+### Folder structure
 
-A good way to start grasping the codebase is reading our [Project Guidelines](GUIDELINES.md), which detail
-a lot of conventions adopted by the project.
+Enseada groups related functionalities in modules. Each module contains everything needed to implement
+business logic except the HTTP controllers.
+```
+.
+|-- api            # OpenAPI v3 definitions
+|-- conformance    # Conformance tests for different package formats
+|   `-- oci          # OCI v1 spec conformance test
+|-- couchdb        # CouchDB client library
+|-- dashboard      # Vue 2 application for the web GUI
+|-- deploy         # Various deployment files and examples
+|   |-- docker       # Deploy Enseada via docker-compose
+|   `-- k8s          # Deploy Enseada on Kubernetes
+|-- events         # Events module, provides the in-memory event bus library
+|-- lib            # libenseada, generic common code used in many other modules
+|-- maven          # Maven module, implements support for handling Maven packages
+|-- oauth          # OAuth module, implements RFC6749 for providing OAuth 2.0 compliant endpoints
+|-- observability  # Observability module, provides code for instrumenting and monitoring Enseada
+|-- oci            # OCI module, implements the OpenContainers distribution spec v1 for handling container images
+|-- rbac           # RBAC rule engine, provides authorization functionalities
+|-- server         # Web server module, the main entrypoint for Enseada.
+`-- users          # Users module, provides user management and authentication functionalities
+```
 
-## How Can I Contribute?
+### Local development
 
-### Reporting Bugs
+Enseada requires the latest stable Rust toolchain, as well as NodeJS and Yarn to build the web dashboard.  
+If you use `rustup` it should have picked up the correct toolchain on its own. We also use `cargo-watch` to recompile
+automatically when files change. Install it with `cargo install cargo-watch`.
 
-This section guides you through submitting a bug report for Enseada. Following these guidelines helps maintainers, and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
+To start the server you will need to have CouchDB 3 and Minio running. CouchDB is the distributed database used as the
+primary datastore, while Minio provides an S3-compliant object storage used to store blobs and files.
 
-Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find out that you don't need to create one. When you are creating a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report). Fill out [the required template](https://github.com/atom/.github/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), the information it asks for helps us resolve issues faster.
+If you use Docker, a handy `docker-compose.yml` file can be found in the root of the repository. The default configuration found
+at [enseada.yml](./enseada.yml) is already prepared for using them this way. 
 
-> **Note:** If you find a **Closed** issue that seems like it is the same thing that you're experiencing, open a new issue and include a link to the original issue in the body of your new one.
+```bash
+# In the repository root
 
-#### Before Submitting A Bug Report
+# Start minio and couchdb
+docker-compose up -d
 
-* **Check the [issue tracker](https://github.com/enseadaio/enseada/issues)** for a list of common questions and problems.
-* **Gather the required information** as described by the [bug report template](https://github.com/enseadaio/enseada/issues/new?assignees=&labels=bug&template=bug_report.md&title=)
+# Start the server in watch mode (reloads code when changes occur, except in the dashboard directory
+cargo watch --x run -i 'dashboard/'
+```
 
-#### How Do I Submit A (Good) Bug Report?
+Note that there is no need to manually install Rust or Node dependencies as this is automatically take care of by the
+build process (see the [`api` module build script](./api/build.rs) and [`server` module build script](./api/build.rs)).
 
-Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue on the repository and provide the following information by filling in [the template](https://github.com/enseadaio/enseada/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
+The server will be listening on `localhost:9623`. Navigating to this address via a browser will open the web dashboard.
+The REST API documentation can be found at `http{s}://localhost:9623/api/docs`.
 
-Explain the problem and include additional details to help maintainers reproduce the problem:
+### Web dashboard
 
-* **Use a clear and descriptive title** for the issue to identify the problem.
-* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Enseada, e.g. which command exactly you used in the terminal, with what configuration variables and in which environment.
-* **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
-* **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
-* **Explain which behavior you expected to see instead and why.**
-* **Include log entries** as they often contain useful information about what Enseada is doing at any time.
-* **If the problem wasn't triggered by a specific action**, describe what you were doing before the problem happened and share more information using the guidelines below.
+Enseada provides a web GUI for administration purposes. The dashboard is written in [VueJS 2](https://vuejs.org/) and can be
+found in the `dashboard` directory. More information can be found in the related [README](./dashboard/README).
 
-Provide more context by answering these questions:
+If you need to hack on the web dashboard too you can enable autoreload. Open a new terminal and run the following
+commands:
 
-* **Did the problem start happening recently** (e.g. after updating to a new version of Enseada) or was this always a problem?
-* If the problem started happening recently, **can you reproduce the problem in an older version of Enseada?** What's the most recent version in which the problem doesn't happen? You can download older versions of Enseada from [the releases page](https://github.com/enseadaio/enseada/releases).
-* **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
-* If the problem is related to the storage engine (e.g. pushing or pulling packages), **does the problem happen for all storage providers or only some?** Does the problem happen only with one type of package or all of them?
+```bash
+cd dashboard
 
-Include details about your configuration and environment:
+yarn watch
+```
 
-* **Which version of Enseada are you using?** You can get the exact version by running `enseada-server version` in your terminal, or by checking the [Docker image tag](https://hub.docker.com/r/enseada/enseada/tags) you are using.
-* **What's the name and version of the OS you're using**?
-* **Are you running Enseada in a virtual machine?** If so, which VM software are you using and which operating systems and versions are used for the host and the guest?
-* **Are you running Enseada in a container orchestrator?** If so, which one? Is is installed on a public cloud, private cloud or on premise?
-* **What flavour of CouchDB are you using?** E.g. Apache CouchDB, IBM Cloudant.
+When changing files in the dashboard source code you only need to refresh the page to have it rendered from the server.
 
-### Suggesting Enhancements
+### Running tests
 
-This section guides you through submitting an enhancement suggestion for Enseada, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
+Tests can be run with the standard Rust test suite.
 
-Before creating enhancement suggestions, please check [this list](#before-submitting-an-enhancement-suggestion) as you might find out that you don't need to create one. When you are creating an enhancement suggestion, please [include as many details as possible](#how-do-i-submit-a-good-enhancement-suggestion). Fill in [the template](https://github.com/enseadaio/enseada/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=), including the steps that you imagine you would take if the feature you're requesting existed.
+```bash
+cargo test
+```
 
-#### Before Submitting An Enhancement Suggestion
+### Linting
 
-* **Check if there's already [a similar suggestion](https://github.com/enseadaio/enseada/labels/enhancement) which provides that enhancement.**
-* **Gather the required information** as described by the [feature request template](https://github.com/enseadaio/enseada/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=)
+We use [Clippy] to format and lint the codebase. Install it by running `rustup component add clippy`.
+Lint the codebase with a simple `cargo clippy`.
 
-#### How Do I Submit A (Good) Enhancement Suggestion?
+Note: we should strive to have no warnings from clippy on any part of the codebase, but it is not a hard requirement
+for now. It will become imperative once we approach the first stable release.
 
-Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com/features/issues/). Create an issue on the repository and provide the following information:
+### OpenAPI definitions
 
-* **Use a clear and descriptive title** for the issue to identify the suggestion.
-* **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
-* **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
-* **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
-* **Include API ProtoBuf** which help you demonstrate the new feature or point out the part of Enseada which the suggestion is related to.
-* **Explain why this enhancement would be useful** to most Enseada users and isn't something that could be out of scope for the project.
-* **List some other package registries where this enhancement exists.**
-* **Which version of Enseada are you using?** You can get the exact version by running `enseada-server version` in your terminal, or by checking the [Docker image tag](https://hub.docker.com/r/enseada/enseada/tags) you are using.
-* **Specify the name and version of the OS you're using.**
-
-### Your First Code Contribution
-
-Unsure where to begin contributing to Enseada? You can start by looking through these `good-first-issue` and `help-wanted` issues:
-
-* [Good first issues][good-first-issues] - issues which should only require a few lines of code, and a test or two.
-* [Help wanted issues][help-wanted] - issues which should be a bit more involved than `good-first-issue` issues.
-
-Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
-
-If you want to read about using Enseada or developing integrations with Enseada, check out the official [docs](https://docs.enseada.io).
-
-#### Local development
-
-Enseada can be developed locally. For instructions on how to do this, check out the project [README](README.md) and the [Developer Guide](https://docs.enseada.io/developers/).
-
+Enseada uses [BOATS](https://github.com/johndcarmichael/boats) to generate the server OpenAPI v3 spec.
+The source code can be found in the `api` module. The [README](./api/README.md) file contains more information
+about the file structure and how to build the final spec. 
+ 
 ### Pull Requests
 
 The process described here has several goals:
