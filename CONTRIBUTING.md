@@ -77,7 +77,7 @@ at [enseada.yml](./enseada.yml) is already prepared for using them this way.
 docker-compose up -d
 
 # Start the server in watch mode (reloads code when changes occur, except in the dashboard directory
-cargo watch --x run -i 'dashboard/'
+cargo watch -x run -i 'dashboard/'
 ```
 
 Note that there is no need to manually install Rust or Node dependencies as this is automatically take care of by the
