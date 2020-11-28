@@ -192,7 +192,7 @@ impl Database {
                 });
                 match client.get::<ListQuery, RowsResponse<R>>(&path, query).await {
                     Ok(res) => {
-                        if res.rows.len() == 0 {
+                        if res.rows.is_empty() {
                             Ok(None)
                         } else {
                             let rows = res
