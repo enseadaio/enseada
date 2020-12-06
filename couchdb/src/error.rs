@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use std::fmt::Display;
 
 use reqwest::StatusCode;
@@ -5,6 +7,7 @@ use serde::export::Formatter;
 
 use crate::migrator;
 
+/// HTTP status code with an attached message.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Error {
     message: String,
@@ -12,6 +15,7 @@ pub struct Error {
 }
 
 impl Error {
+    /// Create an error with the HTTP 404 Not Found error and the given `message`.
     pub fn not_found(message: String) -> Self {
         Error {
             message,
@@ -19,6 +23,7 @@ impl Error {
         }
     }
 
+    /// Get error HTTP status code
     pub fn status(&self) -> StatusCode {
         self.status
     }
