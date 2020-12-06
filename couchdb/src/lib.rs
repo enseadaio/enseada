@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use std::sync::Arc;
 
 use url::Url;
@@ -11,6 +13,7 @@ pub mod changes;
 pub mod client;
 pub mod db;
 pub mod design_document;
+/// couch db error
 pub mod error;
 pub mod index;
 pub mod migrator;
