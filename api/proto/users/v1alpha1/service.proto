@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package enseada.users.v1alpha1;
+
+import "users/v1alpha1/user.proto";
+import "google/protobuf/empty.proto";
+
+service Users {
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc WatchUsers(WatchUsersRequest) returns (stream UserEvent);
+//  rpc WatchUser(WatchUserRequest) returns (stream User);
+}
+
+message GetUserRequest {
+  string name = 1;
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  string name = 1;
+}
+
+message WatchUsersRequest {}
+
+//message WatchUserRequest {
+//  string name = 1;
+//}

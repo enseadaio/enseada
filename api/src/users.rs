@@ -1,22 +1,24 @@
-pub mod v1beta1 {
-    use serde::{Deserialize, Serialize};
+pub mod v1alpha1 {
+    use crate::watch::{FromResource, Event};
+    use crate::watch::v1alpha1::EventType;
+    include!(concat!(env!("OUT_DIR"), concat!("/enseada.users.v1alpha1.rs")));
 
-    #[derive(Debug, Serialize)]
-    pub struct UserModel {
-        pub username: String,
-        pub enabled: bool,
+    impl FromResource<User> for UserEvent {
+        fn from_res(event_type: EventType, res: User) -> Self {
+            Self {
+                r#type: event_type as i32,
+                user: Some(res),
+            }
+        }
     }
 
-    #[derive(Debug, Deserialize)]
-    pub struct UserPost {
-        pub username: String,
-        pub password: String,
-        #[serde(default)]
-        pub roles: Vec<String>,
-    }
+    impl Event<User> for UserEvent {
+        fn event_type(&self) -> EventType {
+            EventType::from_i32(self.r#type).unwrap()
+        }
 
-    #[derive(Debug, Deserialize)]
-    pub struct UserPut {
-        pub enabled: Option<bool>,
+        fn into_inner(self) -> Option<User> {
+            self.user
+        }
     }
 }

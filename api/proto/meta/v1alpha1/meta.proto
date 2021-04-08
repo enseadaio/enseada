@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package enseada.meta.v1alpha1;
+
+message Metadata {
+  string name = 1;
+}

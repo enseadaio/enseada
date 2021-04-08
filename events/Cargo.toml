@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 events_derive = { path = "./events_derive" }
-actix = "0.10"
+actix = "0.11.0-beta.3"
 async-trait = "0.1"

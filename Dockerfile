@@ -64,12 +64,12 @@ COPY users .
 
 # API
 WORKDIR /app/enseada/api
-COPY api/package.json .
-COPY api/yarn.lock .
+COPY old_api/package.json .
+COPY old_api/yarn.lock .
 
 RUN yarn --frozen-lockfile install
 
-COPY api .
+COPY old_api .
 
 # Server
 WORKDIR /app/enseada/server

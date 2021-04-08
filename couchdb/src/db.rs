@@ -9,15 +9,13 @@ use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::changes::ChangeEvent;
+use crate::changes::{ChangeEvent, ChangeRequest};
 use crate::client::Client;
 use crate::design_document::{DesignDocument, ViewDoc};
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
-use crate::responses::{
-    FindResponse, JsonIndexResponse, JsonIndexResultStatus, Partition, PutResponse, RowsResponse,
-};
+use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, Partition, PutResponse, RowsResponse, OkWrapper, RevisionList, Revs};
 use crate::view::View;
 use crate::Result;
 use percent_encoding::{percent_encode, AsciiSet, CONTROLS};
@@ -114,7 +112,7 @@ impl Database {
         let id = format!("_design/{}", ddoc);
 
         let mut design_doc = self
-            .get::<DesignDocument>(&id)
+            .old_get::<DesignDocument>(&id)
             .await?
             .unwrap_or_else(|| DesignDocument::new(ddoc, true));
         design_doc.add_view(view);
@@ -147,7 +145,32 @@ impl Database {
         Ok(db.doc_count)
     }
 
-    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {
+    pub async fn get<R: DeserializeOwned>(&self, id: &str) -> Result<R> {
+        let id = percent_encode(id.as_bytes(), ESCAPED).to_string();
+        let path = format!("{}/{}", &self.name, id);
+        log::debug!("Getting {} from couch", &path);
+        self.client.get(&path, None::<bool>).await.map_err(Error::from)
+    }
+
+    pub async fn get_at<R: DeserializeOwned>(&self, id: &str, rev: &str) -> Result<R> {
+        let id = percent_encode(id.as_bytes(), ESCAPED).to_string();
+        let path = format!("{}/{}", &self.name, id);
+        log::debug!("Getting {} from couch with rev {}", &path, rev);
+        self.client.get(&path, Some(&[("rev", rev)])).await.map_err(Error::from)
+    }
+
+    pub async fn get_revs(&self, id: &str) -> Result<Revs> {
+        let id = percent_encode(id.as_bytes(), ESCAPED).to_string();
+        let path = format!("{}/{}", &self.name, id);
+        log::debug!("Getting revs for {} from couch", &path);
+        let results: Vec<OkWrapper<Revs>> = self.client.get(&path, Some(&[("revs", "true"), ("open_revs", "all")])).await.map_err(Error::from)?;
+        match results.into_iter().next() {
+            Some(OkWrapper { ok: revs, }) => Ok(revs),
+            None => Err(Error::not_found(format!("Could not find any revs for {}", path))),
+        }
+    }
+
+    pub async fn old_get<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {
         let id = percent_encode(id.as_bytes(), ESCAPED).to_string();
         let path = format!("{}/{}", &self.name, id);
         log::debug!("Getting {} from couch", &path);
@@ -382,9 +405,12 @@ impl Database {
         Ok(res)
     }
 
-    pub async fn changes(&self) -> Result<impl futures::Stream<Item = ChangeEvent>> {
+    pub async fn changes_since(&self, seq: String) -> Result<impl futures::Stream<Item = ChangeEvent>> {
         let path = format!("{}/_changes", &self.name);
-        let query = Some(&[("feed", "continuous"), ("since", "now")]);
+        let query = Some(ChangeRequest {
+            feed: "continuous".to_string(),
+            since: seq,
+        });
         let stream = self.client.stream(&path, query).await?;
         let stream = stream
             .map(|res: reqwest::Result<Bytes>| {
@@ -413,6 +439,10 @@ impl Database {
             })
             .flatten();
         Ok(stream)
+    }
+
+    pub async fn changes(&self) -> Result<impl futures::Stream<Item = ChangeEvent>> {
+        self.changes_since("now".to_string()).await
     }
 }
 

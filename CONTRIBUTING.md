@@ -81,7 +81,7 @@ cargo watch -x run -i 'dashboard/'
 ```
 
 Note that there is no need to manually install Rust or Node dependencies as this is automatically take care of by the
-build process (see the [`api` module build script](./api/build.rs) and [`server` module build script](./api/build.rs)).
+build process (see the [`api` module build script](old_api/build.rs) and [`server` module build script](old_api/build.rs)).
 
 The server will be listening on `localhost:9623`. Navigating to this address via a browser will open the web dashboard.
 The REST API documentation can be found at `http{s}://localhost:9623/api/docs`.
@@ -121,7 +121,7 @@ for now. It will become imperative once we approach the first stable release.
 ### OpenAPI definitions
 
 Enseada uses [BOATS](https://github.com/johndcarmichael/boats) to generate the server OpenAPI v3 spec.
-The source code can be found in the `api` module. The [README](./api/README.md) file contains more information
+The source code can be found in the `api` module. The [README](old_api/README.md) file contains more information
 about the file structure and how to build the final spec. 
  
 ### Pull Requests

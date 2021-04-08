@@ -1,9 +1,8 @@
 #![warn(missing_docs)]
 
-use std::fmt::Display;
+use std::fmt::{self, Display, Formatter};
 
 use reqwest::StatusCode;
-use serde::export::Formatter;
 
 use crate::migrator;
 
@@ -36,7 +35,7 @@ impl Error {
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         self.message.fmt(f)
     }
 }

@@ -1,6 +1,11 @@
 [workspace]
 members = [
+    # New stuff
+    "api_server",
     "api",
+
+    # Old Stuff
+    "old_api",
     "couchdb",
     "lib",
     "users",
@@ -9,7 +14,7 @@ members = [
     "oci",
     "maven",
     "oauth",
-    "server",
+#    "server",
 ]
 
 [profile.release]

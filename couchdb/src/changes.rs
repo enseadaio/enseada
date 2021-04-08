@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
@@ -15,7 +15,13 @@ pub enum ChangeEvent {
     },
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Change {
-    rev: String,
+    pub rev: String,
+}
+
+#[derive(Debug, Serialize)]
+pub(crate) struct ChangeRequest {
+    pub feed: String,
+    pub since: String,
 }

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package enseada.users.v1alpha1;
+
+import "meta/v1alpha1/meta.proto";
+import "watch/v1alpha1/event.proto";
+
+message User {
+  enseada.meta.v1alpha1.Metadata metadata = 1;
+}
+
+message UserEvent {
+  enseada.watch.v1alpha1.EventType type = 1;
+  User user = 2;
+}

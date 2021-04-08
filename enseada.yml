@@ -6,7 +6,7 @@ service:
   port: 9623
 log:
   format: text
-  level: info
+  level: error
   root_level: info
 
 secret.key: Y7o3UYJTdympbipV54to2e57r5bjTMcq

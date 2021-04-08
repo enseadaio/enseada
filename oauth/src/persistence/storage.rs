@@ -47,7 +47,7 @@ impl ClientStorage for CouchStorage {
 
     async fn get_client(&self, id: &str) -> Option<Client> {
         let guid = ClientEntity::build_guid(id);
-        let client = match self.db.get::<ClientEntity>(guid.to_string().as_str()).await {
+        let client = match self.db.old_get::<ClientEntity>(guid.to_string().as_str()).await {
             Ok(client) => match client {
                 Some(client) => client,
                 None => return None,
@@ -66,7 +66,7 @@ impl ClientStorage for CouchStorage {
         let mut entity = ClientEntity::from(client.clone());
         if let Some(rev) = self
             .db
-            .get::<ClientEntity>(&id.to_string())
+            .old_get::<ClientEntity>(&id.to_string())
             .await?
             .as_ref()
             .and_then(ClientEntity::rev)
@@ -80,7 +80,7 @@ impl ClientStorage for CouchStorage {
 
     async fn delete_client(&self, client: &Client) -> Result<()> {
         let id = ClientEntity::build_guid(client.client_id());
-        let entity = self.db.get::<ClientEntity>(&id.to_string()).await?;
+        let entity = self.db.old_get::<ClientEntity>(&id.to_string()).await?;
         let entity = entity.ok_or_else(|| {
             Error::new(
                 ErrorKind::InvalidClient,
@@ -98,7 +98,7 @@ impl ClientStorage for CouchStorage {
 impl TokenStorage<AccessToken> for CouchStorage {
     async fn get_token(&self, sig: &str) -> Option<AccessToken> {
         let guid = AccessTokenEntity::build_guid(sig);
-        let token = match self.db.get::<AccessTokenEntity>(&guid.to_string()).await {
+        let token = match self.db.old_get::<AccessTokenEntity>(&guid.to_string()).await {
             Ok(token) => token,
             Err(err) => {
                 log::error!("Error fetching access token from database: {}", err);
@@ -121,7 +121,7 @@ impl TokenStorage<AccessToken> for CouchStorage {
         let guid = AccessTokenEntity::build_guid(sig);
         let token: Option<AccessTokenEntity> = self
             .db
-            .get(&guid.to_string())
+            .old_get(&guid.to_string())
             .await
             .map_err(map_couch_err)?;
         match token {
@@ -142,7 +142,7 @@ impl TokenStorage<AccessToken> for CouchStorage {
 impl TokenStorage<RefreshToken> for CouchStorage {
     async fn get_token(&self, sig: &str) -> Option<RefreshToken> {
         let guid = RefreshTokenEntity::build_guid(sig);
-        let token = match self.db.get::<RefreshTokenEntity>(&guid.to_string()).await {
+        let token = match self.db.old_get::<RefreshTokenEntity>(&guid.to_string()).await {
             Ok(token) => token,
             Err(err) => {
                 log::error!("Error fetching access token from database: {}", err);
@@ -165,7 +165,7 @@ impl TokenStorage<RefreshToken> for CouchStorage {
         let guid = RefreshTokenEntity::build_guid(sig);
         let token: Option<RefreshTokenEntity> = self
             .db
-            .get(&guid.to_string())
+            .old_get(&guid.to_string())
             .await
             .map_err(map_couch_err)?;
         match token {
@@ -188,7 +188,7 @@ impl AuthorizationCodeStorage for CouchStorage {
         let guid = AuthorizationCodeEntity::build_guid(sig);
         let code = match self
             .db
-            .get::<AuthorizationCodeEntity>(&guid.to_string())
+            .old_get::<AuthorizationCodeEntity>(&guid.to_string())
             .await
         {
             Ok(token) => token,
@@ -219,7 +219,7 @@ impl AuthorizationCodeStorage for CouchStorage {
         let guid = AuthorizationCodeEntity::build_guid(sig);
         let code: Option<AuthorizationCodeEntity> = self
             .db
-            .get(&guid.to_string())
+            .old_get(&guid.to_string())
             .await
             .map_err(map_couch_err)?;
         match code {

@@ -112,7 +112,7 @@ pub trait Repository<T: Entity>: Debug {
         T: 'async_trait + Entity,
     {
         let guid = T::build_guid(id).to_string();
-        self.db().get(guid.as_str()).await.map_err(Error::from)
+        self.db().old_get(guid.as_str()).await.map_err(Error::from)
     }
 
     #[tracing::instrument]
@@ -154,7 +154,7 @@ pub trait Repository<T: Entity>: Debug {
         let id = entity.id().to_string();
         let updated = entity.rev().is_some();
         let mut entity = entity;
-        if let Some(rev) = self.db().get::<T>(&id).await?.as_ref().and_then(T::rev) {
+        if let Some(rev) = self.db().old_get::<T>(&id).await?.as_ref().and_then(T::rev) {
             entity.set_rev(rev.to_string());
         }
         let res = self.db().put(&id, &entity).await?;

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DBInfo {
@@ -98,4 +99,27 @@ pub struct Partition {
     pub partition: String,
     pub doc_count: usize,
     pub doc_del_count: usize,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct OkWrapper<T> {
+    pub ok: T,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Revs {
+    #[serde(rename = "_id")]
+    pub id: String,
+    #[serde(rename = "_rev")]
+    pub rev: String,
+    #[serde(rename = "_deleted", skip_serializing_if = "Option::is_none")]
+    pub deleted: Option<bool>,
+    #[serde(rename = "_revisions")]
+    pub revisions: RevisionList,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct RevisionList {
+    pub start: usize,
+    pub ids: Vec<String>,
 }
