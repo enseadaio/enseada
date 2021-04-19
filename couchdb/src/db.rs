@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use futures::{stream, Stream, StreamExt};
+use percent_encoding::{AsciiSet, CONTROLS, percent_encode};
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -15,10 +16,9 @@ use crate::design_document::{DesignDocument, ViewDoc};
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
-use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, Partition, PutResponse, RowsResponse, OkWrapper, RevisionList, Revs};
-use crate::view::View;
+use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, OkWrapper, Partition, PutResponse, RevisionList, Revs, RowsResponse};
 use crate::Result;
-use percent_encoding::{percent_encode, AsciiSet, CONTROLS};
+use crate::view::View;
 
 const ESCAPED: &AsciiSet = &CONTROLS
     .add(b' ')
@@ -112,7 +112,7 @@ impl Database {
         let id = format!("_design/{}", ddoc);
 
         let mut design_doc = self
-            .old_get::<DesignDocument>(&id)
+            .find_one::<DesignDocument>(&id)
             .await?
             .unwrap_or_else(|| DesignDocument::new(ddoc, true));
         design_doc.add_view(view);
@@ -170,7 +170,7 @@ impl Database {
         }
     }
 
-    pub async fn old_get<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {
+    pub async fn find_one<R: DeserializeOwned>(&self, id: &str) -> Result<Option<R>> {
         let id = percent_encode(id.as_bytes(), ESCAPED).to_string();
         let path = format!("{}/{}", &self.name, id);
         log::debug!("Getting {} from couch", &path);

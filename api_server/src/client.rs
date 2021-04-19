@@ -1,5 +1,5 @@
 use api::users::v1alpha1::users_client::UsersClient;
-use api::users::v1alpha1::{GetUserRequest, CreateUserRequest, DeleteUserRequest, User};
+use api::users::v1alpha1::{GetUserRequest, CreateUserRequest, DeleteUserRequest, User, UserSpec};
 use api::meta::v1alpha1::Metadata;
 use api::{tonic, Client};
 
@@ -13,6 +13,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             metadata: Some(Metadata {
                 name: "root".into(),
             }),
+            spec: Some(UserSpec {
+                enabled: true,
+            }),
+            status: None,
         }),
     });
 
@@ -32,9 +36,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         name: "root".into(),
     });
 
-    let response = uc.delete_user(request).await?;
-
-    println!("DELETE USER");
+    // let response = uc.delete_user(request).await?;
+    //
+    // println!("DELETE USER");
 
     Ok(())
 }

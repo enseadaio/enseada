@@ -5,11 +5,9 @@ use serde::Deserialize;
 use slog::Level;
 use structopt::StructOpt;
 
-pub use log::LogFormat;
-
 use crate::config::cli::Opts;
-use crate::config::grpc::Grpc;
-use crate::config::log::*;
+pub use crate::config::grpc::Grpc;
+pub use crate::config::log::*;
 use crate::error::Error;
 
 mod cli;
@@ -17,7 +15,7 @@ mod grpc;
 mod log;
 mod tls;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Configuration {
     log: Log,
     grpc: Grpc,

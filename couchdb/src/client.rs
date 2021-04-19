@@ -125,30 +125,6 @@ impl Client {
         req.send().await?.error_for_status()?.json().await
     }
 
-    pub async fn tmp_request<B: Serialize, Q: Serialize>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<B>,
-        query: Option<Q>,
-    ) -> reqwest::Result<reqwest::Response> {
-        let req = self.build_req(method, path);
-        let req = if let Some(body) = body {
-            req.json::<B>(&body)
-        } else {
-            req
-        };
-
-        let req = if let Some(query) = query {
-            req.query::<Q>(&query)
-        } else {
-            req
-        };
-        let req = req.header(ACCEPT, "application/json");
-
-        req.send().await
-    }
-
     fn build_req(&self, method: Method, path: &str) -> RequestBuilder {
         self.client
             .request(method, self.build_url(path).unwrap())

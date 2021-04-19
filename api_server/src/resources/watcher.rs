@@ -1,14 +1,14 @@
 use std::convert::TryFrom;
 use std::fmt::Debug;
 
-use actix::{Actor, ActorContext, ActorFutureExt, ArbiterHandle, AsyncContext, Context, StreamHandler, Supervised, Supervisor, WrapFuture};
+use actix::{Actor, ActorContext, ActorFutureExt, ArbiterHandle, AsyncContext, Context, StreamHandler, Supervised, Supervisor, WrapFuture, Running};
 use futures::channel::mpsc;
 use futures::SinkExt;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use slog::Logger;
 
-use api::tonic::{Status, Code};
+use api::tonic::{Code, Status};
 use api::watch::FromResource;
 use api::watch::v1alpha1::EventType;
 use couchdb::changes::ChangeEvent;
@@ -66,6 +66,11 @@ impl<T: 'static + Debug + Clone + DeserializeOwned + Serialize + Unpin + Send, E
                     }
                 };
             }));
+    }
+
+    fn stopping(&mut self, _ctx: &mut Self::Context) -> Running {
+        // If we stop we drop subscribers. We don't want that.
+        Running::Continue
     }
 }
 

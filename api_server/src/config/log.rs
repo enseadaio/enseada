@@ -3,13 +3,13 @@ use std::str::FromStr;
 use config::{Config, ConfigError};
 use slog::Level;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Log {
     level: String,
     format: LogFormat,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LogFormat {
     Text,

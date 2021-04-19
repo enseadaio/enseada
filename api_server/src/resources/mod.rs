@@ -38,6 +38,10 @@ impl<T: DeserializeOwned + Serialize> ResourceWrapper<T> {
     pub fn into_inner(self) -> T {
         self.resource
     }
+    pub fn with_resource(mut self, resource: T) -> Self {
+        self.resource = resource;
+        self
+    }
 }
 
 #[derive(Clone)]
@@ -67,9 +71,12 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     }
 
     pub async fn find(&self, name: &str) -> Result<Option<T>, tonic::Status> {
+        Ok(self.inner_find(name).await?.map(|ResourceWrapper { resource, .. }| resource))
+    }
+
+    async fn inner_find(&self, name: &str) -> Result<Option<ResourceWrapper<T>>, tonic::Status> {
         let id = format!("{}:{}", &self.kind, name);
-        let ResourceWrapper { resource, .. } = self.db.get::<ResourceWrapper<T>>(&id).await.map_err(map_couch_error)?;
-        Ok(Some(resource))
+        self.db.find_one::<ResourceWrapper<T>>(&id).await.map_err(map_couch_error)
     }
 
     pub async fn get(&self, name: &str) -> Result<T, tonic::Status> {
@@ -88,7 +95,11 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     }
 
     pub async fn put(&self, name: &str, resource: T) -> Result<T, tonic::Status> {
-        let wrapper = ResourceWrapper::new(&self.kind, name, resource);
+        let wrapper = self.inner_find(name).await?.map_or_else(
+            || ResourceWrapper::new(&self.kind, name, resource.clone()),
+            |wrapper| wrapper.with_resource(resource.clone()),
+        );
+
         self.db.put(&wrapper.id, &wrapper).await.map_err(map_couch_error)?;
         Ok(wrapper.into_inner())
     }
@@ -96,7 +107,7 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     pub async fn delete(&self, name: &str) -> Result<(), tonic::Status> {
         let kind = &self.kind;
         let id = format!("{}:{}", kind, name);
-        let wrapper = self.db.old_get::<ResourceWrapper<T>>(&id).await
+        let wrapper = self.db.find_one::<ResourceWrapper<T>>(&id).await
             .map_err(map_couch_error)?
             .ok_or_else(|| resource_not_found::<T>(kind, name))?;
         self.db.delete(&id, &wrapper.rev.unwrap()).await.map_err(map_couch_error)

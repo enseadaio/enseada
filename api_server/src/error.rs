@@ -10,6 +10,7 @@ pub enum Error {
     HttpError,
     GrpcError(TonicError),
     InitError(String),
+    ApiError(api::tonic::Status)
 }
 
 impl Display for Error {
@@ -19,6 +20,7 @@ impl Display for Error {
             Error::HttpError => write!(f, "HTTP Server error"),
             Error::GrpcError(err) => write!(f, "GRPC Server error: {}", err),
             Error::InitError(reason) => write!(f, "Initialization failed: {}", reason),
+            Error::ApiError(err) => write!(f, "API error: {}", err)
         }
     }
 }
@@ -34,5 +36,11 @@ impl From<ConfigError> for Error {
 impl From<TonicError> for Error {
     fn from(err: TonicError) -> Self {
         Error::GrpcError(err)
+    }
+}
+
+impl From<api::tonic::Status> for Error {
+    fn from(err: api::tonic::Status) -> Self {
+        Error::ApiError(err)
     }
 }

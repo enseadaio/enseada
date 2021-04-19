@@ -1,16 +1,16 @@
+use futures::FutureExt;
+use slog::Logger;
+
 use api::tonic::transport::Server;
 use couchdb::Couch;
 
+use crate::config::Configuration;
 use crate::resources::ResourceManager;
 use crate::ServerResult;
-use slog::Logger;
-use crate::config::Configuration;
-use crossbeam_channel::{Sender, Receiver};
-use futures::FutureExt;
 
 mod users;
 
-pub async fn start<'a>(cfg: &'a Configuration, logger: Logger, couch: &'a Couch) -> ServerResult {
+pub async fn start(cfg: Configuration, logger: Logger, couch: &Couch) -> ServerResult {
     slog::debug!(logger, "Starting gRPC server");
     let addr = cfg.grpc().address();
 
@@ -23,15 +23,7 @@ pub async fn start<'a>(cfg: &'a Configuration, logger: Logger, couch: &'a Couch)
     Server::builder()
         .add_service(users)
         .serve(addr)
-        // .map(|res| {
-        //     ready_channel.send(()).unwrap();
-        //     res
-        // })
         .await?;
 
     Ok(())
-}
-
-pub fn ready_channel() -> (Sender<()>, Receiver<()>) {
-    crossbeam_channel::unbounded()
 }

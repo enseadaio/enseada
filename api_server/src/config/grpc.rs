@@ -4,7 +4,7 @@ use serde::Deserialize;
 use crate::config::tls::Tls;
 use std::net::SocketAddr;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize)]
 pub struct Grpc {
     host: String,
     port: u16,

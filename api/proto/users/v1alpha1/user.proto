@@ -7,6 +7,16 @@ import "watch/v1alpha1/event.proto";
 
 message User {
   enseada.meta.v1alpha1.Metadata metadata = 1;
+  UserSpec spec = 2;
+  UserStatus status = 3;
+}
+
+message UserSpec {
+  bool enabled = 1;
+}
+
+message UserStatus {
+  bool enabled = 1;
 }
 
 message UserEvent {
