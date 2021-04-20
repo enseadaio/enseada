@@ -3,12 +3,13 @@ members = [
     # New stuff
     "api_server",
     "api",
+    "users",
 
     # Old Stuff
     "old_api",
     "couchdb",
     "lib",
-    "users",
+    "old_users",
     "observability",
     "rbac",
     "oci",

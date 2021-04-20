@@ -2,8 +2,6 @@ use std::io::Error as IoError;
 use std::io::ErrorKind as IoErrorKind;
 use std::path::PathBuf;
 
-use api::tonic::transport::{ServerTlsConfig, Identity, Certificate};
-
 #[derive(Default)]
 pub struct TlsConfigBuilder {
     ca: Option<String>,

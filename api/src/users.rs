@@ -1,24 +1,64 @@
 pub mod v1alpha1 {
-    use crate::watch::{FromResource, Event};
-    use crate::watch::v1alpha1::EventType;
-    include!(concat!(env!("OUT_DIR"), concat!("/enseada.users.v1alpha1.rs")));
+    use serde::{Deserialize, Serialize};
 
-    impl FromResource<User> for UserEvent {
-        fn from_res(event_type: EventType, res: User) -> Self {
+    use crate::core;
+    use crate::core::v1alpha1::{Metadata, TypeMeta};
+    use crate::Resource;
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct User {
+        #[serde(flatten)]
+        pub type_meta: TypeMeta,
+        pub metadata: Metadata,
+        pub spec: UserSpec,
+        pub status: Option<UserStatus>,
+    }
+
+    impl Default for User {
+        fn default() -> Self {
             Self {
-                r#type: event_type as i32,
-                user: Some(res),
+                type_meta: TypeMeta {
+                    api_version: core::v1alpha1::API_VERSION.to_string(),
+                    kind: "User".to_string(),
+                },
+                metadata: Default::default(),
+                spec: Default::default(),
+                status: Default::default(),
             }
         }
     }
 
-    impl Event<User> for UserEvent {
-        fn event_type(&self) -> EventType {
-            EventType::from_i32(self.r#type).unwrap()
+    impl User {
+        pub fn status_mut(&mut self) -> &mut UserStatus {
+            if self.status.is_none() {
+                self.status = Some(Default::default());
+            }
+
+            self.status.as_mut().unwrap()
+        }
+    }
+
+    #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+    pub struct UserSpec {
+        pub enabled: bool,
+    }
+
+    #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+    pub struct UserStatus {
+        pub enabled: bool
+    }
+
+    impl Resource for User {
+        fn type_meta(&self) -> &TypeMeta {
+            &self.type_meta
         }
 
-        fn into_inner(self) -> Option<User> {
-            self.user
+        fn metadata(&self) -> &Metadata {
+            &self.metadata
+        }
+
+        fn metadata_mut(&mut self) -> &mut Metadata {
+            &mut self.metadata
         }
     }
 }

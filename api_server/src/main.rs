@@ -1,21 +1,17 @@
 use actix::Arbiter;
-use slog::Logger;
 use url::Url;
 
 use couchdb::Couch;
-use couchdb::db::Database;
 
 use crate::config::Configuration;
-use crate::resources::{ResourceManager, Watcher};
+use crate::resources::Watcher;
 
 mod config;
 mod controllers;
 mod error;
-mod grpc;
 mod http;
 mod logger;
 mod resources;
-mod tls;
 
 type ServerResult = Result<(), crate::error::Error>;
 
@@ -31,9 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
-        http::start(logger.new(slog::o!("server" => "http"))),
-        grpc::start(cfg.clone(), logger.new(slog::o!("server" => "grpc")), couch),
-        controllers::users::start(logger.new(slog::o!("controller" => "user")), couch.database("users", true), &controller_arbiter)
+        http::start(logger.new(slog::o!("server" => "http")), couch.clone()),
+        controllers::users::start(logger.new(slog::o!("controller" => "user")), couch.clone(), &controller_arbiter)
     )?;
 
     Ok(())

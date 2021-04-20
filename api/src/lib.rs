@@ -1,11 +1,17 @@
+use std::fmt::Debug;
+
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+
+use crate::core::v1alpha1::{Metadata, TypeMeta};
+
+pub mod core;
 pub mod error;
-pub mod meta;
-pub mod tls;
 pub mod users;
-pub mod watch;
-mod client;
 
-pub use client::Client;
-pub use tonic;
+pub trait Resource: Clone + Default + Debug + DeserializeOwned + Serialize {
+    fn type_meta(&self) -> &TypeMeta;
+    fn metadata(&self) -> &Metadata;
+    fn metadata_mut(&mut self) -> &mut Metadata;
+}
 
-pub type Result<T> = std::result::Result<T, tonic::Status>;

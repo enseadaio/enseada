@@ -16,7 +16,7 @@ use crate::design_document::{DesignDocument, ViewDoc};
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
-use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, OkWrapper, Partition, PutResponse, RevisionList, Revs, RowsResponse};
+use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, OkWrapper, Partition, PutResponse, RevisionList, Revs, RowsResponse, DBInfo};
 use crate::Result;
 use crate::view::View;
 
@@ -70,6 +70,16 @@ impl Database {
             partition.to_string(),
             name.to_string(),
         )
+    }
+
+    pub async fn exists_self(&self) -> Result<bool> {
+        match self.get_self().await {
+            Ok(_) => Ok(true),
+            Err(err) => match err.status() {
+                StatusCode::NOT_FOUND => Ok(false),
+                _ => Err(err),
+            }
+        }
     }
 
     pub async fn get_self(&self) -> Result<responses::DBInfo> {

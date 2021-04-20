@@ -5,14 +5,6 @@ authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-tonic = { version = "~0.4", features = ["tls", "tls-roots"]}
-prost = "~0.7"
 serde = { version = "^1", features = ["derive"] }
 http = "~0.2"
-tokio = { version = "^1.4", features = ["fs"]}
-couchdb = { path = "../couchdb" }
-
-[build-dependencies]
-tonic-build = "~0.4"
-walkdir = "^2.3"
-
+chrono = { version = "~0.4", features = ["serde"] }

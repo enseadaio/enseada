@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 use hyper::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
+use slog::Logger;
 
-use api::tonic;
 use couchdb::db::Database;
 use couchdb::responses::Revs;
 pub use watcher::Watcher;
@@ -12,6 +12,7 @@ pub use watcher::Watcher;
 use crate::error::Error;
 use crate::resources::id::Id;
 use crate::ServerResult;
+use api::error::Code;
 
 mod id;
 mod watcher;
@@ -46,14 +47,16 @@ impl<T: DeserializeOwned + Serialize> ResourceWrapper<T> {
 
 #[derive(Clone)]
 pub struct ResourceManager<T: Clone + DeserializeOwned + Serialize> {
+    logger: Logger,
     db: Database,
     kind: String,
     _phantom: PhantomData<T>,
 }
 
 impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
-    pub fn new<K: ToString>(db: Database, kind: K) -> Self {
+    pub fn new<K: ToString>(logger: Logger, db: Database, kind: K) -> Self {
         Self {
+            logger,
             db,
             kind: kind.to_string(),
             _phantom: PhantomData::default(),
@@ -70,47 +73,51 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
         Ok(())
     }
 
-    pub async fn find(&self, name: &str) -> Result<Option<T>, tonic::Status> {
+    pub async fn list(&self) -> Result<Vec<T>, Error> {
+        let list = self.db.list_partitioned::<ResourceWrapper<T>>(&self.kind, 10, 0).await?;
+        Ok(list.rows.into_iter()
+            .map(|res| res.doc.unwrap())
+            .map(ResourceWrapper::into_inner)
+            .collect())
+    }
+
+    pub async fn find(&self, name: &str) -> Result<Option<T>, Error> {
         Ok(self.inner_find(name).await?.map(|ResourceWrapper { resource, .. }| resource))
     }
 
-    async fn inner_find(&self, name: &str) -> Result<Option<ResourceWrapper<T>>, tonic::Status> {
+    async fn inner_find(&self, name: &str) -> Result<Option<ResourceWrapper<T>>, Error> {
         let id = format!("{}:{}", &self.kind, name);
-        self.db.find_one::<ResourceWrapper<T>>(&id).await.map_err(map_couch_error)
+        self.db.find_one::<ResourceWrapper<T>>(&id).await.map_err(Error::from)
     }
 
-    pub async fn get(&self, name: &str) -> Result<T, tonic::Status> {
+    pub async fn get(&self, name: &str) -> Result<T, Error> {
         let id = format!("{}:{}", &self.kind, name);
-        let ResourceWrapper { resource, .. } = self.db.get::<ResourceWrapper<T>>(&id).await.map_err(map_couch_error)?;
+        let ResourceWrapper { resource, .. } = self.db.get::<ResourceWrapper<T>>(&id).await?;
         Ok(resource)
     }
 
-    pub async fn get_deleted(&self, name: &str) -> Result<T, tonic::Status> {
-        let id = format!("{}:{}", &self.kind, name);
-        let Revs { revisions, .. } = self.db.get_revs(&id).await.map_err(map_couch_error)?;
-        let prefix = revisions.start - 1;
-        let last_rev = revisions.ids.get(1).unwrap();
-        let ResourceWrapper { resource, .. } = self.db.get_at::<ResourceWrapper<T>>(&id, &format!("{}-{}", prefix, last_rev)).await.map_err(map_couch_error)?;
-        Ok(resource)
-    }
-
-    pub async fn put(&self, name: &str, resource: T) -> Result<T, tonic::Status> {
+    pub async fn put(&self, name: &str, resource: T) -> Result<T, Error> {
+        slog::debug!(self.logger, "Updating resource {}", name);
         let wrapper = self.inner_find(name).await?.map_or_else(
             || ResourceWrapper::new(&self.kind, name, resource.clone()),
             |wrapper| wrapper.with_resource(resource.clone()),
         );
+        match &wrapper.rev {
+            None => slog::debug!(self.logger, "Creating new resource"),
+            Some(rev) => slog::debug!(self.logger, "Updating resource"; "rev" => rev),
+        }
 
-        self.db.put(&wrapper.id, &wrapper).await.map_err(map_couch_error)?;
-        Ok(wrapper.into_inner())
+        self.db.put(&wrapper.id, &wrapper).await?;
+        self.get(&name).await
     }
 
-    pub async fn delete(&self, name: &str) -> Result<(), tonic::Status> {
+    pub async fn delete(&self, name: &str) -> Result<(), Error> {
         let kind = &self.kind;
         let id = format!("{}:{}", kind, name);
         let wrapper = self.db.find_one::<ResourceWrapper<T>>(&id).await
-            .map_err(map_couch_error)?
+            ?
             .ok_or_else(|| resource_not_found::<T>(kind, name))?;
-        self.db.delete(&id, &wrapper.rev.unwrap()).await.map_err(map_couch_error)
+        self.db.delete(&id, &wrapper.rev.unwrap()).await.map_err(Error::from)
     }
 
     pub(super) fn db(&self) -> Database {
@@ -118,15 +125,9 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     }
 }
 
-fn resource_not_found<T: Clone + DeserializeOwned + Serialize>(kind: &str, name: &str) -> tonic::Status {
-    tonic::Status::not_found(format!("{} \"{}\" not found", kind, name))
-}
-
-fn map_couch_error(err: couchdb::error::Error) -> tonic::Status {
-    use tonic::Status;
-
-    match err.status() {
-        StatusCode::NOT_FOUND => Status::not_found(err.to_string()),
-        _ => Status::internal(err.to_string()),
+fn resource_not_found<T: Clone + DeserializeOwned + Serialize>(kind: &str, name: &str) -> Error {
+    Error::ApiError {
+        code: Code::NotFound,
+        message: format!("{} \"{}\" not found", kind, name),
     }
 }

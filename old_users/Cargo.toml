@@ -1,5 +1,5 @@
 [package]
-name = "users"
+name = "old_users"
 version = "0.1.0"
 authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
 edition = "2018"
@@ -7,8 +7,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-api = { path = "../api" }
-couchdb = { path = "../couchdb" }
-warp = "~0.3"
+# Enseada
+enseada = { path = "../lib" }
+events = { path = "../events" }
+
+# Serde
 serde = { version = "1.0", features = ["derive"] }
-slog = "2"
+
+# Async
+async-trait = "0.1"
+
+# Olly
+log = "0.4"
+tracing = "0.1.15"
+tracing-futures = "0.2.4"
