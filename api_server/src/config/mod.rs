@@ -1,24 +1,24 @@
-use std::str::FromStr;
-
-use config::{Config, File, Value};
+use config::{Config, File};
 use serde::Deserialize;
-use slog::Level;
 use structopt::StructOpt;
 
 use crate::config::cli::Opts;
-pub use crate::config::grpc::Grpc;
+pub use crate::config::http::Http;
 pub use crate::config::log::*;
 use crate::error::Error;
+use crate::config::db::CouchDB;
 
 mod cli;
-mod grpc;
+mod db;
+mod http;
 mod log;
-mod tls;
+pub mod tls;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Configuration {
     log: Log,
-    grpc: Grpc,
+    http: Http,
+    couchdb: CouchDB,
 }
 
 impl Configuration {
@@ -26,14 +26,15 @@ impl Configuration {
         let opts: Opts = Opts::from_args();
         let mut cfg = Config::new();
 
-        cfg.merge(File::with_name("enseadas").required(false))?;
+        cfg.merge(File::with_name("enseada").required(false))?;
 
         // CLI Args
         opts.set_cfg(&mut cfg)?;
 
         // Default
         Log::set_defaults(&mut cfg)?;
-        Grpc::set_defaults(&mut cfg)?;
+        Http::set_defaults(&mut cfg)?;
+        CouchDB::set_defaults(&mut cfg)?;
 
         cfg.try_into().map_err(Error::from)
     }
@@ -41,7 +42,12 @@ impl Configuration {
     pub fn log(&self) -> &Log {
         &self.log
     }
-    pub fn grpc(&self) -> &Grpc {
-        &self.grpc
+
+    pub fn http(&self) -> &Http {
+        &self.http
+    }
+
+    pub fn couchdb(&self) -> &CouchDB {
+        &self.couchdb
     }
 }

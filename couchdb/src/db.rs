@@ -16,7 +16,7 @@ use crate::design_document::{DesignDocument, ViewDoc};
 use crate::error::Error;
 use crate::index::JsonIndex;
 use crate::responses;
-use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, OkWrapper, Partition, PutResponse, RevisionList, Revs, RowsResponse, DBInfo};
+use crate::responses::{FindResponse, JsonIndexResponse, JsonIndexResultStatus, OkWrapper, Partition, PutResponse, Revs, RowsResponse};
 use crate::Result;
 use crate::view::View;
 

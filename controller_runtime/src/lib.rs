@@ -1,7 +1,7 @@
 use std::error::Error;
 
 pub use::futures::*;
-pub use actix::ArbiterHandle;
+pub use actix::{Arbiter, ArbiterHandle};
 pub use async_trait::async_trait;
 pub use chrono::*;
 use slog::Logger;
@@ -32,9 +32,9 @@ pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconc
     let db = couch.database(group, true);
     let manager = ResourceManager::new(logger.new(slog::o!("manager" => kind.to_string())), db, kind);
     manager.init().await?;
-    let logger = logger.new(slog::o!("controller" => kind.to_string()));
+    let logger = logger.new(slog::o!("controller" => kind.to_string(), "api_version" => typ.api_version.to_string()));
     let mut controller = controller_factory(logger.clone(), manager.clone());
-    let mut w = Watcher::<T>::start(logger.clone(), manager.clone(), arbiter);
+    let mut w = Watcher::<T>::start(logger.clone(), manager.clone(), arbiter, None);
 
     slog::info!(logger, "Starting controller");
     while let Some(res) = w.next().await {

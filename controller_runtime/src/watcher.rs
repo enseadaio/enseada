@@ -23,12 +23,12 @@ pub struct Watcher<T: Resource> {
 }
 
 impl<T: 'static + Resource + Unpin> Watcher<T> {
-    pub fn start(logger: Logger, manager: ResourceManager<T>, arbiter: &ArbiterHandle) -> mpsc::Receiver<Result<Event<T>, ControllerError>> {
+    pub fn start(logger: Logger, manager: ResourceManager<T>, arbiter: &ArbiterHandle, since: Option<String>) -> mpsc::Receiver<Result<Event<T>, ControllerError>> {
         let (tx, rx) = mpsc::channel(4);
         let w = Watcher {
             logger,
             manager,
-            last_seq: "0".to_string(),
+            last_seq: since.unwrap_or_else(|| "0".to_string()),
             sink: tx,
             tick: Duration::from_secs(30),
         };

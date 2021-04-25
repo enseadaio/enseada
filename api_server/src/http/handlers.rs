@@ -1,18 +1,20 @@
 use std::convert::Infallible;
 use std::error::Error as StdError;
 
-use futures::stream;
+use futures::{StreamExt, TryStreamExt};
+use http::response::Builder;
 use hyper::StatusCode;
 use slog::Logger;
 use warp::{Rejection, Reply, reply};
 use warp::body::BodyDeserializeError;
-use warp::http::response::Builder;
+use warp::reject::MethodNotAllowed;
 use warp::reply::{json, Json, with_status};
+use warp::sse::Event;
 
 use api::core::v1alpha1::List;
 use api::error::{Code, ErrorResponse};
 use api::Resource;
-use controller_runtime::ResourceManager;
+use controller_runtime::{Arbiter, ResourceManager, Watcher};
 use couchdb::Couch;
 
 use crate::error::Error;
@@ -21,20 +23,14 @@ pub(super) async fn health() -> Result<impl Reply, Rejection> {
     Ok("UP".to_string())
 }
 
-pub(super) async fn watch_resources(logger: Logger, couch: Couch) -> Result<impl warp::Reply, Rejection> {
-    let vec: Vec<Result<String, Infallible>> = vec![
-        Ok("todo".to_string())
-    ];
-    let body = hyper::Body::wrap_stream(stream::iter(vec));
-    Ok(Builder::default()
-        .status(200)
-        .header("Content-Type", "text/plain")
-        .body(body)
-        .unwrap())
-}
-
-pub(super) async fn watch_resource<T: Resource>(logger: Logger, couch: Couch, name: String) -> Result<impl Reply, Rejection> {
-    Ok("Watching resource")
+pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch) -> Result<impl warp::Reply, Rejection> {
+    let manager = create_manager::<T>(logger.clone(), couch).await?;
+    let stream = Watcher::<T>::start(logger.clone(), manager, &Arbiter::current(), Some("now".to_string()));
+    let stream = stream.map(|res| match res {
+        Ok(event) => Ok::<Event, Infallible>(Event::default().event("change").json_data(event).unwrap()),
+        Err(err) => Ok(Event::default().event("error").json_data::<ErrorResponse>(Error::from(err).into()).unwrap()),
+    });
+    Ok(warp::sse::reply(stream))
 }
 
 pub(super) async fn list_resources<T: Resource>(logger: Logger, couch: Couch) -> Result<Json, Rejection> {
@@ -101,11 +97,12 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     let message;
     let metadata = None;
 
-    if err.is_not_found() {
+    eprintln!("{:?}", err);
+    if err.is_not_found() || err.find::<MethodNotAllowed>().is_some() {
         code = Code::NotFound;
         message = "not found".to_string();
     } else if let Some(Error::ApiError { code: err_code, message: err_message }) = err.find::<Error>() {
-        code = err_code.clone();
+        code = *err_code;
         message = err_message.clone();
     } else if let Some(err) = err.find::<BodyDeserializeError>() {
         code = Code::InvalidBody;

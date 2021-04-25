@@ -3,7 +3,7 @@ pub mod v1alpha1 {
     use slog::Logger;
 
     use api::users::v1alpha1::{User, UserStatus};
-    use controller_runtime::{async_trait, ControllerError, Reconciler, ReconciliationError, ResourceManager, StreamExt, Watcher, Utc};
+    use controller_runtime::{async_trait, ControllerError, Reconciler, ReconciliationError, ResourceManager, Utc};
 
     pub struct UserController {
         logger: Logger,

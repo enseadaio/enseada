@@ -23,10 +23,6 @@ impl Id {
         }
     }
 
-    pub fn kind(&self) -> &str {
-        &self.kind
-    }
-
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -63,7 +59,7 @@ impl<'de> Deserialize<'de> for Id {
     fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
         D: Deserializer<'de> {
         let s = String::deserialize(deserializer)?;
-        Self::try_from(s).map_err(|err| <D as Deserializer<'de>>::Error::custom(err))
+        Self::try_from(s).map_err(<D as Deserializer<'de>>::Error::custom)
     }
 }
 

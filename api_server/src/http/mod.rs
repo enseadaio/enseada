@@ -10,19 +10,21 @@ use couchdb::Couch;
 use handlers::*;
 
 use crate::ServerResult;
+use http::Method;
+use crate::config::Configuration;
+use crate::config::tls::Tls;
 
 mod handlers;
 
-pub async fn start(logger: Logger, couch: Couch) -> ServerResult {
-    let addr: SocketAddr = "[::]:9623".parse().unwrap();
-
-    let watch_list_path = warp::path!("apis" / String / String / String / "watch");
-    let resource_list_path = warp::path!("apis" / String / String / String);
-    let resource_path = warp::path!("apis" / String / String / String / String);
+pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration) -> ServerResult {
+    let addr = cfg.http().address();
 
     let req_logger = logger.clone();
     let routes = warp::path!("healthz").and_then(health)
-        .with(warp::cors().allow_any_origin())
+        .or(warp::path!("readyz").and_then(health))
+        .or(warp::path("apis")
+            .and(mount_resource::<v1alpha1::User>(logger.new(slog::o!()), couch.clone()))
+            .recover(handle_rejection))
         .with(warp::log::custom(move |info| {
             slog::info!(req_logger, ""; slog::o!(
                 "method" => info.method().to_string(),
@@ -30,16 +32,37 @@ pub async fn start(logger: Logger, couch: Couch) -> ServerResult {
                 "status" => info.status().as_u16(),
             ));
         }))
-        .or(warp::path!("readyz").and_then(health))
-        .or(warp::path("apis")
-            .and(mount_resource::<v1alpha1::User>(logger.new(slog::o!()), couch.clone()))
-            .recover(handle_rejection));
+        .with(warp::cors()
+            .allow_any_origin()
+            .allow_headers(vec!["User-Agent", "Sec-Fetch-Mode", "Referer", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Content-Type"])
+            .allow_methods(vec![
+                Method::OPTIONS,
+                Method::GET,
+                Method::POST,
+                Method::PUT,
+                Method::DELETE,
+                Method::HEAD,
+                Method::TRACE,
+                Method::CONNECT,
+                Method::PATCH,
+            ]));
 
 
-    slog::info!(logger, "HTTP server listening on http://{}", &addr);
-    warp::serve(routes)
-        .run(addr)
-        .await;
+    let tls = cfg.http().tls();
+    let protocol = tls.map_or_else(|| "http", |_| "https");
+    slog::info!(logger, "HTTP server listening on {}://{}", protocol, &addr);
+    let server = warp::serve(routes);
+    if let Some(Tls { cert, key}) = tls {
+        server.tls()
+            .cert_path(cert)
+            .key_path(key)
+            .run(addr)
+            .await;
+    } else {
+        server
+            .run(addr)
+            .await;
+    };
 
     Ok(())
 }
@@ -52,7 +75,7 @@ fn with_couch(couch: Couch) -> impl Filter<Extract=(Couch, ), Error=Infallible> 
     warp::any().map(move || couch.clone())
 }
 
-fn mount_resource<T: 'static + Resource>(logger: Logger, couch: Couch) -> impl Filter<Extract=(impl Reply,), Error=Rejection> + Clone {
+fn mount_resource<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
     let typ = T::type_meta();
     let group = typ.api_version.group;
     let version = typ.api_version.version;
@@ -61,13 +84,13 @@ fn mount_resource<T: 'static + Resource>(logger: Logger, couch: Couch) -> impl F
     let mount_point = warp::path(group).and(warp::path(version)).and(warp::path(kind));
     let list_path = mount_point.clone().and(warp::path::end());
     let resource_path = mount_point.clone().and(warp::path::param::<String>());
-    let watch_path = mount_point.clone().and(warp::path("watch"));
+    let watch_path = mount_point.and(warp::path("watch"));
 
     let watch = warp::get()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
         .and(watch_path)
-        .and_then(watch_resources);
+        .and_then(watch_resources::<T>);
 
     let list = warp::get()
         .and(with_logger(logger.clone()))

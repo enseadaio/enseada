@@ -9,6 +9,7 @@ pub mod v1alpha1 {
     use serde::{Deserialize, Serialize, Deserializer, Serializer};
     use chrono::{DateTime, Utc};
     use serde::de::Error;
+    use std::fmt::{self, Display, Formatter};
 
     #[derive(Clone, Default, Debug, Serialize)]
     pub struct Event<T> {
@@ -60,7 +61,7 @@ pub mod v1alpha1 {
         fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
             D: Deserializer<'de> {
             let s = String::deserialize(deserializer)?;
-            let parts: Vec<&str> = s.split("/").collect();
+            let parts: Vec<&str> = s.split('/').collect();
 
             if let [group, version, ..] = parts.as_slice() {
                 Ok(Self {
@@ -76,7 +77,13 @@ pub mod v1alpha1 {
     impl Serialize for GroupVersion {
         fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error> where
             S: Serializer {
-            format!("{}/{}", self.group, self.version).serialize(serializer)
+            self.to_string().serialize(serializer)
+        }
+    }
+
+    impl Display for GroupVersion {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            write!(f, "{}/{}", self.group, self.version)
         }
     }
 

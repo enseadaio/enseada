@@ -1,0 +1,45 @@
+# Example Configuration
+
+## Generic
+service:
+  host: 0.0.0.0
+  port: 9623
+log:
+  format: text
+  level: error
+  root_level: info
+
+secret.key: Y7o3UYJTdympbipV54to2e57r5bjTMcq
+public.host: http://localhost:9623
+root.password: supersecret
+
+# Tracing
+tracing:
+  log: false
+  level: error
+
+# Database
+couchdb:
+  url: http://localhost:5984
+  username: enseada
+  password: enseada
+
+# Storage
+storage:
+  provider: s3
+  bucket: enseada
+  endpoint: http://localhost:9000
+  access_key_id: enseada
+  secret_access_key: enseadaminio
+
+# HTTPS
+tls:
+  enabled: false
+  cert:
+    path: .github/cert.pem
+  key:
+    path: .github/key.pem
+
+# OCI registry
+oci:
+  host: containers.localhost

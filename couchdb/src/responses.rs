@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde::de::DeserializeOwned;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct DBInfo {

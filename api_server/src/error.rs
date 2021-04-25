@@ -2,9 +2,8 @@ use std::error::Error as StdError;
 use std::fmt::{self, Display, Formatter};
 
 use config::ConfigError;
-use api::error::Code;
+use api::error::{Code, ErrorResponse};
 use warp::reject::Reject;
-use warp::reply::json;
 use controller_runtime::ControllerError;
 use http::StatusCode;
 
@@ -30,6 +29,14 @@ impl Error {
         Self::ApiError {
             code: Code::NotFound,
             message: message.to_string(),
+        }
+    }
+
+    pub fn code(&self) -> Code {
+        match self {
+            Error::ConfigError(_) => Code::InitializationFailed,
+            Error::ApiError { code, .. } => *code,
+            Error::InitError(_) => Code::InitializationFailed,
         }
     }
 }
@@ -69,6 +76,16 @@ impl From<ControllerError> for Error {
             ControllerError::InitError(err) => Error::InitError(err),
             ControllerError::DatabaseError(err) => err.into(),
             ControllerError::Internal(err) => Error::internal(err),
+        }
+    }
+}
+
+impl Into<ErrorResponse> for Error {
+    fn into(self) -> ErrorResponse {
+        ErrorResponse {
+            code: self.code(),
+            message: self.to_string(),
+            metadata: None
         }
     }
 }

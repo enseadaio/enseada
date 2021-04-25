@@ -3,11 +3,12 @@ use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use http::StatusCode;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Copy, Clone, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Code {
     InvalidBody,
     NotFound,
+    InitializationFailed,
     Unknown
 }
 
@@ -16,6 +17,7 @@ impl Code {
         match self {
             Code::InvalidBody => StatusCode::BAD_REQUEST,
             Code::NotFound => StatusCode::NOT_FOUND,
+            Code::InitializationFailed => StatusCode::INTERNAL_SERVER_ERROR,
             Code::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -32,6 +34,7 @@ impl Display for Code {
         match self {
             Code::InvalidBody => Display::fmt("invalid_body", f),
             Code::NotFound => Display::fmt("not_found", f),
+            Code::InitializationFailed => Display::fmt("initialization_failed", f),
             Code::Unknown => Display::fmt("unknown", f),
         }
     }
