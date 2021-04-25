@@ -111,6 +111,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "http",
+ "lazy_static",
  "serde",
 ]
 
@@ -124,9 +125,11 @@ dependencies = [
  "async-trait",
  "chrono",
  "config",
+ "controller_runtime",
  "couchdb",
  "crossbeam-channel",
  "futures",
+ "http",
  "hyper",
  "serde",
  "serde_json",
@@ -137,6 +140,7 @@ dependencies = [
  "structopt",
  "tokio 1.4.0",
  "url",
+ "users",
  "warp",
 ]
 
@@ -331,6 +335,22 @@ name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
+
+[[package]]
+name = "controller_runtime"
+version = "0.1.0"
+dependencies = [
+ "actix",
+ "api",
+ "async-trait",
+ "chrono",
+ "couchdb",
+ "futures",
+ "http",
+ "serde",
+ "slog",
+ "tokio 1.4.0",
+]
 
 [[package]]
 name = "copyless"
@@ -2392,6 +2412,7 @@ name = "users"
 version = "0.1.0"
 dependencies = [
  "api",
+ "controller_runtime",
  "couchdb",
  "serde",
  "slog",

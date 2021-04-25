@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate lazy_static;
+
 use std::fmt::Debug;
 
 use serde::de::DeserializeOwned;
@@ -9,9 +12,16 @@ pub mod core;
 pub mod error;
 pub mod users;
 
-pub trait Resource: Clone + Default + Debug + DeserializeOwned + Serialize {
-    fn type_meta(&self) -> &TypeMeta;
+pub trait Resource: Clone + Default + Debug + DeserializeOwned + Serialize + Send + Sync {
+    type Status: Clone + Default + Debug + DeserializeOwned + Serialize;
+
+    fn type_meta() -> TypeMeta;
     fn metadata(&self) -> &Metadata;
     fn metadata_mut(&mut self) -> &mut Metadata;
+    fn set_metadata(&mut self, metadata: Metadata);
+    fn status(&self) -> Option<&Self::Status>;
+    fn status_mut(&mut self) -> Option<&mut Self::Status>;
+    fn set_status(&mut self, status: Option<Self::Status>);
 }
+
 

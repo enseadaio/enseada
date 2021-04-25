@@ -8,3 +8,4 @@ edition = "2018"
 serde = { version = "^1", features = ["derive"] }
 http = "~0.2"
 chrono = { version = "~0.4", features = ["serde"] }
+lazy_static = "^1"

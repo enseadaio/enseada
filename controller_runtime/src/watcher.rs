@@ -10,34 +10,34 @@ use api::core::v1alpha1::Event;
 use api::Resource;
 use couchdb::changes::ChangeEvent;
 
-use crate::error::Error;
-use crate::resources::id::Id;
-use crate::resources::ResourceManager;
+use crate::ControllerError;
+use crate::id::Id;
+use crate::manager::ResourceManager;
 
 pub struct Watcher<T: Resource> {
     logger: Logger,
     manager: ResourceManager<T>,
     last_seq: String,
-    sink: mpsc::Sender<Result<Event<T>, Error>>,
+    sink: mpsc::Sender<Result<Event<T>, ControllerError>>,
     tick: Duration,
 }
 
-impl<T: 'static + Resource + Unpin + Send> Watcher<T> {
-    pub fn start(logger: Logger, manager: ResourceManager<T>, arbiter: &ArbiterHandle) -> mpsc::Receiver<Result<Event<T>, Error>> {
+impl<T: 'static + Resource + Unpin> Watcher<T> {
+    pub fn start(logger: Logger, manager: ResourceManager<T>, arbiter: &ArbiterHandle) -> mpsc::Receiver<Result<Event<T>, ControllerError>> {
         let (tx, rx) = mpsc::channel(4);
         let w = Watcher {
             logger,
             manager,
             last_seq: "0".to_string(),
             sink: tx,
-            tick: Duration::from_secs(1),
+            tick: Duration::from_secs(30),
         };
         Supervisor::start_in_arbiter(arbiter, move |_| w);
         rx
     }
 
-    async fn get_resource(manager: ResourceManager<T>, id: String) -> Result<T, Error> {
-        let id = Id::try_from(id).map_err(Error::internal)?;
+    async fn get_resource(manager: ResourceManager<T>, id: String) -> Result<T, ControllerError> {
+        let id = Id::try_from(id).map_err(ControllerError::from)?;
         manager.get(id.name()).await
     }
 
@@ -61,7 +61,23 @@ impl<T: 'static + Resource + Unpin + Send> Watcher<T> {
 
     fn start_tick_stream(&mut self, ctx: &mut Context<Self>) {
         ctx.run_interval(self.tick, |this, ctx| {
-            slog::debug!(this.logger, "Tick");
+            let manager = this.manager.clone();
+            ctx.wait(async move { manager.list().await}.into_actor(this)
+                .map(|res, this, ctx| {
+                    match res {
+                        Ok(list) => {
+                            for resource in list {
+                                let mut sink = this.sink.clone();
+                                ctx.wait(async move {
+                                    sink.send(Ok(Event::from(resource))).await.expect("failed to send resource event");
+                                }.into_actor(this));
+                            }
+                        }
+                        Err(err) => {
+                            slog::error!(this.logger, "{}. Retrying in {} seconds", err, this.tick.as_secs());
+                        }
+                    };
+                }));
         });
     }
 }
@@ -71,19 +87,19 @@ impl<T: 'static + Resource + Unpin + Send> Actor for Watcher<T> {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         self.start_db_stream(ctx);
-        // self.start_tick_stream(ctx);
+        self.start_tick_stream(ctx);
     }
 }
 
 impl<T: 'static + Resource + Unpin + Send> Supervised for Watcher<T> {
     fn restarting(&mut self, _ctx: &mut Self::Context) {
-        slog::info!(self.logger, "Restarting watcher")
+        slog::warn!(self.logger, "Restarting watcher")
     }
 }
 
 impl<T: 'static + Resource + Unpin + Send> StreamHandler<ChangeEvent> for Watcher<T> {
     fn handle(&mut self, item: ChangeEvent, ctx: &mut Self::Context) {
-        slog::debug!(self.logger, "Handling event {:?}", item);
+        slog::trace!(self.logger, "Handling event {:?}", item);
         match item {
             ChangeEvent::Next { id, .. } => {
                 let logger = self.logger.clone();
@@ -95,7 +111,7 @@ impl<T: 'static + Resource + Unpin + Send> StreamHandler<ChangeEvent> for Watche
                         slog::error!(logger, "{}", err);
                         return;
                     }
-                    slog::debug!(logger, "Sending event for resource {:?}", res);
+                    slog::trace!(logger, "Sending event for resource {:?}", res);
                     sink.send(res.map(Event::from)).await.expect("failed to send resource event");
                 }.into_actor(self));
             }
@@ -106,5 +122,6 @@ impl<T: 'static + Resource + Unpin + Send> StreamHandler<ChangeEvent> for Watche
         }
     }
 
-    fn finished(&mut self, ctx: &mut Self::Context) {}
+    fn finished(&mut self, _ctx: &mut Self::Context) {}
 }
+

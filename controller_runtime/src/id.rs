@@ -1,6 +1,7 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
 
 #[derive(Clone)]

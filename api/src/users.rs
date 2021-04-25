@@ -17,10 +17,7 @@ pub mod v1alpha1 {
     impl Default for User {
         fn default() -> Self {
             Self {
-                type_meta: TypeMeta {
-                    api_version: core::v1alpha1::API_VERSION.to_string(),
-                    kind: "User".to_string(),
-                },
+                type_meta: <User as Resource>::type_meta(),
                 metadata: Default::default(),
                 spec: Default::default(),
                 status: Default::default(),
@@ -49,8 +46,14 @@ pub mod v1alpha1 {
     }
 
     impl Resource for User {
-        fn type_meta(&self) -> &TypeMeta {
-            &self.type_meta
+        type Status = UserStatus;
+
+        fn type_meta() -> TypeMeta {
+            TypeMeta {
+                api_version: core::v1alpha1::API_VERSION.clone(),
+                kind: "User".to_string(),
+                kind_plural: "users".to_string(),
+            }
         }
 
         fn metadata(&self) -> &Metadata {
@@ -59,6 +62,22 @@ pub mod v1alpha1 {
 
         fn metadata_mut(&mut self) -> &mut Metadata {
             &mut self.metadata
+        }
+
+        fn set_metadata(&mut self, metadata: Metadata) {
+            self.metadata = metadata;
+        }
+
+        fn status(&self) -> Option<&UserStatus> {
+            self.status.as_ref()
+        }
+
+        fn status_mut(&mut self) -> Option<&mut UserStatus> {
+            self.status.as_mut()
+        }
+
+        fn set_status(&mut self, status: Option<Self::Status>) {
+            self.status = status;
         }
     }
 }

@@ -4,6 +4,7 @@ members = [
     "api_server",
     "api",
     "users",
+    "controller_runtime",
 
     # Old Stuff
     "old_api",

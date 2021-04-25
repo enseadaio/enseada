@@ -2,11 +2,11 @@ use std::error::Error as StdError;
 use std::fmt::{self, Display, Formatter};
 
 use config::ConfigError;
-use api::error::{Code, ErrorResponse};
-use warp::reject::{Reject, custom};
-use warp::{Rejection, Reply};
-use std::convert::Infallible;
-use warp::reply::{with_status, json};
+use api::error::Code;
+use warp::reject::Reject;
+use warp::reply::json;
+use controller_runtime::ControllerError;
+use http::StatusCode;
 
 #[derive(Debug)]
 pub enum Error {
@@ -57,34 +57,18 @@ impl From<ConfigError> for Error {
 impl From<couchdb::error::Error> for Error {
     fn from(err: couchdb::error::Error) -> Self {
         match err.status() {
-            // TODO: properly map couch errors
+            StatusCode::NOT_FOUND => Self::ApiError { code: Code::NotFound, message: err.to_string() },
             _ => Self::ApiError { code: Code::Unknown, message: err.to_string() },
         }
     }
 }
 
-pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
-    let code;
-    let message;
-    let metadata = None;
-
-    if err.is_not_found() {
-        code = Code::NotFound;
-        message = "not found".to_string();
-    } else if let Some(Error::ApiError { code: err_code, message: err_message }) = err.find::<Error>() {
-        code = err_code.clone();
-        message = err_message.clone();
-    } else {
-        code = Code::Unknown;
-        message = "internal server error".to_string();
+impl From<ControllerError> for Error {
+    fn from(err: ControllerError) -> Self {
+        match err {
+            ControllerError::InitError(err) => Error::InitError(err),
+            ControllerError::DatabaseError(err) => err.into(),
+            ControllerError::Internal(err) => Error::internal(err),
+        }
     }
-
-    let status = code.to_status();
-    let json = json(&ErrorResponse {
-        code,
-        message,
-        metadata,
-    });
-
-    Ok(with_status(json, status))
 }

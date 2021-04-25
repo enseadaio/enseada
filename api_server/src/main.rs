@@ -1,19 +1,18 @@
 use actix::Arbiter;
+use futures::TryFutureExt;
 use url::Url;
 
 use couchdb::Couch;
 
 use crate::config::Configuration;
-use crate::resources::Watcher;
+use crate::error::Error;
 
 mod config;
-mod controllers;
 mod error;
 mod http;
 mod logger;
-mod resources;
 
-type ServerResult = Result<(), crate::error::Error>;
+type ServerResult = Result<(), Error>;
 
 #[actix_rt::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
         http::start(logger.new(slog::o!("server" => "http")), couch.clone()),
-        controllers::users::start(logger.new(slog::o!("controller" => "user")), couch.clone(), &controller_arbiter)
+        users::start(logger.clone(), couch.clone(), &controller_arbiter).map_err(Error::from)
     )?;
 
     Ok(())
