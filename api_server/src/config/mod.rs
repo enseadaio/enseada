@@ -7,8 +7,10 @@ pub use crate::config::http::Http;
 pub use crate::config::log::*;
 use crate::error::Error;
 use crate::config::db::CouchDB;
+use crate::config::controllers::Controllers;
 
 mod cli;
+mod controllers;
 mod db;
 mod http;
 mod log;
@@ -19,6 +21,7 @@ pub struct Configuration {
     log: Log,
     http: Http,
     couchdb: CouchDB,
+    controllers: Controllers,
 }
 
 impl Configuration {
@@ -35,6 +38,7 @@ impl Configuration {
         Log::set_defaults(&mut cfg)?;
         Http::set_defaults(&mut cfg)?;
         CouchDB::set_defaults(&mut cfg)?;
+        Controllers::set_defaults(&mut cfg)?;
 
         cfg.try_into().map_err(Error::from)
     }
@@ -49,5 +53,9 @@ impl Configuration {
 
     pub fn couchdb(&self) -> &CouchDB {
         &self.couchdb
+    }
+
+    pub fn controllers(&self) -> &Controllers {
+        &self.controllers
     }
 }

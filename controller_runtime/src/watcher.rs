@@ -23,14 +23,14 @@ pub struct Watcher<T: Resource> {
 }
 
 impl<T: 'static + Resource + Unpin> Watcher<T> {
-    pub fn start(logger: Logger, manager: ResourceManager<T>, arbiter: &ArbiterHandle, since: Option<String>) -> mpsc::Receiver<Result<Event<T>, ControllerError>> {
+    pub fn start(logger: Logger, manager: ResourceManager<T>, arbiter: &ArbiterHandle, polling_interval: Duration, since: Option<String>) -> mpsc::Receiver<Result<Event<T>, ControllerError>> {
         let (tx, rx) = mpsc::channel(4);
         let w = Watcher {
             logger,
             manager,
             last_seq: since.unwrap_or_else(|| "0".to_string()),
             sink: tx,
-            tick: Duration::from_secs(30),
+            tick: polling_interval,
         };
         Supervisor::start_in_arbiter(arbiter, move |_| w);
         rx
@@ -101,7 +101,12 @@ impl<T: 'static + Resource + Unpin + Send> StreamHandler<ChangeEvent> for Watche
     fn handle(&mut self, item: ChangeEvent, ctx: &mut Self::Context) {
         slog::trace!(self.logger, "Handling event {:?}", item);
         match item {
-            ChangeEvent::Next { id, .. } => {
+            ChangeEvent::Next { id, deleted, .. } => {
+                if deleted.unwrap_or(false) {
+                    slog::trace!(self.logger, "Received event for a deleted resource. Ignoring it.");
+                    return;
+                }
+
                 let logger = self.logger.clone();
                 let mgr = self.manager.clone();
                 let mut sink = self.sink.clone();

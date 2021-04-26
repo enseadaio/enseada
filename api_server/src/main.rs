@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
         http::start(logger.new(slog::o!("server" => "http")), couch.clone(), cfg),
-        users::start(logger.clone(), couch.clone(), &controller_arbiter).map_err(Error::from)
+        users::start(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().users().polling_interval()).map_err(Error::from)
     )?;
 
     Ok(())

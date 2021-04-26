@@ -6,6 +6,7 @@ pub mod v1alpha1 {
     use crate::Resource;
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct User {
         #[serde(flatten)]
         pub type_meta: TypeMeta,
@@ -36,11 +37,13 @@ pub mod v1alpha1 {
     }
 
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct UserSpec {
         pub enabled: bool,
     }
 
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct UserStatus {
         pub enabled: bool
     }

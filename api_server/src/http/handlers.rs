@@ -1,8 +1,7 @@
 use std::convert::Infallible;
 use std::error::Error as StdError;
 
-use futures::{StreamExt, TryStreamExt};
-use http::response::Builder;
+use futures::StreamExt;
 use hyper::StatusCode;
 use slog::Logger;
 use warp::{Rejection, Reply, reply};
@@ -18,6 +17,7 @@ use controller_runtime::{Arbiter, ResourceManager, Watcher};
 use couchdb::Couch;
 
 use crate::error::Error;
+use std::time::Duration;
 
 pub(super) async fn health() -> Result<impl Reply, Rejection> {
     Ok("UP".to_string())
@@ -25,7 +25,7 @@ pub(super) async fn health() -> Result<impl Reply, Rejection> {
 
 pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch) -> Result<impl warp::Reply, Rejection> {
     let manager = create_manager::<T>(logger.clone(), couch).await?;
-    let stream = Watcher::<T>::start(logger.clone(), manager, &Arbiter::current(), Some("now".to_string()));
+    let stream = Watcher::<T>::start(logger.clone(), manager, &Arbiter::current(), Duration::from_secs(60 * 5), Some("now".to_string()));
     let stream = stream.map(|res| match res {
         Ok(event) => Ok::<Event, Infallible>(Event::default().event("change").json_data(event).unwrap()),
         Err(err) => Ok(Event::default().event("error").json_data::<ErrorResponse>(Error::from(err).into()).unwrap()),

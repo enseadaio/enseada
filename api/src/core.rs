@@ -23,6 +23,7 @@ pub mod v1alpha1 {
     }
 
     #[derive(Clone, Debug, Serialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct List<T> {
         #[serde(flatten)]
         pub type_meta: TypeMeta,
@@ -97,6 +98,7 @@ pub mod v1alpha1 {
     }
 
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct Metadata {
         pub name: String,
         pub created_at: Option<DateTime<Utc>>,

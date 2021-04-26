@@ -1,6 +1,6 @@
 use std::error::Error;
 
-pub use::futures::*;
+pub use ::futures::*;
 pub use actix::{Arbiter, ArbiterHandle};
 pub use async_trait::async_trait;
 pub use chrono::*;
@@ -24,7 +24,12 @@ pub trait Reconciler<T: Resource, E: Error = ControllerError> {
 
 pub type ControllerFactory<T, R> = fn(logger: Logger, manager: ResourceManager<T>) -> R;
 
-pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconciler<T, E>>(logger: Logger, couch: Couch, arbiter: &ArbiterHandle, controller_factory: ControllerFactory<T, R>) -> Result<(), ControllerError> {
+pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconciler<T, E>>(
+    logger: Logger,
+    couch: Couch,
+    arbiter: &ArbiterHandle,
+    polling_interval: std::time::Duration,
+    controller_factory: ControllerFactory<T, R>) -> Result<(), ControllerError> {
     let typ = T::type_meta();
     let group = &typ.api_version.group;
     let kind = &typ.kind_plural;
@@ -34,7 +39,7 @@ pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconc
     manager.init().await?;
     let logger = logger.new(slog::o!("controller" => kind.to_string(), "api_version" => typ.api_version.to_string()));
     let mut controller = controller_factory(logger.clone(), manager.clone());
-    let mut w = Watcher::<T>::start(logger.clone(), manager.clone(), arbiter, None);
+    let mut w = Watcher::<T>::start(logger.clone(), manager.clone(), arbiter, polling_interval, None);
 
     slog::info!(logger, "Starting controller");
     while let Some(res) = w.next().await {
@@ -58,7 +63,7 @@ async fn process_event<T: Resource, E: Error, R: Reconciler<T, E>>(logger: Logge
         if let Some(retry_in) = err.retry_in() {
             tokio::time::sleep(retry_in).await;
         } else {
-            break
+            break;
         }
     }
 }

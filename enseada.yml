@@ -1,11 +1,11 @@
 log:
-  level: debug
+  level: trace
   format: text
 
 http:
   tls:
-    cert: .github/cert.pem
-    key: .github/key.pem
+#    cert: .github/cert.pem
+#    key: .github/key.pem
 
 # Database
 couchdb:

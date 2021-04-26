@@ -28,6 +28,8 @@ chrono = { version = "~0.4", features = ["serde"]}
 # Config
 structopt = "~0.3"
 config = { version = "~0.11", default-features = false, features = ["yaml"]}
+humantime = "^2"
+humantime-serde = "^1"
 
 # Logging
 slog = "~2.7"
