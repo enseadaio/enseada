@@ -24,6 +24,7 @@ serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
 crossbeam-channel = "~0.5"
 chrono = { version = "~0.4", features = ["serde"]}
+lazy_static = "^1"
 
 # Config
 structopt = "~0.3"
@@ -36,6 +37,11 @@ slog = "~2.7"
 slog-async = "~2.6"
 slog-json = "~2.3"
 slog-term = "~2.8"
+
+# Telemetry
+opentelemetry = { version = "~0.13", default-features = false, features = ["trace", "metrics", "serialize", "rt-tokio"] }
+opentelemetry-prometheus = "~0.6"
+prometheus = "~0.12"
 
 couchdb = { path = "../couchdb" }
 controller_runtime = { path = "../controller_runtime" }

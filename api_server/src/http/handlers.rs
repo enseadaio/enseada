@@ -19,10 +19,6 @@ use couchdb::Couch;
 use crate::error::Error;
 use std::time::Duration;
 
-pub(super) async fn health() -> Result<impl Reply, Rejection> {
-    Ok("UP".to_string())
-}
-
 pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch) -> Result<impl warp::Reply, Rejection> {
     let manager = create_manager::<T>(logger.clone(), couch).await?;
     let stream = Watcher::<T>::start(logger.clone(), manager, &Arbiter::current(), Duration::from_secs(60 * 5), Some("now".to_string()));

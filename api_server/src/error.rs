@@ -14,6 +14,7 @@ pub enum Error {
         code: Code,
         message: String,
     },
+    PrometheusError(prometheus::Error),
     InitError(String),
 }
 
@@ -36,6 +37,7 @@ impl Error {
         match self {
             Error::ConfigError(_) => Code::InitializationFailed,
             Error::ApiError { code, .. } => *code,
+            Error::PrometheusError(_) => Code::Unknown,
             Error::InitError(_) => Code::InitializationFailed,
         }
     }
@@ -48,7 +50,8 @@ impl Display for Error {
         match self {
             Error::ConfigError(err) => write!(f, "Configuration error: {}", err),
             Error::InitError(reason) => write!(f, "Initialization failed: {}", reason),
-            Error::ApiError{ code, message} => write!(f, "API error: {} {}", code, message)
+            Error::ApiError{ code, message} => write!(f, "API error: {} {}", code, message),
+            Error::PrometheusError(err) => Display::fmt(err, f),
         }
     }
 }
@@ -77,6 +80,12 @@ impl From<ControllerError> for Error {
             ControllerError::DatabaseError(err) => err.into(),
             ControllerError::Internal(err) => Error::internal(err),
         }
+    }
+}
+
+impl From<prometheus::Error> for Error {
+    fn from(err: prometheus::Error) -> Self {
+        Error::PrometheusError(err)
     }
 }
 

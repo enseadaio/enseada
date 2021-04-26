@@ -2,7 +2,7 @@ use std::convert::Infallible;
 use std::net::SocketAddr;
 
 use slog::Logger;
-use warp::{Filter, Rejection, Reply};
+use warp::{Filter, Rejection, Reply, wrap_fn};
 
 use api::Resource;
 use api::users::v1alpha1;
@@ -15,23 +15,15 @@ use crate::config::Configuration;
 use crate::config::tls::Tls;
 
 mod handlers;
+mod telemetry;
 
 pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration) -> ServerResult {
     let addr = cfg.http().address();
 
-    let req_logger = logger.clone();
-    let routes = warp::path!("healthz").and_then(health)
-        .or(warp::path!("readyz").and_then(health))
+    let routes = telemetry::routes()
         .or(warp::path("apis")
             .and(mount_resource::<v1alpha1::User>(logger.new(slog::o!()), couch.clone()))
             .recover(handle_rejection))
-        .with(warp::log::custom(move |info| {
-            slog::info!(req_logger, ""; slog::o!(
-                "method" => info.method().to_string(),
-                "path" => info.path().to_string(),
-                "status" => info.status().as_u16(),
-            ));
-        }))
         .with(warp::cors()
             .allow_any_origin()
             .allow_headers(vec!["User-Agent", "Sec-Fetch-Mode", "Referer", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", "Content-Type"])
@@ -45,14 +37,16 @@ pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration) -> ServerR
                 Method::TRACE,
                 Method::CONNECT,
                 Method::PATCH,
-            ]));
+            ]))
+        .with(warp::log::custom(telemetry::log(logger.clone())))
+        .with(warp::log::custom(telemetry::http_metrics));
 
 
     let tls = cfg.http().tls();
     let protocol = tls.map_or_else(|| "http", |_| "https");
     slog::info!(logger, "HTTP server listening on {}://{}", protocol, &addr);
     let server = warp::serve(routes);
-    if let Some(Tls { cert, key}) = tls {
+    if let Some(Tls { cert, key }) = tls {
         server.tls()
             .cert_path(cert)
             .key_path(key)

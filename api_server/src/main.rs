@@ -1,6 +1,8 @@
+#[macro_use]
+extern crate lazy_static;
+
 use actix::Arbiter;
 use futures::TryFutureExt;
-use url::Url;
 
 use couchdb::Couch;
 
@@ -11,6 +13,7 @@ mod config;
 mod error;
 mod http;
 mod logger;
+mod telemetry;
 
 type ServerResult = Result<(), Error>;
 
