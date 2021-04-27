@@ -10,7 +10,6 @@ use crate::core::v1alpha1::{Metadata, TypeMeta};
 
 pub mod core;
 pub mod error;
-pub mod users;
 
 pub trait Resource: Clone + Default + Debug + DeserializeOwned + Serialize + Send + Sync {
     type Status: Clone + Default + Debug + DeserializeOwned + Serialize;
@@ -23,5 +22,3 @@ pub trait Resource: Clone + Default + Debug + DeserializeOwned + Serialize + Sen
     fn status_mut(&mut self) -> Option<&mut Self::Status>;
     fn set_status(&mut self, status: Option<Self::Status>);
 }
-
-

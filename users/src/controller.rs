@@ -1,9 +1,10 @@
-
 pub mod v1alpha1 {
     use slog::Logger;
 
-    use api::users::v1alpha1::{User, UserStatus};
-    use controller_runtime::{async_trait, ControllerError, Reconciler, ReconciliationError, ResourceManager, Utc};
+    use crate::api::v1alpha1::{User, UserStatus};
+    use controller_runtime::{
+        async_trait, ControllerError, Reconciler, ReconciliationError, ResourceManager, Utc,
+    };
 
     pub struct UserController {
         logger: Logger,
@@ -12,13 +13,16 @@ pub mod v1alpha1 {
 
     impl UserController {
         pub fn new(logger: Logger, manager: ResourceManager<User>) -> Self {
-            UserController { logger, manager, }
+            UserController { logger, manager }
         }
     }
 
     #[async_trait]
     impl Reconciler<User> for UserController {
-        async fn reconcile(&mut self, mut user: User) -> Result<(), ReconciliationError<ControllerError>> {
+        async fn reconcile(
+            &mut self,
+            mut user: User,
+        ) -> Result<(), ReconciliationError<ControllerError>> {
             let mut dirty = false;
 
             if user.metadata.is_just_created() {
@@ -32,7 +36,10 @@ pub mod v1alpha1 {
             }
 
             let enabled = user.spec.enabled;
-            dirty = user.status.as_ref().map_or(dirty, |status| status.enabled != enabled);
+            dirty = user
+                .status
+                .as_ref()
+                .map_or(dirty, |status| status.enabled != enabled);
             if dirty {
                 user.status = Some(UserStatus { enabled });
                 let name = user.metadata.name.clone();
@@ -43,4 +50,3 @@ pub mod v1alpha1 {
         }
     }
 }
-

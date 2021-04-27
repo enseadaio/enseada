@@ -1,20 +1,21 @@
 use opentelemetry_prometheus::PrometheusExporter;
 use prometheus::{Encoder, TextEncoder};
-use warp::{Filter, Rejection, Reply};
 use warp::hyper::Body;
 use warp::reply::Response;
+use warp::{Filter, Rejection, Reply};
 
 use crate::error::Error;
-use std::convert::Infallible;
-use warp::log::Info;
+use opentelemetry::KeyValue;
 use slog::Logger;
 use std::collections::HashSet;
-use opentelemetry::KeyValue;
+use std::convert::Infallible;
+use warp::log::Info;
 
-pub fn routes() -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
+pub fn routes() -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
     let metrics_exporter = crate::telemetry::init_exporter();
 
-    warp::path!("healthz").and_then(health)
+    warp::path!("healthz")
+        .and_then(health)
         .or(warp::path!("readyz").and_then(health))
         .or(warp::path!("metrics")
             .and(with_metrics_exporter(metrics_exporter))
@@ -33,7 +34,9 @@ async fn metrics(exporter: PrometheusExporter) -> Result<impl Reply, Rejection> 
     Ok(Response::new(Body::from(body)))
 }
 
-fn with_metrics_exporter(exporter: PrometheusExporter) -> impl Filter<Extract=(PrometheusExporter, ), Error=Infallible> + Clone {
+fn with_metrics_exporter(
+    exporter: PrometheusExporter,
+) -> impl Filter<Extract = (PrometheusExporter,), Error = Infallible> + Clone {
     warp::any().map(move || exporter.clone())
 }
 
@@ -54,10 +57,11 @@ pub fn log(logger: Logger) -> impl Fn(Info) + Clone {
         }
 
         slog::info!(logger, ""; slog::o!(
-                "method" => info.method().to_string(),
-                "path" => info.path().to_string(),
-                "status" => info.status().as_u16(),
-            ));
+            "method" => info.method().to_string(),
+            "path" => info.path().to_string(),
+            "status" => info.status().as_u16(),
+            "duration_ms" => info.elapsed().as_millis(),
+        ));
     }
 }
 

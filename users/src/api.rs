@@ -1,9 +1,8 @@
 pub mod v1alpha1 {
     use serde::{Deserialize, Serialize};
 
-    use crate::core;
-    use crate::core::v1alpha1::{Metadata, TypeMeta};
-    use crate::Resource;
+    use api::core::v1alpha1::{Metadata, TypeMeta};
+    use api::{core, Resource};
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -45,7 +44,7 @@ pub mod v1alpha1 {
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct UserStatus {
-        pub enabled: bool
+        pub enabled: bool,
     }
 
     impl Resource for User {
