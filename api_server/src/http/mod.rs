@@ -1,31 +1,34 @@
 use std::convert::Infallible;
+use std::sync::Arc;
 
+use http::Method;
 use slog::Logger;
+use tokio::sync::RwLock;
 use warp::{Filter, Rejection, Reply};
 
+use acl::Enforcer;
 use api::Resource;
 use couchdb::Couch;
 use handlers::*;
-use users::api::v1alpha1;
 
-use crate::config::tls::Tls;
 use crate::config::Configuration;
+use crate::config::tls::Tls;
 use crate::ServerResult;
-use http::Method;
 
 mod handlers;
 mod telemetry;
 
-pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration) -> ServerResult {
+pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration, enforcer: Arc<RwLock<Enforcer>>) -> ServerResult {
     let addr = cfg.http().address();
 
     let routes = telemetry::routes()
         .or(warp::path("apis")
-            .and(mount_resource::<v1alpha1::User>(
-                logger.new(slog::o!()),
-                couch.clone(),
-            ))
-            .recover(handle_rejection))
+            .and(can_i(enforcer.clone())
+                .or(mount_resource::<users::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(mount_resource::<acl::api::v1alpha1::Policy>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(mount_resource::<acl::api::v1alpha1::PolicyAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(mount_resource::<acl::api::v1alpha1::RoleAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+            ).recover(handle_rejection))
         .with(
             warp::cors()
                 .allow_any_origin()
@@ -66,18 +69,32 @@ pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration) -> ServerR
     Ok(())
 }
 
-fn with_logger(logger: Logger) -> impl Filter<Extract = (Logger,), Error = Infallible> + Clone {
+fn with_logger(logger: Logger) -> impl Filter<Extract=(Logger, ), Error=Infallible> + Clone {
     warp::any().map(move || logger.clone())
 }
 
-fn with_couch(couch: Couch) -> impl Filter<Extract = (Couch,), Error = Infallible> + Clone {
+fn with_couch(couch: Couch) -> impl Filter<Extract=(Couch, ), Error=Infallible> + Clone {
     warp::any().map(move || couch.clone())
+}
+
+fn with_enforcer(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(Arc<RwLock<Enforcer>>, ), Error=Infallible> + Clone {
+    warp::any().map(move || enforcer.clone())
+}
+
+fn can_i(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
+    warp::get()
+        .and(warp::path("can-i"))
+        .and(warp::path::end())
+        .and(with_enforcer(enforcer))
+        .and(warp::query())
+        .and_then(handlers::can_i)
 }
 
 fn mount_resource<T: 'static + Resource + Unpin>(
     logger: Logger,
     couch: Couch,
-) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
+    enforcer: Arc<RwLock<Enforcer>>,
+) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
     let typ = T::type_meta();
     let group = typ.api_version.group;
     let version = typ.api_version.version;
@@ -93,24 +110,28 @@ fn mount_resource<T: 'static + Resource + Unpin>(
     let watch = warp::get()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
+        .and(with_enforcer(enforcer.clone()))
         .and(watch_path)
         .and_then(watch_resources::<T>);
 
     let list = warp::get()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
+        .and(with_enforcer(enforcer.clone()))
         .and(list_path)
         .and_then(list_resources::<T>);
 
     let get = warp::get()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
+        .and(with_enforcer(enforcer.clone()))
         .and(resource_path.clone())
         .and_then(get_resource::<T>);
 
     let create = warp::put()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
+        .and(with_enforcer(enforcer.clone()))
         .and(resource_path.clone())
         .and(warp::body::json::<T>())
         .and_then(create_resource);
@@ -118,6 +139,7 @@ fn mount_resource<T: 'static + Resource + Unpin>(
     let update = warp::patch()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
+        .and(with_enforcer(enforcer.clone()))
         .and(resource_path.clone())
         .and(warp::body::json::<T>())
         .and_then(update_resource);
@@ -125,6 +147,7 @@ fn mount_resource<T: 'static + Resource + Unpin>(
     let delete = warp::delete()
         .and(with_logger(logger.clone()))
         .and(with_couch(couch.clone()))
+        .and(with_enforcer(enforcer.clone()))
         .and(resource_path)
         .and_then(delete_resource::<T>);
 

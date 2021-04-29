@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use api::{KindNamedRef, NamedRef, Resource};
+use api::{NamedRef, Resource};
 use api::core::v1alpha1::{Metadata, TypeMeta};
+pub use controller::RoleAttachmentController;
 
 use crate::api::v1alpha1::API_VERSION;
 
-pub mod controller;
-
+mod controller;
 /*
 apiVersion: rbac/v1alpha1
 kind: RoleAttachment

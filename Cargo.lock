@@ -135,6 +135,7 @@ dependencies = [
 name = "api_server"
 version = "0.1.0"
 dependencies = [
+ "acl",
  "actix",
  "actix-rt 2.1.0",
  "api",

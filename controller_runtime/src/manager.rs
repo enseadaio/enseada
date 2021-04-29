@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 use slog::Logger;
 
+use api::Resource;
 use couchdb::db::Database;
 
 use crate::error::ControllerError;
@@ -17,14 +18,16 @@ pub struct ResourceWrapper<T: DeserializeOwned + Serialize> {
     id: Id,
     #[serde(rename = "_rev", skip_serializing_if = "Option::is_none")]
     rev: Option<String>,
+    version: String,
     resource: T,
 }
 
 impl<T: DeserializeOwned + Serialize> ResourceWrapper<T> {
-    pub fn new(kind: &str, name: &str, resource: T) -> Self {
+    pub fn new(kind: &str, version: &str, name: &str, resource: T) -> Self {
         Self {
             id: Id::new(kind, name),
             rev: None,
+            version: version.to_string(),
             resource,
         }
     }
@@ -39,19 +42,17 @@ impl<T: DeserializeOwned + Serialize> ResourceWrapper<T> {
 }
 
 #[derive(Clone)]
-pub struct ResourceManager<T: Clone + DeserializeOwned + Serialize> {
+pub struct ResourceManager<T: Resource> {
     logger: Logger,
     db: Database,
-    kind: String,
     _phantom: PhantomData<T>,
 }
 
-impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
-    pub fn new<K: ToString>(logger: Logger, db: Database, kind: K) -> Self {
+impl<T: Resource> ResourceManager<T> {
+    pub fn new(logger: Logger, db: Database) -> Self {
         Self {
             logger,
             db,
-            kind: kind.to_string(),
             _phantom: PhantomData::default(),
         }
     }
@@ -67,7 +68,8 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     }
 
     pub async fn list(&self) -> Result<Vec<T>, ControllerError> {
-        let list = self.db.list_partitioned::<ResourceWrapper<T>>(&self.kind, 10, 0).await?;
+        let kind = T::type_meta().kind_plural;
+        let list = self.db.list_partitioned::<ResourceWrapper<T>>(&kind, 10, 0).await?;
         Ok(list.rows.into_iter()
             .map(|res| res.doc.unwrap())
             .map(ResourceWrapper::into_inner)
@@ -79,25 +81,30 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     }
 
     async fn inner_find(&self, name: &str) -> Result<Option<ResourceWrapper<T>>, ControllerError> {
-        let id = format!("{}:{}", &self.kind, name);
+        let kind = T::type_meta().kind_plural;
+        let id = format!("{}:{}", &kind, name);
         self.db.find_one::<ResourceWrapper<T>>(&id).await.map_err(ControllerError::from)
     }
 
     pub async fn get(&self, name: &str) -> Result<T, ControllerError> {
-        let id = format!("{}:{}", &self.kind, name);
+        let kind = T::type_meta().kind_plural;
+        let id = format!("{}:{}", &kind, name);
         let ResourceWrapper { resource, .. } = self.db.get::<ResourceWrapper<T>>(&id).await?;
         Ok(resource)
     }
 
     pub async fn put(&self, name: &str, resource: T) -> Result<T, ControllerError> {
-        slog::debug!(self.logger, "Updating resource {}", name);
+        let typ = T::type_meta();
+        let kind = typ.kind_plural;
+        let version = typ.api_version.version;
+
         let wrapper = self.inner_find(name).await?.map_or_else(
-            || ResourceWrapper::new(&self.kind, name, resource.clone()),
+            || ResourceWrapper::new(&kind, &version, name, resource.clone()),
             |wrapper| wrapper.with_resource(resource.clone()),
         );
         match &wrapper.rev {
-            None => slog::debug!(self.logger, "Creating new resource"),
-            Some(rev) => slog::debug!(self.logger, "Updating resource"; "rev" => rev),
+            None => slog::debug!(self.logger, "Creating new resource"; "kind" => &kind, "name" => name),
+            Some(rev) => slog::debug!(self.logger, "Updating resource"; "kind" => &kind, "name" => name, "rev" => rev),
         }
 
         self.db.put(&wrapper.id, &wrapper).await?;
@@ -105,7 +112,7 @@ impl<T: Clone + DeserializeOwned + Serialize> ResourceManager<T> {
     }
 
     pub async fn delete(&self, name: &str) -> Result<(), ControllerError> {
-        let kind = &self.kind;
+        let kind = T::type_meta().kind_plural;
         let id = format!("{}:{}", kind, name);
         let wrapper = self.db.find_one::<ResourceWrapper<T>>(&id).await
             ?

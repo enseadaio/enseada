@@ -24,27 +24,26 @@ pub trait Reconciler<T: Resource, E: Error = ControllerError> {
 
 pub type ControllerFactory<T, R> = fn(logger: Logger, manager: ResourceManager<T>) -> R;
 
-pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconciler<T, E>>(
+pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconciler<T, E>, C: Fn(Logger, ResourceManager<T>) -> R>(
     logger: Logger,
     couch: Couch,
     arbiter: &ArbiterHandle,
     polling_interval: std::time::Duration,
-    controller_factory: ControllerFactory<T, R>,
+    controller_factory: C,
 ) -> Result<(), ControllerError> {
     let typ = T::type_meta();
     let group = &typ.api_version.group;
     let kind = &typ.kind_plural;
 
+    let logger = logger.new(
+        slog::o!("controller" => kind.to_string(), "api_version" => typ.api_version.to_string()),
+    );
     let db = couch.database(group, true);
     let manager = ResourceManager::new(
         logger.new(slog::o!("manager" => kind.to_string())),
         db,
-        kind,
     );
     manager.init().await?;
-    let logger = logger.new(
-        slog::o!("controller" => kind.to_string(), "api_version" => typ.api_version.to_string()),
-    );
     let mut controller = controller_factory(logger.clone(), manager.clone());
     let mut w = Watcher::<T>::start(
         logger.clone(),

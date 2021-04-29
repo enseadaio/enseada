@@ -45,7 +45,17 @@ impl<T: 'static + Resource + Unpin> Watcher<T> {
         let db = self.manager.db();
         let seq = self.last_seq.clone();
 
-        ctx.wait(async move { db.changes_since(seq).await }.into_actor(self)
+        ctx.wait(async move {
+            let typ = T::type_meta();
+            db.filtered_changes_since(seq, couchdb::json!({
+            "_id": {
+                "$regex": format!("^{}:", typ.kind_plural)
+            },
+            "version": {
+                "$eq": typ.api_version.version
+            }
+        })).await
+        }.into_actor(self)
             .map(|res, this, ctx| {
                 match res {
                     Ok(s) => {
@@ -62,7 +72,7 @@ impl<T: 'static + Resource + Unpin> Watcher<T> {
     fn start_tick_stream(&mut self, ctx: &mut Context<Self>) {
         ctx.run_interval(self.tick, |this, ctx| {
             let manager = this.manager.clone();
-            ctx.wait(async move { manager.list().await}.into_actor(this)
+            ctx.wait(async move { manager.list().await }.into_actor(this)
                 .map(|res, this, ctx| {
                     match res {
                         Ok(list) => {
@@ -70,7 +80,7 @@ impl<T: 'static + Resource + Unpin> Watcher<T> {
                                 let mut sink = this.sink.clone();
                                 ctx.wait(async move { sink.send(Ok(Event::from(resource))).await }.into_actor(this)
                                     .map(|res, this, ctx| {
-                                        if let Err(err) =  res{
+                                        if let Err(err) = res {
                                             if err.is_disconnected() {
                                                 ctx.stop();
                                             } else {

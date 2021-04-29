@@ -24,4 +24,5 @@ pub struct Change {
 pub(crate) struct ChangeRequest {
     pub feed: String,
     pub since: String,
+    pub filter: Option<String>,
 }

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use bytes::Bytes;
 use futures::{stream, Stream, StreamExt};
 use percent_encoding::{AsciiSet, CONTROLS, percent_encode};
-use reqwest::StatusCode;
+use reqwest::{Method, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -213,7 +213,7 @@ impl Database {
         self.do_list(&path, limit, skip).await
     }
 
-    pub fn stream<R: DeserializeOwned>(&self) -> impl Stream<Item = Result<R>> {
+    pub fn stream<R: DeserializeOwned>(&self) -> impl Stream<Item=Result<R>> {
         let path = format!("{}/_all_docs", &self.name);
         stream::try_unfold(
             (0, path, self.client.clone()),
@@ -240,12 +240,12 @@ impl Database {
                 }
             },
         )
-        .map(|res| match res {
-            Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
-            Err(err) => vec![Err(err)],
-        })
-        .map(stream::iter)
-        .flatten()
+            .map(|res| match res {
+                Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
+                Err(err) => vec![Err(err)],
+            })
+            .map(stream::iter)
+            .flatten()
     }
 
     async fn do_list<R: DeserializeOwned>(
@@ -340,7 +340,7 @@ impl Database {
     pub fn find_stream<R: DeserializeOwned>(
         &self,
         selector: serde_json::Value,
-    ) -> impl Stream<Item = Result<R>> {
+    ) -> impl Stream<Item=Result<R>> {
         let path = format!("{}/_find", &self.name);
         self.do_find_stream(path, selector)
     }
@@ -349,7 +349,7 @@ impl Database {
         &self,
         partition: &str,
         selector: serde_json::Value,
-    ) -> impl Stream<Item = Result<R>> {
+    ) -> impl Stream<Item=Result<R>> {
         let partition = percent_encode(partition.as_bytes(), ESCAPED).to_string();
         let path = format!("{}/_partition/{}/_find", &self.name, partition);
         self.do_find_stream(path, selector)
@@ -359,7 +359,7 @@ impl Database {
         &self,
         path: String,
         selector: serde_json::Value,
-    ) -> impl Stream<Item = Result<R>> {
+    ) -> impl Stream<Item=Result<R>> {
         stream::try_unfold(
             (0, path, self.client.clone(), selector),
             |(skip, path, client, selector)| async move {
@@ -391,12 +391,12 @@ impl Database {
                 }
             },
         )
-        .map(|res| match res {
-            Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
-            Err(err) => vec![Err(err)],
-        })
-        .map(stream::iter)
-        .flatten()
+            .map(|res| match res {
+                Ok(iter) => iter.into_iter().map(Result::Ok).collect(),
+                Err(err) => vec![Err(err)],
+            })
+            .map(stream::iter)
+            .flatten()
     }
 
     pub async fn delete(&self, id: &str, rev: &str) -> Result<()> {
@@ -415,13 +415,34 @@ impl Database {
         Ok(res)
     }
 
-    pub async fn changes_since(&self, seq: String) -> Result<impl futures::Stream<Item = ChangeEvent>> {
+    pub async fn filtered_changes_since(&self, seq: String, selector: serde_json::Value) -> Result<impl futures::Stream<Item=ChangeEvent>> {
         let path = format!("{}/_changes", &self.name);
-        let query = Some(ChangeRequest {
+        let body = serde_json::json!({
+           "selector": &selector,
+        });
+
+        self.do_changes(Method::POST, &path, Some(body), ChangeRequest {
             feed: "continuous".to_string(),
             since: seq,
-        });
-        let stream = self.client.stream(&path, query).await?;
+            filter: Some("_selector".to_string()),
+        }).await
+    }
+
+    pub async fn changes_since(&self, seq: String) -> Result<impl futures::Stream<Item=ChangeEvent>> {
+        let path = format!("{}/_changes", &self.name);
+        self.do_changes(Method::GET, &path, None::<bool>, ChangeRequest {
+            feed: "continuous".to_string(),
+            since: seq,
+            filter: None,
+        }).await
+    }
+
+    pub async fn changes(&self) -> Result<impl futures::Stream<Item=ChangeEvent>> {
+        self.changes_since("now".to_string()).await
+    }
+
+    async fn do_changes<B: Serialize>(&self, method: Method, path: &str, body: Option<B>, query: ChangeRequest) -> Result<impl futures::Stream<Item=ChangeEvent>> {
+        let stream = self.client.stream(method, path, body, Some(query)).await?;
         let stream = stream
             .map(|res: reqwest::Result<Bytes>| {
                 let bytes = res.unwrap();
@@ -449,10 +470,6 @@ impl Database {
             })
             .flatten();
         Ok(stream)
-    }
-
-    pub async fn changes(&self) -> Result<impl futures::Stream<Item = ChangeEvent>> {
-        self.changes_since("now".to_string()).await
     }
 }
 

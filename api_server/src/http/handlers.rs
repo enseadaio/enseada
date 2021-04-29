@@ -1,25 +1,28 @@
 use std::convert::Infallible;
 use std::error::Error as StdError;
+use std::sync::Arc;
+use std::time::Duration;
 
 use futures::StreamExt;
 use hyper::StatusCode;
 use slog::Logger;
+use tokio::sync::RwLock;
 use warp::{Rejection, Reply, reply};
 use warp::body::BodyDeserializeError;
 use warp::reject::MethodNotAllowed;
 use warp::reply::{json, Json, with_status};
 use warp::sse::Event;
 
+use acl::Enforcer;
 use api::core::v1alpha1::List;
 use api::error::{Code, ErrorResponse};
-use api::Resource;
+use api::{Resource, KindNamedRef, GroupVersionKindName};
 use controller_runtime::{Arbiter, ResourceManager, Watcher};
 use couchdb::Couch;
 
 use crate::error::Error;
-use std::time::Duration;
 
-pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch) -> Result<impl warp::Reply, Rejection> {
+pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>) -> Result<impl warp::Reply, Rejection> {
     let manager = create_manager::<T>(logger.clone(), couch).await?;
     let stream = Watcher::<T>::start(logger.clone(), manager, &Arbiter::current(), Duration::from_secs(60 * 5), Some("now".to_string()));
     let stream = stream.map(|res| match res {
@@ -29,34 +32,34 @@ pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logge
     Ok(warp::sse::reply(stream))
 }
 
-pub(super) async fn list_resources<T: Resource>(logger: Logger, couch: Couch) -> Result<Json, Rejection> {
+pub(super) async fn list_resources<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>) -> Result<Json, Rejection> {
     let manager = create_manager::<T>(logger.clone(), couch).await?;
     let items = manager.list().await.map_err(Error::from)?;
     let list = List::from(items);
     Ok(json(&list))
 }
 
-pub(super) async fn get_resource<T: Resource>(logger: Logger, couch: Couch, name: String) -> Result<Json, Rejection> {
+pub(super) async fn get_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String) -> Result<Json, Rejection> {
     let manager = create_manager::<T>(logger.clone(), couch).await?;
     let resource = manager.get(&name).await.map_err(Error::from)?;
     Ok(json(&resource))
 }
 
-pub(super) async fn create_resource<T: Resource>(logger: Logger, couch: Couch, name: String, body: T) -> Result<Json, Rejection> {
+pub(super) async fn create_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String, body: T) -> Result<Json, Rejection> {
     let manager = create_manager(logger.clone(), couch).await?;
     let body = normalize_resource(&manager, &name, body).await?;
     let resource = manager.put(&name, body).await.map_err(Error::from)?;
     Ok(json(&resource))
 }
 
-pub(super) async fn update_resource<T: Resource>(logger: Logger, couch: Couch, name: String, body: T) -> Result<Json, Rejection> {
+pub(super) async fn update_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String, body: T) -> Result<Json, Rejection> {
     let manager = create_manager(logger.clone(), couch).await?;
     let body = normalize_resource(&manager, &name, body).await?;
     let resource = manager.put(&name, body).await.map_err(Error::from)?;
     Ok(json(&resource))
 }
 
-pub(super) async fn delete_resource<T: Resource>(logger: Logger, couch: Couch, name: String) -> Result<impl Reply, Rejection> {
+pub(super) async fn delete_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String) -> Result<impl Reply, Rejection> {
     let manager = create_manager::<T>(logger.clone(), couch).await?;
     manager.delete(&name).await.map_err(Error::from)?;
     Ok(with_status(reply::reply(), StatusCode::NO_CONTENT))
@@ -72,7 +75,7 @@ async fn create_manager<T: Resource>(logger: Logger, couch: Couch) -> Result<Res
     if !db.exists_self().await.map_err(Error::from)? {
         return Err(Error::not_found(format!("the server doesn't have a resource type '{}' in group {}/{}", kind, group, version)));
     }
-    Ok(ResourceManager::new(logger, db, kind))
+    Ok(ResourceManager::new(logger, db))
 }
 
 async fn normalize_resource<T: Resource>(manager: &ResourceManager<T>, name: &str, mut body: T) -> Result<T, Error> {
@@ -93,7 +96,6 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     let message;
     let metadata = None;
 
-    eprintln!("{:?}", err);
     if err.is_not_found() || err.find::<MethodNotAllowed>().is_some() {
         code = Code::NotFound;
         message = "not found".to_string();
@@ -118,3 +120,38 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     Ok(with_status(json, status))
 }
 
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CanIQuery {
+    user: String,
+    resource: GroupVersionKindName,
+    action: String,
+}
+
+pub async fn can_i(enforcer: Arc<RwLock<Enforcer>>, query: CanIQuery) -> Result<impl Reply, Infallible> {
+    // TODO extract real user from token
+    let user = &KindNamedRef {
+        kind: "User".to_string(),
+        name: query.user.clone(),
+    };
+    let obj = &query.resource;
+    let act = &query.action;
+
+    let enforcer = enforcer.read().await;
+    match enforcer.check(user, obj, act) {
+        Ok(()) => {
+            let json = json(&serde_json::json!({
+                "access": "granted",
+            }));
+            Ok(with_status(json, StatusCode::OK))
+        }
+        Err(err) => {
+            let json = json(&serde_json::json!({
+                "access": "denied",
+                "reason": err.to_string()
+            }));
+            Ok(with_status(json, StatusCode::FORBIDDEN))
+        }
+    }
+
+}

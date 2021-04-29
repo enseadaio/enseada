@@ -82,12 +82,19 @@ impl Client {
         }
     }
 
-    pub async fn stream<Q: Serialize>(
+    pub async fn stream<B: Serialize, Q: Serialize>(
         &self,
+        method: Method,
         path: &str,
+        body: Option<B>,
         query: Option<Q>,
     ) -> reqwest::Result<impl futures::Stream<Item = reqwest::Result<Bytes>>> {
-        let req = self.build_req(Method::GET, path);
+        let req = self.build_req(method, path);
+        let req = if let Some(body) = body {
+            req.json::<B>(&body)
+        } else {
+            req
+        };
         let req = if let Some(query) = query {
             req.query::<Q>(&query)
         } else {

@@ -6,7 +6,6 @@ use futures::TryFutureExt;
 
 use controller_runtime::start_controller;
 use couchdb::Couch;
-use users::controller::v1alpha1;
 
 use crate::config::Configuration;
 use crate::error::Error;
@@ -34,17 +33,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let controller_arbiter = Arbiter::new().handle();
 
+    let enforcer = acl::api::v1alpha1::create_enforcer(logger.clone(), couch.clone());
+
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
-        http::start(logger.new(slog::o!("server" => "http")), couch.clone(), cfg),
-        start_controller(
-            logger.clone(),
-            couch.clone(),
-            &controller_arbiter,
-            cfg.controllers().users().polling_interval(),
-            v1alpha1::UserController::new
-        )
-        .map_err(Error::from),
+        http::start(logger.new(slog::o!("server" => "http")), couch.clone(), cfg, enforcer.clone()),
+        start_controller(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().users().polling_interval(), users::api::v1alpha1::UserController::new).map_err(Error::from),
+        acl::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().users().polling_interval(), enforcer).map_err(Error::from),
     )?;
 
     Ok(())
