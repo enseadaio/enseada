@@ -8,7 +8,7 @@ mod migrate;
 pub mod name {
     pub const OAUTH: &str = "oauth";
     pub const USERS: &str = "users";
-    pub const RBAC: &str = "rbac";
+    pub const RBAC: &str = "acl";
     pub const OCI: &str = "oci";
     pub const MAVEN: &str = "maven";
 }

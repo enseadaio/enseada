@@ -1,7 +1,6 @@
-use structopt::StructOpt;
-use crate::config::LogFormat;
-use std::path::PathBuf;
 use config::{Config, ConfigError};
+use std::path::PathBuf;
+use structopt::StructOpt;
 use url::Url;
 
 #[derive(Debug, StructOpt)]

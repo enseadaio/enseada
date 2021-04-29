@@ -1,8 +1,7 @@
 use std::convert::Infallible;
-use std::net::SocketAddr;
 
 use slog::Logger;
-use warp::{wrap_fn, Filter, Rejection, Reply};
+use warp::{Filter, Rejection, Reply};
 
 use api::Resource;
 use couchdb::Couch;

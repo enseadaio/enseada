@@ -14,7 +14,7 @@ static MODULES: &'static [&'static str] = &[
     "enseada",
     "users",
     "observability",
-    "rbac",
+    "acl",
     "oci",
     "oauth",
     "api",

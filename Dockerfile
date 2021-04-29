@@ -56,7 +56,7 @@ COPY oci .
 
 # RBAC
 WORKDIR /app/enseada/rbac
-COPY rbac .
+COPY acl .
 
 # Users
 WORKDIR /app/enseada/users

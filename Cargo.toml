@@ -5,6 +5,7 @@ members = [
     "api",
     "users",
     "controller_runtime",
+    "acl",
 
     # Old Stuff
     "old_api",
@@ -12,7 +13,7 @@ members = [
     "lib",
     "old_users",
     "observability",
-    "rbac",
+    "old_rbac",
     "oci",
     "maven",
     "oauth",

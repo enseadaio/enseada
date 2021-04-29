@@ -15,7 +15,7 @@ couchdb = { path = "../couchdb" }
 enseada = { path = "../lib" }
 users = { path = "../users" }
 observability = { path = "../observability" }
-rbac = { path = "../rbac" }
+rbac = { path = "../acl" }
 oci = { path = "../oci" }
 maven = { path = "../maven" }
 oauth = { path = "../oauth" }

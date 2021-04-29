@@ -7,7 +7,7 @@ pub use chrono::*;
 use slog::Logger;
 
 use api::Resource;
-use couchdb::Couch;
+pub use couchdb::Couch;
 pub use error::*;
 pub use manager::*;
 pub use watcher::*;
@@ -29,17 +29,30 @@ pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconc
     couch: Couch,
     arbiter: &ArbiterHandle,
     polling_interval: std::time::Duration,
-    controller_factory: ControllerFactory<T, R>) -> Result<(), ControllerError> {
+    controller_factory: ControllerFactory<T, R>,
+) -> Result<(), ControllerError> {
     let typ = T::type_meta();
     let group = &typ.api_version.group;
     let kind = &typ.kind_plural;
 
     let db = couch.database(group, true);
-    let manager = ResourceManager::new(logger.new(slog::o!("manager" => kind.to_string())), db, kind);
+    let manager = ResourceManager::new(
+        logger.new(slog::o!("manager" => kind.to_string())),
+        db,
+        kind,
+    );
     manager.init().await?;
-    let logger = logger.new(slog::o!("controller" => kind.to_string(), "api_version" => typ.api_version.to_string()));
+    let logger = logger.new(
+        slog::o!("controller" => kind.to_string(), "api_version" => typ.api_version.to_string()),
+    );
     let mut controller = controller_factory(logger.clone(), manager.clone());
-    let mut w = Watcher::<T>::start(logger.clone(), manager.clone(), arbiter, polling_interval, None);
+    let mut w = Watcher::<T>::start(
+        logger.clone(),
+        manager.clone(),
+        arbiter,
+        polling_interval,
+        None,
+    );
 
     slog::info!(logger, "Starting controller");
     while let Some(res) = w.next().await {
@@ -57,7 +70,11 @@ pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconc
     Ok(())
 }
 
-async fn process_event<T: Resource, E: Error, R: Reconciler<T, E>>(logger: Logger, controller: &mut R, resource: T) {
+async fn process_event<T: Resource, E: Error, R: Reconciler<T, E>>(
+    logger: Logger,
+    controller: &mut R,
+    resource: T,
+) {
     while let Err(err) = controller.reconcile(resource.clone()).await {
         slog::error!(logger, "{}", err);
         if let Some(retry_in) = err.retry_in() {

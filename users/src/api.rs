@@ -25,16 +25,6 @@ pub mod v1alpha1 {
         }
     }
 
-    impl User {
-        pub fn status_mut(&mut self) -> &mut UserStatus {
-            if self.status.is_none() {
-                self.status = Some(Default::default());
-            }
-
-            self.status.as_mut().unwrap()
-        }
-    }
-
     #[derive(Clone, Default, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct UserSpec {
@@ -75,6 +65,10 @@ pub mod v1alpha1 {
         }
 
         fn status_mut(&mut self) -> Option<&mut UserStatus> {
+            if self.status.is_none() {
+                self.status = Some(Default::default());
+            }
+
             self.status.as_mut()
         }
 

@@ -1,4 +1,4 @@
-use std::io::{Stderr, stderr};
+use std::io::stderr;
 
 use slog::{Drain, LevelFilter, Logger};
 
@@ -24,4 +24,3 @@ fn json() -> Async {
     let drain = slog_json::Json::default(stderr());
     Async::new(drain.fuse()).build()
 }
-
