@@ -1,10 +1,10 @@
 
 use config::{Config, ConfigError};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use url::Url;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CouchDB {
     url: Url,
     username: String,

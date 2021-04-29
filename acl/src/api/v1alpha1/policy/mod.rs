@@ -1,17 +1,21 @@
 use serde::{Deserialize, Serialize};
 
+use api::{GroupVersionKind, Resource, GroupVersionKindName};
 use api::core::v1alpha1::{Metadata, TypeMeta};
-use api::{GroupVersion, Resource};
+
+use crate::api::v1alpha1::API_VERSION;
 
 pub mod controller;
 
-lazy_static! {
-    pub static ref API_VERSION: GroupVersion = GroupVersion {
-        group: "rbac".to_string(),
-        version: "v1alpha1".to_string(),
-    };
-}
-
+/*
+apiVersion: rbac/v1alpha1
+kind: Policy
+metadata:
+    name: test
+rules:
+- resources: ['* / * / *']
+  actions: ['*']
+ */
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Policy {
@@ -68,8 +72,6 @@ impl Resource for Policy {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Rule {
-    pub api_groups: Vec<String>,
-    pub resources: Vec<String>,
-    pub resource_names: Option<Vec<String>>,
+    pub resources: Vec<GroupVersionKindName>,
     pub actions: Vec<String>,
 }

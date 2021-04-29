@@ -6,27 +6,21 @@ use crate::token::TokenTypeHint;
 #[derive(Debug, Deserialize)]
 #[serde(tag = "grant_type", rename_all = "snake_case")]
 pub enum TokenRequest {
-    AuthorizationCode(AuthorizationCodeRequest),
-    RefreshToken(RefreshTokenRequest),
+    AuthorizationCode {
+        code: String,
+        redirect_uri: String,
+        client_id: Option<String>,
+        client_secret: Option<String>,
+        code_verifier: Option<String>,
+    },
+    RefreshToken {
+        refresh_token: String,
+        scope: Option<Scope>,
+        client_id: Option<String>,
+        client_secret: Option<String>,
+    },
     #[serde(other)]
     Unknown,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct AuthorizationCodeRequest {
-    code: String,
-    redirect_uri: String,
-    client_id: Option<String>,
-    client_secret: Option<String>,
-    code_verifier: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct RefreshTokenRequest {
-    refresh_token: String,
-    scope: Option<Scope>,
-    client_id: Option<String>,
-    client_secret: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

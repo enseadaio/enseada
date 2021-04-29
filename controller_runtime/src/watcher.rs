@@ -68,9 +68,16 @@ impl<T: 'static + Resource + Unpin> Watcher<T> {
                         Ok(list) => {
                             for resource in list {
                                 let mut sink = this.sink.clone();
-                                ctx.wait(async move {
-                                    sink.send(Ok(Event::from(resource))).await.expect("failed to send resource event");
-                                }.into_actor(this));
+                                ctx.wait(async move { sink.send(Ok(Event::from(resource))).await }.into_actor(this)
+                                    .map(|res, this, ctx| {
+                                        if let Err(err) =  res{
+                                            if err.is_disconnected() {
+                                                ctx.stop();
+                                            } else {
+                                                slog::error!(this.logger, "failed to send event: {}", err);
+                                            }
+                                        }
+                                    }));
                             }
                         }
                         Err(err) => {

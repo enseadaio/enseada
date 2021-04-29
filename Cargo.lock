@@ -127,6 +127,7 @@ dependencies = [
  "http",
  "lazy_static",
  "serde",
+ "serde_json",
  "tokio 1.4.0",
 ]
 
@@ -1285,18 +1286,9 @@ name = "oauth"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "chrono",
- "enseada",
- "events",
- "glob",
  "http",
- "log",
  "serde",
  "serde_json",
- "tracing",
- "tracing-futures",
- "url",
- "users",
 ]
 
 [[package]]
@@ -1336,6 +1328,25 @@ dependencies = [
  "oauth",
  "serde",
  "walkdir",
+]
+
+[[package]]
+name = "old_oauth"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "enseada",
+ "events",
+ "glob",
+ "http",
+ "log",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-futures",
+ "url",
+ "users",
 ]
 
 [[package]]

@@ -12,3 +12,7 @@ couchdb:
   url: http://localhost:5984
   username: enseada
   password: enseada
+
+controllers:
+  users:
+    polling_interval: 2s

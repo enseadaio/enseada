@@ -1,10 +1,11 @@
 use std::fmt::{self, Debug, Display, Formatter};
 
+use http::StatusCode;
 use serde::Serialize;
 
-use http::StatusCode;
+use enseada::couchdb;
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Error {
     error: ErrorKind,
     error_description: String,
@@ -64,14 +65,14 @@ impl From<String> for Error {
     }
 }
 
-// impl From<couchdb::error::Error> for Error {
-//     fn from(err: couchdb::error::Error) -> Self {
-//         match err.status() {
-//             StatusCode::NOT_FOUND => Self::new(ErrorKind::AccessDenied, err),
-//             _ => Self::from(err.to_string()),
-//         }
-//     }
-// }
+impl From<couchdb::error::Error> for Error {
+    fn from(err: couchdb::error::Error) -> Self {
+        match err.status() {
+            StatusCode::NOT_FOUND => Self::new(ErrorKind::AccessDenied, err),
+            _ => Self::from(err.to_string()),
+        }
+    }
+}
 
 #[derive(Serialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]

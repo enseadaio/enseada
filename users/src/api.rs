@@ -2,7 +2,7 @@ pub mod v1alpha1 {
     use serde::{Deserialize, Serialize};
 
     use api::core::v1alpha1::{Metadata, TypeMeta};
-    use api::{core, Resource};
+    use api::{core, Resource, KindNamedRef, NamedRef};
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]

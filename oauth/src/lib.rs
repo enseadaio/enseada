@@ -1,22 +1,21 @@
-use chrono::{DateTime, Utc};
+pub use request::*;
 
-use crate::error::Error;
-use crate::handler::OAuthHandler;
-use crate::persistence::CouchStorage;
-
-pub mod client;
-pub mod code;
 pub mod error;
-pub mod handler;
-pub mod persistence;
 pub mod request;
-pub mod response;
+pub mod handler;
 pub mod scope;
 pub mod session;
-pub mod storage;
 pub mod token;
 
-pub type CouchOAuthHandler = OAuthHandler<CouchStorage, CouchStorage, CouchStorage, CouchStorage>;
+/// Represent HTTP basic authentication as (client_id, client_secret)
+#[derive(Debug)]
+pub struct BasicAuth(String, Option<String>);
+
+impl BasicAuth {
+    pub fn new(username: String, password: Option<String>) -> Self {
+        BasicAuth(username, password)
+    }
+}
 
 pub type Result<T> = std::result::Result<T, Error>;
 

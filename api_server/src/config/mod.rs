@@ -1,5 +1,5 @@
 use config::{Config, File};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
 
 use crate::config::cli::Opts;
@@ -16,7 +16,7 @@ mod http;
 mod log;
 pub mod tls;
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Configuration {
     log: Log,
     http: Http,
@@ -57,5 +57,12 @@ impl Configuration {
 
     pub fn controllers(&self) -> &Controllers {
         &self.controllers
+    }
+
+    pub fn pretty_print(&self) -> String {
+        match self.log.format() {
+            LogFormat::Text => serde_json::to_string_pretty(&self),
+            LogFormat::Json => serde_json::to_string(&self),
+        }.expect("failed to pretty print configuration")
     }
 }

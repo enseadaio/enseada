@@ -1,11 +1,11 @@
 use config::{Config, ConfigError};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use std::time::Duration;
 
 const DEFAULT_POLLING_INTERVAL: &str = "5 minutes";
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Controllers {
     users: Controller,
 }
@@ -21,7 +21,7 @@ impl Controllers {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Controller {
     #[serde(with = "humantime_serde")]
     polling_interval: Duration,

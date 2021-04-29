@@ -4,16 +4,16 @@ use std::fmt::{self, Debug, Display, Formatter};
 
 use glob::Pattern;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Model {
     principals: HashMap<String, Principal>,
 }
 
-impl Debug for Model {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Model").finish()
-    }
-}
+// impl Debug for Model {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+//         f.debug_struct("Model").finish()
+//     }
+// }
 
 impl Model {
     pub fn empty() -> Self {
@@ -45,6 +45,10 @@ impl Model {
         };
 
         principal.visit(&visitor)
+    }
+
+    pub(crate) fn principals(self) -> HashMap<String, Principal> {
+        self.principals
     }
 }
 

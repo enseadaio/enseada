@@ -23,7 +23,7 @@ type ServerResult = Result<(), Error>;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = &Configuration::new()?;
     let logger = logger::create_logger(cfg);
-    slog::debug!(logger, "Config: {:?}", cfg);
+    slog::debug!(logger, ""; "config" => cfg.pretty_print());
 
     let couch_cfg = cfg.couchdb();
     let couch = &Couch::new(

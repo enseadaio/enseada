@@ -71,6 +71,12 @@ pub mod v1alpha1 {
     }
 
     impl Metadata {
+        pub fn named<N: ToString>(name: N) -> Self {
+            Self {
+                name: name.to_string(),
+                ..Default::default()
+            }
+        }
         pub fn is_just_created(&self) -> bool {
             self.created_at.is_none()
         }

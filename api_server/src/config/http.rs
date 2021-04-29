@@ -1,11 +1,11 @@
 use std::net::SocketAddr;
 
 use config::{Config, ConfigError};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::config::tls::Tls;
 
-#[derive(Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Http {
     host: String,
     port: u16,
