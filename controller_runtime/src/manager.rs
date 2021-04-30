@@ -10,6 +10,7 @@ use couchdb::db::Database;
 
 use crate::error::ControllerError;
 use crate::id::Id;
+use chrono::Utc;
 
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(bound = "T: DeserializeOwned + Serialize")]
@@ -32,12 +33,22 @@ impl<T: DeserializeOwned + Serialize> ResourceWrapper<T> {
         }
     }
 
+
     pub fn into_inner(self) -> T {
         self.resource
     }
+
     pub fn with_resource(mut self, resource: T) -> Self {
         self.resource = resource;
         self
+    }
+
+    pub fn id(&self) -> &str {
+        self.id.as_ref()
+    }
+
+    pub fn rev(&self) -> Option<&str> {
+        self.rev.as_deref()
     }
 }
 
@@ -67,9 +78,17 @@ impl<T: Resource> ResourceManager<T> {
         Ok(())
     }
 
-    pub async fn list(&self) -> Result<Vec<T>, ControllerError> {
+    pub async fn list(&self, bookmark: Option<String>, limit: usize) -> Result<(Vec<T>, String), ControllerError> {
         let kind = T::type_meta().kind_plural;
-        let list = self.db.list_partitioned::<ResourceWrapper<T>>(&kind, 10, 0).await?;
+        let list = self.db.find_partitioned::<ResourceWrapper<T>>(&kind, serde_json::json!({}), bookmark, limit).await?;
+        Ok((list.docs.into_iter()
+            .map(ResourceWrapper::into_inner)
+            .collect(), list.bookmark))
+    }
+
+    pub async fn list_all(&self) -> Result<Vec<T>, ControllerError> {
+        let kind = T::type_meta().kind_plural;
+        let list = self.db.list_all_partitioned::<ResourceWrapper<T>>(&kind).await?;
         Ok(list.rows.into_iter()
             .map(|res| res.doc.unwrap())
             .map(ResourceWrapper::into_inner)
@@ -114,10 +133,14 @@ impl<T: Resource> ResourceManager<T> {
     pub async fn delete(&self, name: &str) -> Result<(), ControllerError> {
         let kind = T::type_meta().kind_plural;
         let id = format!("{}:{}", kind, name);
-        let wrapper = self.db.find_one::<ResourceWrapper<T>>(&id).await
+        let mut wrapper = self.db.find_one::<ResourceWrapper<T>>(&id).await
             ?
             .ok_or_else(|| couchdb::error::Error::not_found(format!("{} \"{}\" not found", kind, name)))?;
-        self.db.delete(&id, &wrapper.rev.unwrap()).await.map_err(ControllerError::from)
+        let resource = &mut wrapper.resource;
+        resource.metadata_mut().deleted_at = Some(Utc::now());
+
+        self.db.put(&id, wrapper).await?;
+        Ok(())
     }
 
     pub(super) fn db(&self) -> Database {

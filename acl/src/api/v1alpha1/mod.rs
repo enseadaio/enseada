@@ -11,13 +11,15 @@ pub use role_attachment::*;
 
 use crate::enforcer::Enforcer;
 
+use super::API_GROUP;
+
 mod policy;
 mod policy_attachment;
 mod role_attachment;
 
 lazy_static! {
     pub static ref API_VERSION: GroupVersion = GroupVersion {
-        group: "acl".to_string(),
+        group: API_GROUP.clone(),
         version: "v1alpha1".to_string(),
     };
 }

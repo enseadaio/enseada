@@ -18,6 +18,8 @@ use crate::config::Configuration;
 use crate::config::tls::Tls;
 use crate::error::Error;
 use crate::ServerResult;
+use controller_runtime::ResourceManager;
+use api::Resource;
 
 mod auth;
 mod resource;
@@ -26,13 +28,21 @@ mod telemetry;
 pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration, enforcer: Arc<RwLock<Enforcer>>) -> ServerResult {
     let addr = cfg.http().address();
 
+    // Resources
+    let users = resource::mount::<users::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+    let policies = resource::mount::<acl::api::v1alpha1::Policy>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+    let policy_attachments = resource::mount::<acl::api::v1alpha1::PolicyAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+    let role_attachments = resource::mount::<acl::api::v1alpha1::RoleAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+    let oauth_clients = resource::mount::<oauth::api::v1alpha1::OAuthClient>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+
     let routes = telemetry::routes()
         .or(warp::path("apis")
             .and(auth::mount_can_i(enforcer.clone())
-                .or(resource::mount::<users::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
-                .or(resource::mount::<acl::api::v1alpha1::Policy>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
-                .or(resource::mount::<acl::api::v1alpha1::PolicyAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
-                .or(resource::mount::<acl::api::v1alpha1::RoleAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(users)
+                .or(policies)
+                .or(policy_attachments)
+                .or(role_attachments)
+                .or(oauth_clients)
             ).recover(handle_rejection))
         .with(
             warp::cors()
@@ -78,8 +88,8 @@ fn with_logger(logger: Logger) -> impl Filter<Extract=(Logger, ), Error=Infallib
     warp::any().map(move || logger.clone())
 }
 
-fn with_couch(couch: Couch) -> impl Filter<Extract=(Couch, ), Error=Infallible> + Clone {
-    warp::any().map(move || couch.clone())
+fn with_manager<T: Resource>(manager: ResourceManager<T>) -> impl Filter<Extract=(ResourceManager<T>, ), Error=Infallible> + Clone {
+    warp::any().map(move || manager.clone())
 }
 
 fn with_enforcer(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(Arc<RwLock<Enforcer>>, ), Error=Infallible> + Clone {

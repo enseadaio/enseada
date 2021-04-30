@@ -152,6 +152,7 @@ dependencies = [
  "hyper",
  "lazy_static",
  "mime",
+ "oauth",
  "opentelemetry",
  "opentelemetry-prometheus",
  "prometheus",
@@ -378,6 +379,7 @@ dependencies = [
  "futures",
  "http",
  "serde",
+ "serde_json",
  "slog",
  "tokio 1.4.0",
 ]
@@ -1287,10 +1289,16 @@ dependencies = [
 name = "oauth"
 version = "0.1.0"
 dependencies = [
+ "api",
  "async-trait",
+ "controller_runtime",
  "http",
+ "lazy_static",
  "serde",
  "serde_json",
+ "slog",
+ "tokio 1.4.0",
+ "url",
 ]
 
 [[package]]

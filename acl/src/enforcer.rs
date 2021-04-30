@@ -25,9 +25,9 @@ impl Enforcer {
     }
 
     pub(crate) async fn load_model_from_resources(&mut self) -> Result<(), Error> {
-        let policies = self.policy_manager.list().await?;
-        let policy_attachments = self.policy_attachment_manager.list().await?;
-        let role_attachments = self.role_attachment_manager.list().await?;
+        let policies = self.policy_manager.list_all().await?;
+        let policy_attachments = self.policy_attachment_manager.list_all().await?;
+        let role_attachments = self.role_attachment_manager.list_all().await?;
 
         Self::load_rules(&mut self.model, policies, policy_attachments, role_attachments);
         Ok(())

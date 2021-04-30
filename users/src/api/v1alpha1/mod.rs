@@ -16,17 +16,6 @@ pub struct User {
     pub status: Option<UserStatus>,
 }
 
-impl Default for User {
-    fn default() -> Self {
-        Self {
-            type_meta: <User as Resource>::type_meta(),
-            metadata: Default::default(),
-            spec: Default::default(),
-            status: Default::default(),
-        }
-    }
-}
-
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserSpec {

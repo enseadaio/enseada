@@ -72,7 +72,7 @@ impl<T: 'static + Resource + Unpin> Watcher<T> {
     fn start_tick_stream(&mut self, ctx: &mut Context<Self>) {
         ctx.run_interval(self.tick, |this, ctx| {
             let manager = this.manager.clone();
-            ctx.wait(async move { manager.list().await }.into_actor(this)
+            ctx.wait(async move { manager.list_all().await }.into_actor(this)
                 .map(|res, this, ctx| {
                     match res {
                         Ok(list) => {

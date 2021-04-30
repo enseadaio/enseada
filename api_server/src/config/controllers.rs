@@ -1,23 +1,27 @@
+use std::collections::HashMap;
+use std::time::Duration;
+
 use config::{Config, ConfigError};
 use serde::{Deserialize, Serialize};
-
-use std::time::Duration;
 
 const DEFAULT_POLLING_INTERVAL: &str = "5 minutes";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Controllers {
-    users: Controller,
+    #[serde(flatten)]
+    controllers: HashMap<String, Controller>,
 }
 
 impl Controllers {
     pub fn set_defaults(cfg: &mut Config) -> Result<(), ConfigError> {
         Controller::set_defaults(cfg, "users")?;
+        Controller::set_defaults(cfg, "acl")?;
+        Controller::set_defaults(cfg, "auth")?;
         Ok(())
     }
 
-    pub fn users(&self) -> &Controller {
-        &self.users
+    pub fn get(&self, name: &str) -> &Controller {
+        self.controllers.get(name).expect("controller config not found")
     }
 }
 

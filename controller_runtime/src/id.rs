@@ -34,6 +34,12 @@ impl Display for Id {
     }
 }
 
+impl AsRef<str> for Id {
+    fn as_ref(&self) -> &str {
+        self.value.as_str()
+    }
+}
+
 impl AsRef<[u8]> for Id {
     fn as_ref(&self) -> &[u8] {
         self.value.as_bytes()

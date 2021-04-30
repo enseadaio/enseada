@@ -14,14 +14,25 @@ use acl::Enforcer;
 use api::core::v1alpha1::List;
 use api::error::ErrorResponse;
 use api::Resource;
-use controller_runtime::{Arbiter, ResourceManager, Watcher};
+use controller_runtime::{Arbiter, ResourceManager, Watcher, ControllerError};
 use couchdb::Couch;
 
 use crate::error::Error;
-use crate::http::{with_couch, with_enforcer, with_logger};
+use crate::http::{with_enforcer, with_logger, with_manager};
 
-pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>) -> Result<impl warp::Reply, Rejection> {
-    let manager = create_manager::<T>(logger.clone(), couch).await?;
+fn list_default_limit() -> usize {
+    100
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListQuery {
+    #[serde(default = "list_default_limit")]
+    limit: usize,
+    next_token: Option<String>
+}
+
+pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logger, manager: ResourceManager<T>, enforcer: Arc<RwLock<Enforcer>>) -> Result<impl warp::Reply, Rejection> {
     let stream = Watcher::<T>::start(logger.clone(), manager, &Arbiter::current(), Duration::from_secs(60 * 5), Some("now".to_string()));
     let stream = stream.map(|res| match res {
         Ok(event) => Ok::<Event, Infallible>(Event::default().event("change").json_data(event).unwrap()),
@@ -30,50 +41,32 @@ pub(super) async fn watch_resources<T: 'static + Resource + Unpin>(logger: Logge
     Ok(warp::sse::reply(stream))
 }
 
-pub(super) async fn list_resources<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>) -> Result<impl Reply, Rejection> {
-    let manager = create_manager::<T>(logger.clone(), couch).await?;
-    let items = manager.list().await.map_err(Error::from)?;
-    let list = List::from(items);
+pub(super) async fn list_resources<T: Resource>(logger: Logger, manager: ResourceManager<T>, enforcer: Arc<RwLock<Enforcer>>, query: ListQuery) -> Result<impl Reply, Rejection> {
+    let (items, next_token) = manager.list(query.next_token, query.limit).await.map_err(Error::from)?;
+    let list = List::new(query.limit, next_token, items);
     Ok(json(&list))
 }
 
-pub(super) async fn get_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String) -> Result<impl Reply, Rejection> {
-    let manager = create_manager::<T>(logger.clone(), couch).await?;
+pub(super) async fn get_resource<T: Resource>(logger: Logger, manager: ResourceManager<T>, enforcer: Arc<RwLock<Enforcer>>, name: String) -> Result<impl Reply, Rejection> {
     let resource = manager.get(&name).await.map_err(Error::from)?;
     Ok(json(&resource))
 }
 
-pub(super) async fn create_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String, body: T) -> Result<impl Reply, Rejection> {
-    let manager = create_manager(logger.clone(), couch).await?;
+pub(super) async fn create_resource<T: Resource>(logger: Logger, manager: ResourceManager<T>, enforcer: Arc<RwLock<Enforcer>>, name: String, body: T) -> Result<impl Reply, Rejection> {
     let body = normalize_resource(&manager, &name, body).await?;
     let resource = manager.put(&name, body).await.map_err(Error::from)?;
     Ok(with_status(json(&resource), StatusCode::ACCEPTED))
 }
 
-pub(super) async fn update_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String, body: T) -> Result<impl Reply, Rejection> {
-    let manager = create_manager(logger.clone(), couch).await?;
+pub(super) async fn update_resource<T: Resource>(logger: Logger, manager: ResourceManager<T>, enforcer: Arc<RwLock<Enforcer>>, name: String, body: T) -> Result<impl Reply, Rejection> {
     let body = normalize_resource(&manager, &name, body).await?;
     let resource = manager.put(&name, body).await.map_err(Error::from)?;
     Ok(with_status(json(&resource), StatusCode::ACCEPTED))
 }
 
-pub(super) async fn delete_resource<T: Resource>(logger: Logger, couch: Couch, enforcer: Arc<RwLock<Enforcer>>, name: String) -> Result<impl Reply, Rejection> {
-    let manager = create_manager::<T>(logger.clone(), couch).await?;
+pub(super) async fn delete_resource<T: Resource>(logger: Logger, manager: ResourceManager<T>, enforcer: Arc<RwLock<Enforcer>>, name: String) -> Result<impl Reply, Rejection> {
     manager.delete(&name).await.map_err(Error::from)?;
     Ok(with_status(reply::reply(), StatusCode::ACCEPTED))
-}
-
-async fn create_manager<T: Resource>(logger: Logger, couch: Couch) -> Result<ResourceManager<T>, Error> {
-    let typ = T::type_meta();
-    let group = &typ.api_version.group;
-    let version = &typ.api_version.version;
-    let kind = &typ.kind_plural;
-
-    let db = couch.database(&group, true);
-    if !db.exists_self().await.map_err(Error::from)? {
-        return Err(Error::not_found(format!("the server doesn't have a resource type '{}' in group {}/{}", kind, group, version)));
-    }
-    Ok(ResourceManager::new(logger, db))
 }
 
 async fn normalize_resource<T: Resource>(manager: &ResourceManager<T>, name: &str, mut body: T) -> Result<T, Error> {
@@ -89,16 +82,21 @@ async fn normalize_resource<T: Resource>(manager: &ResourceManager<T>, name: &st
     Ok(body)
 }
 
-pub fn mount<T: 'static + Resource + Unpin>(
+pub async fn mount<T: 'static + Resource + Unpin>(
     logger: Logger,
     couch: Couch,
     enforcer: Arc<RwLock<Enforcer>>,
-) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
+) -> Result<impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone, ControllerError> {
     let typ = T::type_meta();
     let group = typ.api_version.group;
     let version = typ.api_version.version;
     let kind = typ.kind_plural;
 
+    let db = couch.database(&group, true);
+    let manager = ResourceManager::new(logger.clone(), db);
+    manager.init().await?;
+
+    slog::trace!(logger, "Mounting resource {} at /apis/{}/{}/{}", typ.kind, group, version, kind);
     let mount_point = warp::path(group)
         .and(warp::path(version))
         .and(warp::path(kind));
@@ -108,28 +106,29 @@ pub fn mount<T: 'static + Resource + Unpin>(
 
     let watch = warp::get()
         .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
+        .and(with_manager(manager.clone()))
         .and(with_enforcer(enforcer.clone()))
         .and(watch_path)
         .and_then(watch_resources::<T>);
 
     let list = warp::get()
         .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
+        .and(with_manager(manager.clone()))
         .and(with_enforcer(enforcer.clone()))
         .and(list_path)
+        .and(warp::query::<ListQuery>())
         .and_then(list_resources::<T>);
 
     let get = warp::get()
         .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
+        .and(with_manager(manager.clone()))
         .and(with_enforcer(enforcer.clone()))
         .and(resource_path.clone())
         .and_then(get_resource::<T>);
 
     let create = warp::put()
         .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
+        .and(with_manager(manager.clone()))
         .and(with_enforcer(enforcer.clone()))
         .and(resource_path.clone())
         .and(warp::body::json::<T>())
@@ -137,7 +136,7 @@ pub fn mount<T: 'static + Resource + Unpin>(
 
     let update = warp::patch()
         .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
+        .and(with_manager(manager.clone()))
         .and(with_enforcer(enforcer.clone()))
         .and(resource_path.clone())
         .and(warp::body::json::<T>())
@@ -145,10 +144,10 @@ pub fn mount<T: 'static + Resource + Unpin>(
 
     let delete = warp::delete()
         .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
+        .and(with_manager(manager.clone()))
         .and(with_enforcer(enforcer.clone()))
         .and(resource_path)
         .and_then(delete_resource::<T>);
 
-    watch.or(list).or(get).or(create).or(update).or(delete)
+    Ok(watch.or(list).or(get).or(create).or(update).or(delete))
 }

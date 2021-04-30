@@ -48,4 +48,5 @@ api = { path = "../api" }
 acl = { path = "../acl" }
 couchdb = { path = "../couchdb" }
 controller_runtime = { path = "../controller_runtime" }
+oauth = { path = "../oauth" }
 users = { path = "../users" }

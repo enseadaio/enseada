@@ -1,7 +1,11 @@
+lazy_static! {
+    pub static ref API_GROUP: String = "core".to_string();
+}
+
 pub mod v1alpha1 {
     lazy_static! {
         pub static ref API_VERSION: GroupVersion = GroupVersion {
-            group: "core".to_string(),
+            group: super::API_GROUP.clone(),
             version: "v1alpha1".to_string(),
         };
     }
@@ -11,6 +15,7 @@ pub mod v1alpha1 {
     use serde::de::Error;
     use std::fmt::{self, Display, Formatter};
     use crate::gvk::GroupVersion;
+    use std::collections::HashSet;
 
     #[derive(Clone, Default, Debug, Serialize)]
     pub struct Event<T> {
@@ -29,26 +34,21 @@ pub mod v1alpha1 {
         #[serde(flatten)]
         pub type_meta: TypeMeta,
         pub items: Vec<T>,
+        pub limit: usize,
+        pub next_token: String,
     }
 
-    impl<T> Default for List<T> {
-        fn default() -> Self {
+    impl<T> List<T> {
+        pub fn new(limit: usize, next_token: String, items: Vec<T>) -> Self {
             Self {
                 type_meta: TypeMeta {
                     api_version: API_VERSION.clone(),
                     kind: "List".to_string(),
                     kind_plural: "lists".to_string(),
                 },
-                items: Vec::default(),
-            }
-        }
-    }
-
-    impl<T> From<Vec<T>> for List<T> {
-        fn from(items: Vec<T>) -> Self {
-            Self {
                 items,
-                ..Default::default()
+                next_token,
+                limit,
             }
         }
     }
@@ -66,8 +66,12 @@ pub mod v1alpha1 {
     #[serde(rename_all = "camelCase")]
     pub struct Metadata {
         pub name: String,
+        #[serde(default)]
         pub created_at: Option<DateTime<Utc>>,
+        #[serde(default)]
         pub deleted_at: Option<DateTime<Utc>>,
+        #[serde(default)]
+        pub finalizers: HashSet<String>,
     }
 
     impl Metadata {
@@ -83,6 +87,18 @@ pub mod v1alpha1 {
 
         pub fn is_deleted(&self) -> bool {
             self.deleted_at.is_some()
+        }
+
+        pub fn has_finalizer(&self, finalizer: &str) -> bool {
+            self.finalizers.contains(finalizer)
+        }
+
+        pub fn set_finalizer<F: ToString>(&mut self, finalizer: F) {
+            self.finalizers.insert(finalizer.to_string());
+        }
+
+        pub fn remove_finalizer(&mut self, finalizer: &str) {
+            self.finalizers.remove(finalizer);
         }
     }
 }

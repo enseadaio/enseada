@@ -3,15 +3,17 @@ use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
 
 use crate::config::cli::Opts;
+use crate::config::controllers::Controllers;
+use crate::config::db::CouchDB;
+use crate::config::gc::GarbageCollection;
 pub use crate::config::http::Http;
 pub use crate::config::log::*;
 use crate::error::Error;
-use crate::config::db::CouchDB;
-use crate::config::controllers::Controllers;
 
 mod cli;
 mod controllers;
 mod db;
+mod gc;
 mod http;
 mod log;
 pub mod tls;
@@ -22,6 +24,7 @@ pub struct Configuration {
     http: Http,
     couchdb: CouchDB,
     controllers: Controllers,
+    gc: GarbageCollection,
 }
 
 impl Configuration {
@@ -39,6 +42,7 @@ impl Configuration {
         Http::set_defaults(&mut cfg)?;
         CouchDB::set_defaults(&mut cfg)?;
         Controllers::set_defaults(&mut cfg)?;
+        GarbageCollection::set_defaults(&mut cfg)?;
 
         cfg.try_into().map_err(Error::from)
     }
@@ -57,6 +61,10 @@ impl Configuration {
 
     pub fn controllers(&self) -> &Controllers {
         &self.controllers
+    }
+
+    pub fn gc(&self) -> &GarbageCollection {
+        &self.gc
     }
 
     pub fn pretty_print(&self) -> String {

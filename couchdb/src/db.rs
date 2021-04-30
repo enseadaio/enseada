@@ -297,36 +297,37 @@ impl Database {
     pub async fn find<R: DeserializeOwned>(
         &self,
         selector: serde_json::Value,
+        bookmark: Option<String>,
         limit: usize,
         skip: usize,
     ) -> Result<FindResponse<R>> {
         let path = format!("{}/_find", &self.name);
-        self.do_find(&path, selector, limit, skip).await
+        self.do_find(&path, selector, bookmark, limit).await
     }
 
     pub async fn find_partitioned<R: DeserializeOwned>(
         &self,
         partition: &str,
         selector: serde_json::Value,
+        bookmark: Option<String>,
         limit: usize,
-        skip: usize,
     ) -> Result<FindResponse<R>> {
         let partition = percent_encode(partition.as_bytes(), ESCAPED).to_string();
         let path = format!("{}/_partition/{}/_find", &self.name, partition);
-        self.do_find(&path, selector, limit, skip).await
+        self.do_find(&path, selector, bookmark, limit).await
     }
 
     async fn do_find<R: DeserializeOwned>(
         &self,
         path: &str,
         selector: serde_json::Value,
+        bookmark: Option<String>,
         limit: usize,
-        skip: usize,
     ) -> Result<FindResponse<R>> {
         let body = serde_json::json!({
             "selector": selector,
             "limit": limit,
-            "skip": skip,
+            "bookmark": bookmark,
         });
 
         log::debug!("Finding from {} with query {}", &self.name, &body);
@@ -361,12 +362,12 @@ impl Database {
         selector: serde_json::Value,
     ) -> impl Stream<Item=Result<R>> {
         stream::try_unfold(
-            (0, path, self.client.clone(), selector),
-            |(skip, path, client, selector)| async move {
+            (None, path, self.client.clone(), selector),
+            |(bookmark, path, client, selector)| async move {
                 let body = serde_json::json!({
                     "selector": &selector,
                     "limit": 100,
-                    "skip": skip,
+                    "bookmark": bookmark,
                 });
                 match client
                     .post::<serde_json::Value, bool, FindResponse<R>>(
@@ -384,7 +385,7 @@ impl Database {
                         if res.docs.is_empty() {
                             Ok(None)
                         } else {
-                            Ok(Some((res.docs, (skip + 100, path, client, selector))))
+                            Ok(Some((res.docs, (Some(res.bookmark), path, client, selector))))
                         }
                     }
                     Err(err) => Err(Error::from(err)),

@@ -3,8 +3,9 @@ extern crate lazy_static;
 
 use actix::Arbiter;
 use futures::TryFutureExt;
+use slog::Logger;
 
-use controller_runtime::start_controller;
+use controller_runtime::{GarbageCollector, start_controller};
 use couchdb::Couch;
 
 use crate::config::Configuration;
@@ -35,12 +36,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let enforcer = acl::api::v1alpha1::create_enforcer(logger.clone(), couch.clone());
 
+    start_gc(logger.clone(), &couch, cfg);
+
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
-        http::start(logger.new(slog::o!("server" => "http")), couch.clone(), cfg, enforcer.clone()),
-        start_controller(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().users().polling_interval(), users::api::v1alpha1::UserController::new).map_err(Error::from),
-        acl::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().users().polling_interval(), enforcer).map_err(Error::from),
+        http::start(logger.new(slog::o!("process" => "http")), couch.clone(), cfg, enforcer.clone()),
+        start_controller(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("users").polling_interval(), users::api::v1alpha1::UserController::new).map_err(Error::from),
+        acl::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("acl").polling_interval(), enforcer).map_err(Error::from),
+        oauth::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("auth").polling_interval()).map_err(Error::from),
     )?;
 
     Ok(())
+}
+
+fn start_gc(logger: Logger, couch: &Couch, cfg: &Configuration) {
+    slog::info!(logger, "Starting garbage collection");
+
+    let arbiter = Arbiter::new().handle();
+
+    GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => api::core::API_GROUP.clone())), couch.database(&api::core::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
+    GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => acl::api::API_GROUP.clone())), couch.database(&acl::api::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
+    GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => oauth::api::API_GROUP.clone())), couch.database(&oauth::api::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
 }

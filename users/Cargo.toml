@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 api = { path = "../api" }
 controller_runtime = { path = "../controller_runtime" }
-serde = { version = "1.0", features = ["derive"] }
-slog = "2"
+serde = { version = "^1", features = ["derive"] }
+slog = "^2"
