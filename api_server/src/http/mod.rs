@@ -1,21 +1,26 @@
 use std::convert::Infallible;
+use std::error::Error as StdError;
 use std::sync::Arc;
 
 use http::Method;
 use slog::Logger;
 use tokio::sync::RwLock;
 use warp::{Filter, Rejection, Reply};
+use warp::body::BodyDeserializeError;
+use warp::reject::{InvalidQuery, MethodNotAllowed};
+use warp::reply::{json, with_status};
 
 use acl::Enforcer;
-use api::Resource;
+use api::error::{Code, ErrorResponse};
 use couchdb::Couch;
-use handlers::*;
 
 use crate::config::Configuration;
 use crate::config::tls::Tls;
+use crate::error::Error;
 use crate::ServerResult;
 
-mod handlers;
+mod auth;
+mod resource;
 mod telemetry;
 
 pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration, enforcer: Arc<RwLock<Enforcer>>) -> ServerResult {
@@ -23,11 +28,11 @@ pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration, enforcer: 
 
     let routes = telemetry::routes()
         .or(warp::path("apis")
-            .and(can_i(enforcer.clone())
-                .or(mount_resource::<users::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
-                .or(mount_resource::<acl::api::v1alpha1::Policy>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
-                .or(mount_resource::<acl::api::v1alpha1::PolicyAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
-                .or(mount_resource::<acl::api::v1alpha1::RoleAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+            .and(auth::mount_can_i(enforcer.clone())
+                .or(resource::mount::<users::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(resource::mount::<acl::api::v1alpha1::Policy>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(resource::mount::<acl::api::v1alpha1::PolicyAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
+                .or(resource::mount::<acl::api::v1alpha1::RoleAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()))
             ).recover(handle_rejection))
         .with(
             warp::cors()
@@ -81,75 +86,35 @@ fn with_enforcer(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(Arc<Rw
     warp::any().map(move || enforcer.clone())
 }
 
-fn can_i(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
-    warp::post()
-        .and(warp::path("can-i"))
-        .and(warp::path::end())
-        .and(with_enforcer(enforcer))
-        .and(warp::body::json())
-        .and_then(handlers::can_i)
-}
+pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
+    let code;
+    let message;
+    let metadata = None;
 
-fn mount_resource<T: 'static + Resource + Unpin>(
-    logger: Logger,
-    couch: Couch,
-    enforcer: Arc<RwLock<Enforcer>>,
-) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
-    let typ = T::type_meta();
-    let group = typ.api_version.group;
-    let version = typ.api_version.version;
-    let kind = typ.kind_plural;
+    eprintln!("{:?}", err);
+    if let Some(Error::ApiError { code: err_code, message: err_message }) = err.find::<Error>() {
+        code = *err_code;
+        message = err_message.clone();
+    } else if let Some(err) = err.find::<InvalidQuery>() {
+        code = Code::InvalidRequest;
+        message = err.to_string();
+    } else if let Some(err) = err.find::<BodyDeserializeError>() {
+        code = Code::InvalidRequest;
+        message = err.source().map_or_else(|| err.to_string(), |source| source.to_string());
+    } else if err.is_not_found() || err.find::<MethodNotAllowed>().is_some() {
+        code = Code::NotFound;
+        message = "not found".to_string();
+    } else {
+        code = Code::Unknown;
+        message = "internal server error".to_string();
+    }
 
-    let mount_point = warp::path(group)
-        .and(warp::path(version))
-        .and(warp::path(kind));
-    let list_path = mount_point.clone().and(warp::path::end());
-    let resource_path = mount_point.clone().and(warp::path::param::<String>());
-    let watch_path = mount_point.and(warp::path("watch"));
+    let status = code.to_status();
+    let json = json(&ErrorResponse {
+        code,
+        message,
+        metadata,
+    });
 
-    let watch = warp::get()
-        .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
-        .and(with_enforcer(enforcer.clone()))
-        .and(watch_path)
-        .and_then(watch_resources::<T>);
-
-    let list = warp::get()
-        .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
-        .and(with_enforcer(enforcer.clone()))
-        .and(list_path)
-        .and_then(list_resources::<T>);
-
-    let get = warp::get()
-        .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
-        .and(with_enforcer(enforcer.clone()))
-        .and(resource_path.clone())
-        .and_then(get_resource::<T>);
-
-    let create = warp::put()
-        .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
-        .and(with_enforcer(enforcer.clone()))
-        .and(resource_path.clone())
-        .and(warp::body::json::<T>())
-        .and_then(create_resource);
-
-    let update = warp::patch()
-        .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
-        .and(with_enforcer(enforcer.clone()))
-        .and(resource_path.clone())
-        .and(warp::body::json::<T>())
-        .and_then(update_resource);
-
-    let delete = warp::delete()
-        .and(with_logger(logger.clone()))
-        .and(with_couch(couch.clone()))
-        .and(with_enforcer(enforcer.clone()))
-        .and(resource_path)
-        .and_then(delete_resource::<T>);
-
-    watch.or(list).or(get).or(create).or(update).or(delete)
+    Ok(with_status(json, status))
 }

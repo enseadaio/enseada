@@ -151,6 +151,7 @@ dependencies = [
  "humantime-serde",
  "hyper",
  "lazy_static",
+ "mime",
  "opentelemetry",
  "opentelemetry-prometheus",
  "prometheus",

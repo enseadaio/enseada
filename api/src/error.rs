@@ -9,7 +9,9 @@ pub enum Code {
     InvalidRequest,
     NotFound,
     InitializationFailed,
-    Unknown
+    Unknown,
+    UnsupportedMediaType,
+    InvalidHeader,
 }
 
 impl Code {
@@ -19,6 +21,8 @@ impl Code {
             Code::NotFound => StatusCode::NOT_FOUND,
             Code::InitializationFailed => StatusCode::INTERNAL_SERVER_ERROR,
             Code::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
+            Code::UnsupportedMediaType => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            Code::InvalidHeader => StatusCode::BAD_REQUEST,
         }
     }
 }
@@ -36,6 +40,8 @@ impl Display for Code {
             Code::NotFound => Display::fmt("not_found", f),
             Code::InitializationFailed => Display::fmt("initialization_failed", f),
             Code::Unknown => Display::fmt("unknown", f),
+            Code::UnsupportedMediaType => Display::fmt("unsupported_media_type", f),
+            Code::InvalidHeader => Display::fmt("invalid_header", f),
         }
     }
 }

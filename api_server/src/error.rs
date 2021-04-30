@@ -6,6 +6,7 @@ use api::error::{Code, ErrorResponse};
 use warp::reject::Reject;
 use controller_runtime::ControllerError;
 use http::StatusCode;
+use mime::Mime;
 
 #[derive(Debug)]
 pub enum Error {
@@ -33,6 +34,20 @@ impl Error {
         }
     }
 
+    pub fn unsupported_media_type(mime: Mime) -> Self {
+        Self::ApiError {
+            code: Code::UnsupportedMediaType,
+            message: format!("media type '{}' is unsupported", mime),
+        }
+    }
+
+    pub fn invalid_header<N: AsRef<str>, V: AsRef<str>>(name: N, value: Option<V>) -> Self {
+        Self::ApiError {
+            code: Code::UnsupportedMediaType,
+            message: format!("invalid header '{}{}'", name.as_ref(), value.as_ref().map_or("".to_string(), |v| format!(": {}", v.as_ref()))),
+        }
+    }
+
     pub fn code(&self) -> Code {
         match self {
             Error::ConfigError(_) => Code::InitializationFailed,
@@ -41,6 +56,7 @@ impl Error {
             Error::InitError(_) => Code::InitializationFailed,
         }
     }
+
 }
 
 impl Reject for Error {}
