@@ -35,11 +35,11 @@ pub mod v1alpha1 {
         pub type_meta: TypeMeta,
         pub items: Vec<T>,
         pub limit: usize,
-        pub next_token: String,
+        pub next_token: Option<String>,
     }
 
     impl<T> List<T> {
-        pub fn new(limit: usize, next_token: String, items: Vec<T>) -> Self {
+        pub fn new(limit: usize, next_token: Option<String>, items: Vec<T>) -> Self {
             Self {
                 type_meta: TypeMeta {
                     api_version: API_VERSION.clone(),

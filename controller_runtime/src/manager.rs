@@ -78,9 +78,10 @@ impl<T: Resource> ResourceManager<T> {
         Ok(())
     }
 
-    pub async fn list(&self, bookmark: Option<String>, limit: usize) -> Result<(Vec<T>, String), ControllerError> {
+    pub async fn list(&self, bookmark: Option<String>, limit: usize) -> Result<(Vec<T>, Option<String>), ControllerError> {
         let kind = T::type_meta().kind_plural;
         let list = self.db.find_partitioned::<ResourceWrapper<T>>(&kind, serde_json::json!({}), bookmark, limit).await?;
+        slog::warn!(self.logger, "{:?}", &list.bookmark);
         Ok((list.docs.into_iter()
             .map(ResourceWrapper::into_inner)
             .collect(), list.bookmark))

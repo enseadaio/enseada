@@ -27,7 +27,7 @@ impl GarbageCollector {
 
     fn start_tick_stream(&mut self, ctx: &mut Context<Self>) {
         ctx.run_interval(self.tick, |this, ctx| {
-            slog::debug!(this.logger, "Running GC");
+            slog::trace!(this.logger, "Running GC");
             let db = this.db.clone();
             ctx.wait(async move { db.stream::<ResourceWrapper<serde_json::Value>>() }.into_actor(this)
                 .map(|s, _, ctx| {

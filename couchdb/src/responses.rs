@@ -50,7 +50,7 @@ pub struct PutResponse {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct FindResponse<T> {
     pub docs: Vec<T>,
-    pub bookmark: String,
+    pub bookmark: Option<String>,
     pub warning: Option<String>,
 }
 

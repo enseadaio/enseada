@@ -335,6 +335,14 @@ impl Database {
         self.client
             .post(path, Some(body), None::<bool>)
             .await
+            .map(|res: FindResponse<R>| match res.bookmark.as_deref() {
+                Some("nil") => {
+                    let mut res = res;
+                    res.bookmark = None;
+                    res
+                }
+                _ => res
+            })
             .map_err(Error::from)
     }
 
