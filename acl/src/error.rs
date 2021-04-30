@@ -17,7 +17,7 @@ impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Controller(err) => write!(f, "Controller error: {}", err),
-            Self::Denied(msg) => write!(f, "Denied: {}", msg),
+            Self::Denied(msg) => msg.fmt(f),
         }
     }
 }

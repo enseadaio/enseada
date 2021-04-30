@@ -9,7 +9,7 @@ use slog::Logger;
 use tokio::sync::RwLock;
 use warp::{Rejection, Reply, reply};
 use warp::body::BodyDeserializeError;
-use warp::reject::MethodNotAllowed;
+use warp::reject::{MethodNotAllowed, InvalidQuery};
 use warp::reply::{json, Json, with_status};
 use warp::sse::Event;
 
@@ -96,15 +96,19 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     let message;
     let metadata = None;
 
-    if err.is_not_found() || err.find::<MethodNotAllowed>().is_some() {
-        code = Code::NotFound;
-        message = "not found".to_string();
-    } else if let Some(Error::ApiError { code: err_code, message: err_message }) = err.find::<Error>() {
+    eprintln!("{:?}", err);
+    if let Some(Error::ApiError { code: err_code, message: err_message }) = err.find::<Error>() {
         code = *err_code;
         message = err_message.clone();
+    } else if let Some(err) = err.find::<InvalidQuery>() {
+        code = Code::InvalidRequest;
+        message = err.to_string();
     } else if let Some(err) = err.find::<BodyDeserializeError>() {
-        code = Code::InvalidBody;
+        code = Code::InvalidRequest;
         message = err.source().map_or_else(|| err.to_string(), |source| source.to_string());
+    } else if err.is_not_found() || err.find::<MethodNotAllowed>().is_some() {
+        code = Code::NotFound;
+        message = "not found".to_string();
     } else {
         code = Code::Unknown;
         message = "internal server error".to_string();

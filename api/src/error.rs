@@ -6,7 +6,7 @@ use http::StatusCode;
 #[derive(Copy, Clone, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Code {
-    InvalidBody,
+    InvalidRequest,
     NotFound,
     InitializationFailed,
     Unknown
@@ -15,7 +15,7 @@ pub enum Code {
 impl Code {
     pub fn to_status(&self) -> StatusCode {
         match self {
-            Code::InvalidBody => StatusCode::BAD_REQUEST,
+            Code::InvalidRequest => StatusCode::BAD_REQUEST,
             Code::NotFound => StatusCode::NOT_FOUND,
             Code::InitializationFailed => StatusCode::INTERNAL_SERVER_ERROR,
             Code::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
@@ -32,7 +32,7 @@ impl Default for Code {
 impl Display for Code {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Code::InvalidBody => Display::fmt("invalid_body", f),
+            Code::InvalidRequest => Display::fmt("invalid_request", f),
             Code::NotFound => Display::fmt("not_found", f),
             Code::InitializationFailed => Display::fmt("initialization_failed", f),
             Code::Unknown => Display::fmt("unknown", f),

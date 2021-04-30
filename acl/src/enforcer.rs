@@ -87,7 +87,7 @@ impl Enforcer {
         let obj  = obj.to_string();
         match model.check(&sub, &obj, act) {
             EvaluationResult::Granted => Ok(()),
-            EvaluationResult::Denied => Err(Error::denied(format!("Access denied: {} {} {}", sub, obj, act)))
+            EvaluationResult::Denied => Err(Error::denied(format!("Access denied: {} cannot perform action '{}' on resource '{}'", sub, act, obj)))
         }
     }
 }

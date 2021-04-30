@@ -82,11 +82,11 @@ fn with_enforcer(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(Arc<Rw
 }
 
 fn can_i(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(impl Reply, ), Error=Rejection> + Clone {
-    warp::get()
+    warp::post()
         .and(warp::path("can-i"))
         .and(warp::path::end())
         .and(with_enforcer(enforcer))
-        .and(warp::query())
+        .and(warp::body::json())
         .and_then(handlers::can_i)
 }
 
