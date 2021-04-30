@@ -29,7 +29,6 @@ impl Reconciler<User> for UserController {
         }
 
         if user.metadata.is_deleted() {
-            slog::info!(self.logger, "User {:?} was deleted!", user);
             return Ok(());
         }
 
@@ -41,8 +40,7 @@ impl Reconciler<User> for UserController {
         if dirty {
             user.status = Some(UserStatus { enabled });
             let name = user.metadata.name.clone();
-            let user = self.manager.put(&name, user).await?;
-            slog::info!(self.logger, "User {:?} was updated!", user);
+            self.manager.put(&name, user).await?;
         }
         Ok(())
     }

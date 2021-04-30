@@ -7,7 +7,7 @@ use reqwest::StatusCode;
 use crate::migrator;
 
 /// HTTP status code with an attached message.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Error {
     message: String,
     status: StatusCode,

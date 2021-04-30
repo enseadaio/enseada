@@ -24,7 +24,7 @@ pub trait Reconciler<T: Resource, E: Error = ControllerError> {
 
 pub type ControllerFactory<T, R> = fn(logger: Logger, manager: ResourceManager<T>) -> R;
 
-pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconciler<T, E>, C: Fn(Logger, ResourceManager<T>) -> R>(
+pub async fn start_controller<T: 'static + Resource + Unpin, E: 'static + Error, R: Reconciler<T, E>, C: Fn(Logger, ResourceManager<T>) -> R>(
     logger: Logger,
     couch: Couch,
     arbiter: &ArbiterHandle,
@@ -69,13 +69,18 @@ pub async fn start_controller<T: 'static + Resource + Unpin, E: Error, R: Reconc
     Ok(())
 }
 
-async fn process_event<T: Resource, E: Error, R: Reconciler<T, E>>(
+async fn process_event<T: Resource, E: 'static + Error, R: Reconciler<T, E>>(
     logger: Logger,
     controller: &mut R,
     resource: T,
 ) {
     while let Err(err) = controller.reconcile(resource.clone()).await {
-        slog::error!(logger, "{}", err);
+        if let Some(ControllerError::RevisionConflict) = err.cause_as() {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+            continue;
+        }
+
+        slog::error!(logger, "Reconciliation failed"; "error" => err.to_string());
         if let Some(retry_in) = err.retry_in() {
             tokio::time::sleep(retry_in).await;
         } else {

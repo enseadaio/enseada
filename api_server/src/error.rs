@@ -77,6 +77,7 @@ impl From<ControllerError> for Error {
     fn from(err: ControllerError) -> Self {
         match err {
             ControllerError::InitError(err) => Error::InitError(err),
+            ControllerError::RevisionConflict => Error::internal("Unhandled revision conflict"),
             ControllerError::DatabaseError(err) => err.into(),
             ControllerError::Internal(err) => Error::internal(err),
         }
