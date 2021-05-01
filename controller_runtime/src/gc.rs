@@ -1,10 +1,9 @@
 use std::time::Duration;
 
-use actix::{Actor, ActorContext, ActorFutureExt, ArbiterHandle, AsyncContext, Context, StreamHandler, Supervised, Supervisor, WrapFuture};
+use actix::{Actor, ActorFutureExt, ArbiterHandle, AsyncContext, Context, StreamHandler, Supervised, Supervisor, WrapFuture};
 use futures::StreamExt;
 use slog::Logger;
 
-use couchdb::changes::ChangeEvent;
 use couchdb::db::Database;
 
 use crate::ResourceWrapper;

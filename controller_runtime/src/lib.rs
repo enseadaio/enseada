@@ -9,12 +9,12 @@ use slog::Logger;
 use api::Resource;
 pub use couchdb::Couch;
 pub use error::*;
-pub use garbage_collector::GarbageCollector;
+pub use gc::GarbageCollector;
 pub use manager::*;
 pub use watcher::*;
 
 pub mod error;
-mod garbage_collector;
+mod gc;
 mod id;
 mod manager;
 mod watcher;

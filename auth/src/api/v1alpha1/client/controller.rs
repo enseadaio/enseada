@@ -3,7 +3,7 @@ use slog::Logger;
 use controller_runtime::{async_trait, ControllerError, Reconciler, ReconciliationError, ResourceManager, Utc};
 
 use super::{OAuthClient, OAuthClientStatus};
-use crate::api::v1alpha1::{OAuthClientCondition, ClientType, OAuthClientSpec};
+use crate::api::v1alpha1::OAuthClientCondition;
 
 pub struct OAuthClientController {
     logger: Logger,

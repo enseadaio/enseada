@@ -7,7 +7,7 @@ use hyper::StatusCode;
 use slog::Logger;
 use tokio::sync::RwLock;
 use warp::{Filter, Rejection, Reply, reply};
-use warp::reply::{json, Json, with_status};
+use warp::reply::{json, with_status};
 use warp::sse::Event;
 
 use acl::Enforcer;

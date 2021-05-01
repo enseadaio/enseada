@@ -5,7 +5,7 @@ use actix::Arbiter;
 use futures::TryFutureExt;
 use slog::Logger;
 
-use controller_runtime::{GarbageCollector, start_controller};
+use controller_runtime::GarbageCollector;
 use couchdb::Couch;
 
 use crate::config::Configuration;

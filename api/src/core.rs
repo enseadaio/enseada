@@ -10,10 +10,8 @@ pub mod v1alpha1 {
         };
     }
 
-    use serde::{Deserialize, Serialize, Deserializer, Serializer};
+    use serde::{Deserialize, Serialize};
     use chrono::{DateTime, Utc};
-    use serde::de::Error;
-    use std::fmt::{self, Display, Formatter};
     use crate::gvk::GroupVersion;
     use std::collections::HashSet;
 

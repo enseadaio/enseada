@@ -1,7 +1,7 @@
 use proc_macro::{TokenStream};
 
 use quote::{quote, ToTokens};
-use syn::{Meta, Error, NestedMeta, TypeTuple};
+use syn::{Meta, Error, NestedMeta};
 use syn::spanned::Spanned;
 
 #[proc_macro_derive(Resource, attributes(resource))]

@@ -5,15 +5,7 @@ use api::core::v1alpha1::{Metadata, TypeMeta};
 pub use controller::PolicyController;
 
 mod controller;
-/*
-apiVersion: rbac/v1alpha1
-kind: Policy
-metadata:
-    name: test
-rules:
-- resources: ['* / * / *']
-  actions: ['*']
- */
+
 #[derive(Clone, Debug, Deserialize, Serialize, Resource)]
 #[serde(rename_all = "camelCase")]
 #[resource(api_version = "acl/v1alpha1", kind = "Policy", kind_plural = "policies")]

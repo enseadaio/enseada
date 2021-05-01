@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::time::Duration;
 use http::StatusCode;
-use std::any::{Any, TypeId};
+use std::any::Any;
 use std::convert::TryInto;
 
 #[derive(Debug)]
@@ -40,7 +40,7 @@ impl<E: 'static + Error> ReconciliationError<E> {
     pub fn cause(&self) -> &E {
         &self.cause
     }
-    
+
     pub fn cause_as<Err: 'static + Error>(&self) -> Option<&Err> {
         let err = (&self.cause) as &(dyn Any);
         err.downcast_ref::<Err>()

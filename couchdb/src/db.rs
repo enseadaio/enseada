@@ -299,7 +299,6 @@ impl Database {
         selector: serde_json::Value,
         bookmark: Option<String>,
         limit: usize,
-        skip: usize,
     ) -> Result<FindResponse<R>> {
         let path = format!("{}/_find", &self.name);
         self.do_find(&path, selector, bookmark, limit).await
