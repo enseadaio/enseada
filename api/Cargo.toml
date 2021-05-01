@@ -11,6 +11,7 @@ chrono = { version = "~0.4", features = ["serde"] }
 lazy_static = "^1"
 bimap = "~0.6"
 tokio = { version = "^1", features = ["sync"] }
+api_derive = { path = "./api_derive" }
 
 [dev-dependencies]
 tokio = { version = "^1", features = ["rt", "macros"] }

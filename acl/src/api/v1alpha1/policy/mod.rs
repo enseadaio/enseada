@@ -4,8 +4,6 @@ use api::{GroupKindName, Resource};
 use api::core::v1alpha1::{Metadata, TypeMeta};
 pub use controller::PolicyController;
 
-use crate::api::v1alpha1::API_VERSION;
-
 mod controller;
 /*
 apiVersion: rbac/v1alpha1
@@ -16,8 +14,9 @@ rules:
 - resources: ['* / * / *']
   actions: ['*']
  */
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Resource)]
 #[serde(rename_all = "camelCase")]
+#[resource(api_version = "acl/v1alpha1", kind = "Policy", kind_plural = "policies")]
 pub struct Policy {
     #[serde(flatten)]
     pub type_meta: TypeMeta,
@@ -35,43 +34,6 @@ impl Default for Policy {
     }
 }
 
-impl Resource for Policy {
-    type Status = ();
-
-    fn type_meta() -> TypeMeta {
-        TypeMeta {
-            api_version: API_VERSION.clone(),
-            kind: "Policy".to_string(),
-            kind_plural: "policies".to_string(),
-        }
-    }
-
-    fn reset_type_meta(&mut self) {
-        self.type_meta = Self::type_meta();
-    }
-
-    fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-
-    fn metadata_mut(&mut self) -> &mut Metadata {
-        &mut self.metadata
-    }
-
-    fn set_metadata(&mut self, metadata: Metadata) {
-        self.metadata = metadata;
-    }
-
-    fn status(&self) -> Option<&Self::Status> {
-        None
-    }
-
-    fn status_mut(&mut self) -> Option<&mut Self::Status> {
-        None
-    }
-
-    fn set_status(&mut self, _status: Option<Self::Status>) {}
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

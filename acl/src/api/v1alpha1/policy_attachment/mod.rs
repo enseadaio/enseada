@@ -21,8 +21,9 @@ spec:
     - name: test-user
       kind: User
  */
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Resource)]
 #[serde(rename_all = "camelCase")]
+#[resource(api_version = "acl/v1alpha1", kind = "PolicyAttachment", kind_plural = "policyattachments")]
 pub struct PolicyAttachment {
     #[serde(flatten)]
     pub type_meta: TypeMeta,
@@ -31,40 +32,3 @@ pub struct PolicyAttachment {
     pub subjects: Vec<KindNamedRef>,
 }
 
-impl Resource for PolicyAttachment {
-    type Status = ();
-
-    fn type_meta() -> TypeMeta {
-        TypeMeta {
-            api_version: API_VERSION.clone(),
-            kind: "PolicyAttachment".to_string(),
-            kind_plural: "policyattachments".to_string(),
-        }
-    }
-
-    fn reset_type_meta(&mut self) {
-        self.type_meta = Self::type_meta();
-    }
-
-    fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-
-    fn metadata_mut(&mut self) -> &mut Metadata {
-        &mut self.metadata
-    }
-
-    fn set_metadata(&mut self, metadata: Metadata) {
-        self.metadata = metadata;
-    }
-
-    fn status(&self) -> Option<&Self::Status> {
-        None
-    }
-
-    fn status_mut(&mut self) -> Option<&mut Self::Status> {
-        None
-    }
-
-    fn set_status(&mut self, _status: Option<Self::Status>) {}
-}

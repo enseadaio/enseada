@@ -122,6 +122,7 @@ dependencies = [
 name = "api"
 version = "0.1.0"
 dependencies = [
+ "api_derive",
  "bimap",
  "chrono",
  "http",
@@ -129,6 +130,14 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio 1.4.0",
+]
+
+[[package]]
+name = "api_derive"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]

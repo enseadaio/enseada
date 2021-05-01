@@ -18,8 +18,9 @@ spec:
   userRef:
     name: test-user
  */
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Resource)]
 #[serde(rename_all = "camelCase")]
+#[resource(api_version = "acl/v1alpha1", kind = "RoleAttachment", kind_plural = "roleattachments")]
 pub struct RoleAttachment {
     #[serde(flatten)]
     pub type_meta: TypeMeta,
@@ -28,40 +29,3 @@ pub struct RoleAttachment {
     pub user_ref: NamedRef,
 }
 
-impl Resource for RoleAttachment {
-    type Status = ();
-
-    fn type_meta() -> TypeMeta {
-        TypeMeta {
-            api_version: API_VERSION.clone(),
-            kind: "RoleAttachment".to_string(),
-            kind_plural: "roleattachments".to_string(),
-        }
-    }
-
-    fn reset_type_meta(&mut self) {
-        self.type_meta = Self::type_meta();
-    }
-
-    fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-
-    fn metadata_mut(&mut self) -> &mut Metadata {
-        &mut self.metadata
-    }
-
-    fn set_metadata(&mut self, metadata: Metadata) {
-        self.metadata = metadata;
-    }
-
-    fn status(&self) -> Option<&Self::Status> {
-        None
-    }
-
-    fn status_mut(&mut self) -> Option<&mut Self::Status> {
-        None
-    }
-
-    fn set_status(&mut self, _status: Option<Self::Status>) {}
-}

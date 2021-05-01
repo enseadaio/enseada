@@ -3,9 +3,10 @@ extern crate lazy_static;
 
 use std::fmt::Debug;
 
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 
+pub use api_derive::Resource;
 pub use gvk::*;
 
 use crate::core::v1alpha1::{Metadata, TypeMeta};

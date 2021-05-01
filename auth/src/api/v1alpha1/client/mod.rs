@@ -7,8 +7,6 @@ use api::Resource;
 pub use controller::*;
 use oauth::scope::Scope;
 
-use super::API_VERSION;
-
 mod controller;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -18,8 +16,9 @@ pub enum ClientType {
     // Confidential, // TODO
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Resource)]
 #[serde(rename_all = "camelCase")]
+#[resource(api_version = "auth/v1alpha1", kind = "OAuthClient", kind_plural = "oauthclients", status = "OAuthClientStatus")]
 pub struct OAuthClient {
     #[serde(flatten)]
     pub type_meta: TypeMeta,
@@ -55,50 +54,5 @@ pub enum OAuthClientCondition {
 impl Default for OAuthClientCondition {
     fn default() -> Self {
         Self::Pending
-    }
-}
-
-impl Resource for OAuthClient {
-    type Status = OAuthClientStatus;
-
-    fn type_meta() -> TypeMeta {
-        TypeMeta {
-            api_version: API_VERSION.clone(),
-            kind: "OAuthClient".to_string(),
-            kind_plural: "oauthclients".to_string(),
-        }
-    }
-
-    fn reset_type_meta(&mut self) {
-        self.type_meta = Self::type_meta();
-    }
-
-
-    fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-
-    fn metadata_mut(&mut self) -> &mut Metadata {
-        &mut self.metadata
-    }
-
-    fn set_metadata(&mut self, metadata: Metadata) {
-        self.metadata = metadata;
-    }
-
-    fn status(&self) -> Option<&Self::Status> {
-        self.status.as_ref()
-    }
-
-    fn status_mut(&mut self) -> Option<&mut Self::Status> {
-        if self.status.is_none() {
-            self.status = Some(Default::default());
-        }
-
-        self.status.as_mut()
-    }
-
-    fn set_status(&mut self, status: Option<Self::Status>) {
-        self.status = status;
     }
 }

@@ -2,11 +2,28 @@ use std::fmt::{self, Display, Formatter};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
+use std::convert::TryFrom;
 
 #[derive(Clone, Debug, PartialOrd)]
 pub struct GroupVersion {
     pub group: String,
     pub version: String,
+}
+
+impl TryFrom<String> for GroupVersion {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let parts: Vec<&str> = value.split('/').collect();
+        if let [group, version, ..] = parts.as_slice() {
+            Ok(Self {
+                group: group.to_string(),
+                version: version.to_string(),
+            })
+        } else {
+            Err(format!("invalid GroupVersion '{}'", value))
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for GroupVersion {
@@ -15,19 +32,7 @@ impl<'de> Deserialize<'de> for GroupVersion {
             D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let parts: Vec<&str> = s.split('/').collect();
-
-        if let [group, version, ..] = parts.as_slice() {
-            Ok(Self {
-                group: group.to_string(),
-                version: version.to_string(),
-            })
-        } else {
-            Err(<D as Deserializer<'de>>::Error::custom(format!(
-                "invalid GroupVersion '{}'",
-                s
-            )))
-        }
+        Self::try_from(s).map_err(<D as Deserializer<'de>>::Error::custom)
     }
 }
 
