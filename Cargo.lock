@@ -144,7 +144,6 @@ dependencies = [
  "config",
  "controller_runtime",
  "couchdb",
- "crossbeam-channel",
  "futures",
  "http",
  "humantime",

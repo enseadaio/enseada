@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use api::{GroupVersionKindName, Resource};
+use api::{GroupKindName, Resource};
 use api::core::v1alpha1::{Metadata, TypeMeta};
 pub use controller::PolicyController;
 
@@ -72,6 +72,6 @@ impl Resource for Policy {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Rule {
-    pub resources: Vec<GroupVersionKindName>,
+    pub resources: Vec<GroupKindName>,
     pub actions: Vec<String>,
 }

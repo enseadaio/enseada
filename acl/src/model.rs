@@ -2,7 +2,7 @@ use std::cmp::{Eq, PartialEq};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Debug, Display, Formatter};
 
-use glob::Pattern;
+use glob::{Pattern, MatchOptions};
 
 #[derive(Default, Debug)]
 pub struct Model {
@@ -164,8 +164,6 @@ impl Visitable for Role {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Permission {
-    object: String,
-    action: String,
     object_pattern: Pattern,
     action_pattern: Pattern,
 }
@@ -176,20 +174,26 @@ impl Permission {
         let action = action.to_string();
         Permission {
             object_pattern: Pattern::new(&object).unwrap(),
-            object,
             action_pattern: Pattern::new(&action).unwrap(),
-            action,
         }
     }
 
     fn matches(&self, other: &Permission) -> bool {
-        self.object_pattern.matches(&other.object) && self.action_pattern.matches(&other.action)
+        self.object_pattern.matches_with(&other.object_pattern.as_str(), MatchOptions {
+            case_sensitive: true,
+            require_literal_separator: true,
+            require_literal_leading_dot: false,
+        }) && self.action_pattern.matches_with(&other.action_pattern.as_str(), MatchOptions {
+            case_sensitive: true,
+            require_literal_separator: true,
+            require_literal_leading_dot: false,
+        })
     }
 }
 
 impl Display for Permission {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}, {}", &self.object, &self.action)
+        write!(f, "{}, {}", &self.action_pattern.as_str(), &self.action_pattern.as_str())
     }
 }
 

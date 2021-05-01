@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use api::{KindNamedRef, GroupVersionKindName};
+use api::{KindNamedRef, GroupKindName};
 
 use crate::api::v1alpha1::{Policy, PolicyAttachment, RoleAttachment, Rule};
 use crate::model::{Model, Permission, Principal, Role, EvaluationResult};
@@ -78,11 +78,11 @@ impl Enforcer {
         model.set_principals(principals);
     }
 
-    pub fn check(&self, sub: &KindNamedRef, obj: &GroupVersionKindName, act: &str) -> Result<(), Error> {
+    pub fn check(&self, sub: &KindNamedRef, obj: &GroupKindName, act: &str) -> Result<(), Error> {
         Self::model_check(&self.model, sub, obj, act)
     }
 
-    fn model_check(model: &Model, sub: &KindNamedRef, obj: &GroupVersionKindName, act: &str) -> Result<(), Error> {
+    fn model_check(model: &Model, sub: &KindNamedRef, obj: &GroupKindName, act: &str) -> Result<(), Error> {
         let sub = format!("{}:{}", sub.kind.to_lowercase(), sub.name);
         let obj  = obj.to_string();
         match model.check(&sub, &obj, act) {
@@ -106,7 +106,7 @@ mod test {
             metadata: Metadata::named("test-1"),
             rules: vec![
                 Rule {
-                    resources: vec![GroupVersionKindName::new("test", "v1", "Test", "*")],
+                    resources: vec![GroupKindName::new("test", "Test", "*")],
                     actions: vec!["*".to_string()],
                 }
             ],
@@ -117,7 +117,7 @@ mod test {
             metadata: Metadata::named("test-2"),
             rules: vec![
                 Rule {
-                    resources: vec![GroupVersionKindName::new("test", "v2", "Test", "*")],
+                    resources: vec![GroupKindName::new("test", "Test", "*")],
                     actions: vec!["*".to_string()],
                 }
             ],
@@ -169,8 +169,8 @@ mod test {
             name: "test".to_string(),
         };
 
-        assert!(Enforcer::model_check(&model, &user_ref, &GroupVersionKindName::new("test", "v1", "test", "test"), "read").is_ok());
-        assert!(Enforcer::model_check(&model, &user_ref, &GroupVersionKindName::new("test", "v2", "test", "test"), "read").is_ok());
-        assert!(Enforcer::model_check(&model, &user_ref, &GroupVersionKindName::new("test", "v3", "test", "test"), "read").is_err());
+        assert!(Enforcer::model_check(&model, &user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
+        assert!(Enforcer::model_check(&model, &user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
+        assert!(Enforcer::model_check(&model, &user_ref, &GroupKindName::new("test", "test", "test"), "read").is_err());
     }
 }

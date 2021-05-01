@@ -3,7 +3,7 @@ use tokio::sync::RwLock;
 use acl::Enforcer;
 use warp::{Filter, Reply, Rejection};
 use crate::http::with_enforcer;
-use api::{GroupVersionKindName, KindNamedRef};
+use api::{GroupKindName, KindNamedRef};
 use std::convert::Infallible;
 use warp::reply::{with_status, json};
 use http::StatusCode;
@@ -21,7 +21,7 @@ pub fn mount_can_i(enforcer: Arc<RwLock<Enforcer>>) -> impl Filter<Extract=(impl
 #[serde(rename_all = "camelCase")]
 pub struct CanIQuery {
     user: String,
-    resource: GroupVersionKindName,
+    resource: GroupKindName,
     action: String,
 }
 

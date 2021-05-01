@@ -1,9 +1,9 @@
 use std::fmt::{self, Display, Formatter};
 
-use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Error;
 
-#[derive(Clone, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Debug, PartialOrd)]
 pub struct GroupVersion {
     pub group: String,
     pub version: String,
@@ -43,6 +43,13 @@ impl Serialize for GroupVersion {
 impl Display for GroupVersion {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}/{}", self.group, self.version)
+    }
+}
+
+impl PartialEq for GroupVersion {
+    fn eq(&self, other: &Self) -> bool {
+        (self.group.to_lowercase() == other.group.to_lowercase())
+            && (self.version.to_lowercase() == other.version.to_lowercase())
     }
 }
 
@@ -165,6 +172,65 @@ impl PartialEq for GroupVersionKindName {
     }
 }
 
+#[derive(Clone, Debug, PartialOrd)]
+pub struct GroupKindName {
+    pub group: String,
+    pub kind: String,
+    pub name: String,
+}
+
+impl GroupKindName {
+    pub fn new<G: ToString, K: ToString, N: ToString>(group: G, kind: K, name: N) -> Self {
+        Self {
+            group: group.to_string(),
+            kind: kind.to_string(),
+            name: name.to_string(),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for GroupKindName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let parts: Vec<&str> = s.split('/').collect();
+
+        if let [group, kind, name, ..] = parts.as_slice() {
+            Ok(Self::new(group, kind, name))
+        } else {
+            Err(<D as Deserializer<'de>>::Error::custom(format!(
+                "invalid GroupKindName '{}'",
+                s
+            )))
+        }
+    }
+}
+
+impl Serialize for GroupKindName {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+        where
+            S: Serializer,
+    {
+        self.to_string().serialize(serializer)
+    }
+}
+
+impl Display for GroupKindName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}/{}/{}", self.group, self.kind.to_lowercase(), self.name.to_lowercase())
+    }
+}
+
+impl PartialEq for GroupKindName {
+    fn eq(&self, other: &Self) -> bool {
+        (self.group.to_lowercase() == other.group.to_lowercase())
+            && (self.kind.to_lowercase() == other.kind.to_lowercase())
+            && (self.name.to_lowercase() == other.name.to_lowercase())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -221,5 +287,21 @@ mod test {
 
         let gvkn_s = serde_json::from_str("\"test/v1/test/test\"").unwrap();
         assert_eq!(gvkn, gvkn_s);
+    }
+
+    #[test]
+    fn it_serializes_a_group_kind_name() {
+        let gkn = GroupKindName::new("test", "Test", "test");
+
+        let gkn_s = serde_json::to_string(&gkn).unwrap();
+        assert_eq!("\"test/test/test\"", gkn_s);
+    }
+
+    #[test]
+    fn it_deserializes_a_group_kind_name() {
+        let gkn = GroupKindName::new("test", "Test", "test");
+
+        let gkn_s = serde_json::from_str("\"test/test/test\"").unwrap();
+        assert_eq!(gkn, gkn_s);
     }
 }
