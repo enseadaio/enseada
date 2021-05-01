@@ -77,7 +77,7 @@ impl Enforcer {
 
 #[cfg(test)]
 mod test {
-    use api::{GroupVersionKindName, KindNamedRef, NamedRef, Resource};
+    use api::{KindNamedRef, NamedRef, Resource};
     use api::core::v1alpha1::Metadata;
 
     use crate::api::v1alpha1::{Policy, PolicyAttachment, RoleAttachment, Rule};
@@ -90,7 +90,7 @@ mod test {
             metadata: Metadata::named("test-1"),
             rules: vec![
                 Rule {
-                    resources: vec![GroupKindName::new("test", "Test", "*")],
+                    resources: vec![GroupKindName::new("test", "Test1", "*")],
                     actions: vec!["*".to_string()],
                 }
             ],
@@ -101,7 +101,7 @@ mod test {
             metadata: Metadata::named("test-2"),
             rules: vec![
                 Rule {
-                    resources: vec![GroupKindName::new("test", "Test", "*")],
+                    resources: vec![GroupKindName::new("test", "Test2", "*")],
                     actions: vec!["*".to_string()],
                 }
             ],
@@ -153,8 +153,8 @@ mod test {
             name: "test".to_string(),
         };
 
-        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
-        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
-        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test", "test"), "read").is_err());
+        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test1", "test"), "read").is_ok());
+        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test2", "test"), "read").is_ok());
+        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test3", "test"), "read").is_err());
     }
 }
