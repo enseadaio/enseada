@@ -34,14 +34,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let controller_arbiter = Arbiter::new().handle();
 
-    let enforcer = acl::api::v1alpha1::create_enforcer(logger.clone(), couch.clone());
+    let (enforcer, enforcer_reloader) = acl::api::v1alpha1::create_enforcer_and_reloader(logger.clone(), couch.clone());
 
     start_gc(logger.clone(), &couch, cfg);
 
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
         http::start(logger.new(slog::o!("process" => "http")), couch.clone(), cfg, enforcer.clone()),
-        acl::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("acl").polling_interval(), enforcer).map_err(Error::from),
+        acl::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("acl").polling_interval(), enforcer_reloader).map_err(Error::from),
         auth::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("auth").polling_interval()).map_err(Error::from),
     )?;
 

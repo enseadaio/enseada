@@ -1,39 +1,26 @@
 use std::collections::HashMap;
 
-use api::{KindNamedRef, GroupKindName};
+use api::{GroupKindName, KindNamedRef};
+pub use reloader::EnforcerReloader;
 
 use crate::api::v1alpha1::{Policy, PolicyAttachment, RoleAttachment, Rule};
-use crate::model::{Model, Permission, Principal, Role, EvaluationResult};
 use crate::error::Error;
-use controller_runtime::ResourceManager;
+use crate::model::{EvaluationResult, Model, Permission, Principal, Role};
 
+mod reloader;
+
+#[derive(Default)]
 pub struct Enforcer {
     model: Model,
-    policy_manager: ResourceManager<Policy>,
-    policy_attachment_manager: ResourceManager<PolicyAttachment>,
-    role_attachment_manager: ResourceManager<RoleAttachment>,
 }
 
 impl Enforcer {
-    pub fn new(policy_manager: ResourceManager<Policy>, policy_attachment_manager: ResourceManager<PolicyAttachment>, role_attachment_manager: ResourceManager<RoleAttachment>) -> Self {
-        Self {
-            model: Default::default(),
-            policy_manager,
-            policy_attachment_manager,
-            role_attachment_manager,
-        }
+    pub fn new() -> Self {
+        Self::default()
     }
 
-    pub(crate) async fn load_model_from_resources(&mut self) -> Result<(), Error> {
-        let policies = self.policy_manager.list_all().await?;
-        let policy_attachments = self.policy_attachment_manager.list_all().await?;
-        let role_attachments = self.role_attachment_manager.list_all().await?;
-
-        Self::load_rules(&mut self.model, policies, policy_attachments, role_attachments);
-        Ok(())
-    }
-
-    fn load_rules(model: &mut Model, policies: Vec<Policy>, policy_attachments: Vec<PolicyAttachment>, role_attachments: Vec<RoleAttachment>) {
+    fn load_rules(&mut self, policies: Vec<Policy>, policy_attachments: Vec<PolicyAttachment>, role_attachments: Vec<RoleAttachment>) {
+        let mut model = &mut self.model;
         let mut principals = HashMap::new();
         let mut roles = HashMap::new();
 
@@ -79,13 +66,9 @@ impl Enforcer {
     }
 
     pub fn check(&self, sub: &KindNamedRef, obj: &GroupKindName, act: &str) -> Result<(), Error> {
-        Self::model_check(&self.model, sub, obj, act)
-    }
-
-    fn model_check(model: &Model, sub: &KindNamedRef, obj: &GroupKindName, act: &str) -> Result<(), Error> {
         let sub = format!("{}:{}", sub.kind.to_lowercase(), sub.name);
         let obj  = obj.to_string();
-        match model.check(&sub, &obj, act) {
+        match self.model.check(&sub, &obj, act) {
             EvaluationResult::Granted => Ok(()),
             EvaluationResult::Denied => Err(Error::denied(format!("Access denied: {} cannot perform action '{}' on resource '{}'", sub, act, obj)))
         }
@@ -94,10 +77,11 @@ impl Enforcer {
 
 #[cfg(test)]
 mod test {
-    use api::{Resource, KindNamedRef, NamedRef, GroupVersionKindName};
+    use api::{GroupVersionKindName, KindNamedRef, NamedRef, Resource};
     use api::core::v1alpha1::Metadata;
 
-    use crate::api::v1alpha1::{Policy, PolicyAttachment, Rule, RoleAttachment};
+    use crate::api::v1alpha1::{Policy, PolicyAttachment, RoleAttachment, Rule};
+
     use super::*;
 
     #[test]
@@ -161,16 +145,16 @@ mod test {
             },
         ];
 
-        let mut model = Model::default();
-        Enforcer::load_rules(&mut model, policies, policy_attachments, role_attachments);
+        let mut enforcer = Enforcer::new();
+        enforcer.load_rules(policies, policy_attachments, role_attachments);
 
         let user_ref = KindNamedRef {
             kind: "User".to_string(),
             name: "test".to_string(),
         };
 
-        assert!(Enforcer::model_check(&model, &user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
-        assert!(Enforcer::model_check(&model, &user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
-        assert!(Enforcer::model_check(&model, &user_ref, &GroupKindName::new("test", "test", "test"), "read").is_err());
+        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
+        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test", "test"), "read").is_ok());
+        assert!(enforcer.check(&user_ref, &GroupKindName::new("test", "test", "test"), "read").is_err());
     }
 }
