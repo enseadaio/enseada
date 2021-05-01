@@ -140,6 +140,7 @@ dependencies = [
  "actix-rt 2.1.0",
  "api",
  "async-trait",
+ "auth",
  "chrono",
  "config",
  "controller_runtime",
@@ -164,7 +165,6 @@ dependencies = [
  "structopt",
  "tokio 1.4.0",
  "url",
- "users",
  "warp",
 ]
 
@@ -206,6 +206,20 @@ dependencies = [
  "hermit-abi",
  "libc",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "auth"
+version = "0.1.0"
+dependencies = [
+ "api",
+ "controller_runtime",
+ "lazy_static",
+ "oauth",
+ "serde",
+ "slog",
+ "tokio 1.4.0",
+ "url",
 ]
 
 [[package]]
@@ -1288,15 +1302,12 @@ dependencies = [
 name = "oauth"
 version = "0.1.0"
 dependencies = [
- "api",
  "async-trait",
- "controller_runtime",
+ "chrono",
  "http",
- "lazy_static",
  "serde",
  "serde_json",
  "slog",
- "tokio 1.4.0",
  "url",
 ]
 
@@ -1355,7 +1366,6 @@ dependencies = [
  "tracing",
  "tracing-futures",
  "url",
- "users",
 ]
 
 [[package]]
@@ -2551,16 +2561,6 @@ dependencies = [
  "matches",
  "percent-encoding",
  "serde",
-]
-
-[[package]]
-name = "users"
-version = "0.1.0"
-dependencies = [
- "api",
- "controller_runtime",
- "serde",
- "slog",
 ]
 
 [[package]]

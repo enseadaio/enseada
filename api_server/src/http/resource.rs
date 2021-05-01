@@ -79,6 +79,8 @@ async fn normalize_resource<T: Resource>(manager: &ResourceManager<T>, name: &st
         body.set_status(None);
     }
 
+    body.reset_type_meta();
+
     Ok(body)
 }
 

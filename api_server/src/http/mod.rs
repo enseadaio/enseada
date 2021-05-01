@@ -29,19 +29,19 @@ pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration, enforcer: 
     let addr = cfg.http().address();
 
     // Resources
-    let users = resource::mount::<users::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
     let policies = resource::mount::<acl::api::v1alpha1::Policy>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
     let policy_attachments = resource::mount::<acl::api::v1alpha1::PolicyAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
     let role_attachments = resource::mount::<acl::api::v1alpha1::RoleAttachment>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
-    let oauth_clients = resource::mount::<oauth::api::v1alpha1::OAuthClient>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+    let users = resource::mount::<::auth::api::v1alpha1::User>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
+    let oauth_clients = resource::mount::<::auth::api::v1alpha1::OAuthClient>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
 
     let routes = telemetry::routes()
         .or(warp::path("apis")
             .and(auth::mount_can_i(enforcer.clone())
-                .or(users)
                 .or(policies)
                 .or(policy_attachments)
                 .or(role_attachments)
+                .or(users)
                 .or(oauth_clients)
             ).recover(handle_rejection))
         .with(

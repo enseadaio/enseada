@@ -42,6 +42,10 @@ impl Resource for PolicyAttachment {
         }
     }
 
+    fn reset_type_meta(&mut self) {
+        self.type_meta = Self::type_meta();
+    }
+
     fn metadata(&self) -> &Metadata {
         &self.metadata
     }

@@ -4,6 +4,8 @@ use api::{core, Resource};
 use api::core::v1alpha1::{Metadata, TypeMeta};
 pub use controller::UserController;
 
+use super::API_VERSION;
+
 mod controller;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -33,10 +35,14 @@ impl Resource for User {
 
     fn type_meta() -> TypeMeta {
         TypeMeta {
-            api_version: core::v1alpha1::API_VERSION.clone(),
+            api_version: API_VERSION.clone(),
             kind: "User".to_string(),
             kind_plural: "users".to_string(),
         }
+    }
+
+    fn reset_type_meta(&mut self) {
+        self.type_meta = Self::type_meta();
     }
 
     fn metadata(&self) -> &Metadata {

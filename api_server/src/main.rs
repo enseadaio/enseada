@@ -41,9 +41,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     slog::info!(logger, "Starting API server");
     tokio::try_join!(
         http::start(logger.new(slog::o!("process" => "http")), couch.clone(), cfg, enforcer.clone()),
-        start_controller(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("users").polling_interval(), users::api::v1alpha1::UserController::new).map_err(Error::from),
         acl::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("acl").polling_interval(), enforcer).map_err(Error::from),
-        oauth::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("auth").polling_interval()).map_err(Error::from),
+        auth::api::v1alpha1::start_controllers(logger.clone(), couch.clone(), &controller_arbiter, cfg.controllers().get("auth").polling_interval()).map_err(Error::from),
     )?;
 
     Ok(())
@@ -56,5 +55,5 @@ fn start_gc(logger: Logger, couch: &Couch, cfg: &Configuration) {
 
     GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => api::core::API_GROUP.clone())), couch.database(&api::core::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
     GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => acl::api::API_GROUP.clone())), couch.database(&acl::api::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
-    GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => oauth::api::API_GROUP.clone())), couch.database(&oauth::api::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
+    GarbageCollector::start(logger.new(slog::o!("process" => "gc", "group" => auth::api::API_GROUP.clone())), couch.database(&auth::api::API_GROUP, true), &arbiter, cfg.gc().polling_interval());
 }

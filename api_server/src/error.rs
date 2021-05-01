@@ -83,7 +83,7 @@ impl From<ConfigError> for Error {
 impl From<couchdb::error::Error> for Error {
     fn from(err: couchdb::error::Error) -> Self {
         match err.status() {
-            StatusCode::NOT_FOUND => Self::ApiError { code: Code::NotFound, message: err.to_string() },
+            StatusCode::NOT_FOUND => Self::ApiError { code: Code::NotFound, message: "resource not found".to_string() },
             _ => Self::ApiError { code: Code::Unknown, message: err.to_string() },
         }
     }

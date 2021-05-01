@@ -3,9 +3,9 @@ members = [
     # New stuff
     "api_server",
     "api",
-    "users",
     "controller_runtime",
     "acl",
+    "auth",
     "oauth",
 
     # Old Stuff

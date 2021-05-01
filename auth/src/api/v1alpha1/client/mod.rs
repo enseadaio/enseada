@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 use api::core::v1alpha1::{Metadata, TypeMeta};
 use api::Resource;
 pub use controller::*;
-
-use crate::scope::Scope;
+use oauth::scope::Scope;
 
 use super::API_VERSION;
 
@@ -69,6 +68,11 @@ impl Resource for OAuthClient {
             kind_plural: "oauthclients".to_string(),
         }
     }
+
+    fn reset_type_meta(&mut self) {
+        self.type_meta = Self::type_meta();
+    }
+
 
     fn metadata(&self) -> &Metadata {
         &self.metadata

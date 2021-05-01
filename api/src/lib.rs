@@ -18,6 +18,7 @@ pub trait Resource: Clone + Debug + DeserializeOwned + Serialize + Send + Sync {
     type Status: Clone + Default + Debug + DeserializeOwned + Serialize;
 
     fn type_meta() -> TypeMeta;
+    fn reset_type_meta(&mut self);
     fn metadata(&self) -> &Metadata;
     fn metadata_mut(&mut self) -> &mut Metadata;
     fn set_metadata(&mut self, metadata: Metadata);
