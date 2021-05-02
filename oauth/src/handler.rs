@@ -1,9 +1,19 @@
 use async_trait::async_trait;
 
-use crate::BasicAuth;
 use crate::Result;
 use crate::session::Session;
 use crate::token::Token;
+use crate::client::Client;
+
+/// Represent HTTP basic authentication as (client_id, client_secret)
+#[derive(Debug)]
+pub struct BasicAuth(String, Option<String>);
+
+impl BasicAuth {
+    pub fn new(username: String, password: Option<String>) -> Self {
+        BasicAuth(username, password)
+    }
+}
 
 #[async_trait]
 pub trait RequestHandler<T, R> {

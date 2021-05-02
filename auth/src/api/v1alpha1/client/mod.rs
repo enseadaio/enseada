@@ -6,6 +6,7 @@ use api::core::v1alpha1::{Metadata, TypeMeta};
 use api::Resource;
 pub use controller::*;
 use oauth::scope::Scope;
+use oauth::client::{Client, ClientKind};
 
 mod controller;
 
@@ -30,17 +31,17 @@ pub struct OAuthClient {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OAuthClientSpec {
-    client_type: ClientType,
-    allowed_scopes: Scope,
-    allowed_redirect_uris: HashSet<url::Url>,
+    pub client_type: ClientType,
+    pub allowed_scopes: Scope,
+    pub allowed_redirect_uris: HashSet<url::Url>,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OAuthClientStatus {
-    condition: OAuthClientCondition,
+    pub condition: OAuthClientCondition,
     #[serde(default)]
-    condition_message: String,
+    pub condition_message: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -54,5 +55,15 @@ pub enum OAuthClientCondition {
 impl Default for OAuthClientCondition {
     fn default() -> Self {
         Self::Pending
+    }
+}
+
+impl Into<Client> for OAuthClient {
+    fn into(self) -> Client {
+        let kind = match self.spec.client_type {
+            ClientType::Public => ClientKind::Public,
+        };
+
+        Client::new(self.metadata.name, kind, self.spec.allowed_scopes, self.spec.allowed_redirect_uris)
     }
 }

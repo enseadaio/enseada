@@ -125,6 +125,7 @@ dependencies = [
  "api_derive",
  "bimap",
  "chrono",
+ "crypto",
  "http",
  "lazy_static",
  "serde",
@@ -223,6 +224,7 @@ version = "0.1.0"
 dependencies = [
  "api",
  "controller_runtime",
+ "crypto",
  "lazy_static",
  "oauth",
  "serde",
@@ -481,6 +483,18 @@ dependencies = [
  "autocfg",
  "cfg-if 1.0.0",
  "lazy_static",
+]
+
+[[package]]
+name = "crypto"
+version = "0.1.0"
+dependencies = [
+ "base64 0.13.0",
+ "hex",
+ "lazy_static",
+ "ring",
+ "rust-argon2",
+ "serde",
 ]
 
 [[package]]
@@ -1313,6 +1327,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "crypto",
  "http",
  "serde",
  "serde_json",

@@ -1,6 +1,7 @@
 use config::{Config, File};
 use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
+use url::Url;
 
 use crate::config::cli::Opts;
 use crate::config::controllers::Controllers;
@@ -25,6 +26,8 @@ pub struct Configuration {
     couchdb: CouchDB,
     controllers: Controllers,
     gc: GarbageCollection,
+    secret_key_base: String,
+    public_host: Url,
 }
 
 impl Configuration {
@@ -65,6 +68,14 @@ impl Configuration {
 
     pub fn gc(&self) -> &GarbageCollection {
         &self.gc
+    }
+
+    pub fn secret_key_base(&self) -> &str {
+        &self.secret_key_base
+    }
+
+    pub fn public_host(&self) -> &Url {
+        &self.public_host
     }
 
     pub fn pretty_print(&self) -> String {

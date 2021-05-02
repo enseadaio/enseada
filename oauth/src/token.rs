@@ -3,11 +3,11 @@ use std::ops::Add;
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
-use enseada::secure::SecureSecret;
+use crypto::SecureSecret;
 
+use crate::Expirable;
 use crate::scope::Scope;
 use crate::session::Session;
-use crate::Expirable;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

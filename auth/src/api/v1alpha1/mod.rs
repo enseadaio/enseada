@@ -1,12 +1,14 @@
 use slog::Logger;
 
 use api::GroupVersion;
+pub use auth_code::*;
 pub use client::*;
 use controller_runtime::{ArbiterHandle, ControllerError, Couch, start_controller};
 pub use user::*;
 
 use super::API_GROUP;
 
+mod auth_code;
 mod client;
 mod user;
 

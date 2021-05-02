@@ -12,3 +12,6 @@ couchdb:
   url: http://localhost:5984
   username: enseada
   password: enseada
+
+secret_key_base: abcdefghijklmnopqrstuvwxyz
+public_host: http://localhost:9623

@@ -1,0 +1,13 @@
+[package]
+name = "crypto"
+version = "0.1.0"
+authors = ["Matteo Joliveau <matteojoliveau@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ring = "0.16"
+lazy_static = "^1"
+base64 = "~0.13"
+rust-argon2 = "~0.8"
+hex = "~0.4"
+serde = { version = "^1", features = ["derive"] }

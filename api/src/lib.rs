@@ -10,6 +10,7 @@ pub use api_derive::Resource;
 pub use gvk::*;
 
 use crate::core::v1alpha1::{Metadata, TypeMeta};
+use crypto::SecureSecret;
 
 pub mod core;
 pub mod error;
@@ -27,6 +28,10 @@ pub trait Resource: Clone + Debug + DeserializeOwned + Serialize + Send + Sync {
     fn status_mut(&mut self) -> Option<&mut Self::Status>;
     fn set_status(&mut self, status: Option<Self::Status>);
 
+    fn name(&self) -> &str {
+        &self.metadata().name
+    }
+
     fn to_ref(&self) -> NamedRef {
         let name = self.metadata().name.clone();
         NamedRef {
@@ -43,6 +48,11 @@ pub trait Resource: Clone + Debug + DeserializeOwned + Serialize + Send + Sync {
             name,
         }
     }
+}
+
+pub trait SecureResource: Resource {
+    fn add_secret_hash(&mut self, name: &str, secret_hash: SecureSecret);
+    fn get_secret_hash(&self, name: &str) -> Option<&SecureSecret>;
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

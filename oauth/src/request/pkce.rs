@@ -2,11 +2,9 @@ use std::fmt::{self, Display, Formatter};
 
 use serde::{Deserialize, Serialize};
 
-use enseada::secure;
-
 use crate::error::{Error, ErrorKind};
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PkceRequest {
     code_challenge: String,
     code_challenge_method: TransformationMethod,
@@ -39,7 +37,7 @@ impl PkceRequest {
         let code_verifier = code_verifier.to_string();
         let computed_verifier = match self.code_challenge_method {
             TransformationMethod::PLAIN => code_verifier,
-            TransformationMethod::S256 => secure::pkce_challenge(&code_verifier),
+            TransformationMethod::S256 => crypto::pkce_challenge(&code_verifier),
         };
 
         if computed_verifier == self.code_challenge {

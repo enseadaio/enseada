@@ -1,25 +1,17 @@
-// pub use request::*;
-
+pub use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
 use crate::error::Error;
 
+pub mod client;
+pub mod code;
 pub mod error;
-// pub mod request;
-// pub mod handler;
+pub mod handler;
+pub mod request;
+pub mod response;
 pub mod scope;
 pub mod session;
-// pub mod token;
-
-/// Represent HTTP basic authentication as (client_id, client_secret)
-#[derive(Debug)]
-pub struct BasicAuth(String, Option<String>);
-
-impl BasicAuth {
-    pub fn new(username: String, password: Option<String>) -> Self {
-        BasicAuth(username, password)
-    }
-}
+pub mod token;
 
 pub type Result<T> = std::result::Result<T, Error>;
 

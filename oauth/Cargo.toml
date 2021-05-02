@@ -12,3 +12,4 @@ http = "~0.2"
 slog = "^2"
 url = { version = "^2", features = ["serde"] }
 chrono = { version = "~0.4", feautres = ["serde"] }
+crypto = { path = "../crypto" }

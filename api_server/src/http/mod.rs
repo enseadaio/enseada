@@ -36,6 +36,7 @@ pub async fn start(logger: Logger, couch: Couch, cfg: &Configuration, enforcer: 
     let oauth_clients = resource::mount::<::auth::api::v1alpha1::OAuthClient>(logger.new(slog::o!()), couch.clone(), enforcer.clone()).await?;
 
     let routes = telemetry::routes()
+        .or(auth::oauth_routes(logger.new(slog::o!("process" => "oauth")), &couch, cfg))
         .or(warp::path("apis")
             .and(auth::mount_can_i(enforcer.clone())
                 .or(policies)

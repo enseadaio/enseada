@@ -1,24 +1,19 @@
 use std::collections::HashSet;
 use std::fmt::{self, Display, Formatter};
 
-use enseada::secure;
-
-use crate::client::ClientKind::{Confidential, Public};
-use crate::error::{Error, ErrorKind};
 use crate::scope::Scope;
-use crate::Result;
 
 #[derive(Clone, Debug)]
 pub enum ClientKind {
     Public,
-    Confidential { secret: String },
+    Confidential,
 }
 
 impl Display for ClientKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let name = match self {
-            Public => "public",
-            ClientKind::Confidential { .. } => "confidential",
+            ClientKind::Public => "public",
+            ClientKind::Confidential => "confidential",
         };
         write!(f, "{}", name)
     }
@@ -33,46 +28,15 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn confidential(
+    pub fn new(
         client_id: String,
-        client_secret: String,
-        allowed_scopes: Scope,
-        allowed_redirect_uris: HashSet<url::Url>,
-    ) -> Result<Client> {
-        let secret = secure::hash_password(client_secret.as_str())
-            .map_err(|msg| Error::new(ErrorKind::InvalidClient, msg))?;
-        Ok(Self::confidential_with_hash(
-            client_id,
-            secret,
-            allowed_scopes,
-            allowed_redirect_uris,
-        ))
-    }
-
-    pub fn confidential_with_hash(
-        client_id: String,
-        client_secret_hash: String,
+        kind: ClientKind,
         allowed_scopes: Scope,
         allowed_redirect_uris: HashSet<url::Url>,
     ) -> Client {
         Client {
             client_id,
-            kind: Confidential {
-                secret: client_secret_hash,
-            },
-            allowed_scopes,
-            allowed_redirect_uris,
-        }
-    }
-
-    pub fn public(
-        client_id: String,
-        allowed_scopes: Scope,
-        allowed_redirect_uris: HashSet<url::Url>,
-    ) -> Client {
-        Client {
-            client_id,
-            kind: Public,
+            kind,
             allowed_scopes,
             allowed_redirect_uris,
         }
@@ -92,21 +56,6 @@ impl Client {
 
     pub fn allowed_redirect_uris(&self) -> &HashSet<url::Url> {
         &self.allowed_redirect_uris
-    }
-
-    pub fn set_client_secret(&mut self, secret: String) -> Result<()> {
-        if let ClientKind::Public = self.kind {
-            return Err(Error::new(
-                ErrorKind::InvalidClient,
-                "cannot set client secret for a public client".to_string(),
-            ));
-        }
-
-        let secret = secure::hash_password(&secret)
-            .map_err(|msg| Error::new(ErrorKind::InvalidClient, msg))?;
-
-        self.kind = Confidential { secret };
-        Ok(())
     }
 
     pub fn set_allowed_scopes(&mut self, scopes: Scope) -> &mut Self {

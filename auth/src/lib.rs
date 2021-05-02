@@ -2,3 +2,4 @@
 extern crate lazy_static;
 
 pub mod api;
+pub mod handler;
