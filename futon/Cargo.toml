@@ -1,0 +1,14 @@
+[package]
+name = "futon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+hyper = { version = "0.14.17", features = ["client", "http1", "http2", "stream"] }
+hyper-rustls = { version = "0.23.0", features = ["http2"] }
+thiserror = "1.0.30"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

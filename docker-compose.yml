@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  couch:
+    image: public.ecr.aws/docker/library/couchdb:3
+    environment:
+      COUCHDB_USER: enseada
+      COUCHDB_PASSWORD: enseada
+    ports:
+      - '5984:5984'
+    volumes:
+      - couch:/opt/couchdb/data
+
+volumes:
+  couch: {}

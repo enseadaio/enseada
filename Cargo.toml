@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "futon",
+    "server",
+]
+
+[profile.release]
+lto = true
+strip = "debuginfo"
