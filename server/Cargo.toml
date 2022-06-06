@@ -52,7 +52,7 @@ validator_derive = "0.10"
 async-trait = "0.1.30"
 chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
-tokio = { version = "0.2", features = ["sync"] }
+tokio = { version = "1.8", features = ["sync"] }
 
 # Security
 rustls = "0.18"
