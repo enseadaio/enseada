@@ -16,7 +16,7 @@ glob = "0.3"
 
 # Async
 futures = "0.3"
-tokio = { version = "0.2", features = ["sync"] }
+tokio = { version = "1.8", features = ["sync"] }
 actix-rt = "1.1"
 
 # Serde
