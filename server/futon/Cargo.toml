@@ -1,0 +1,24 @@
+[package]
+name = "futon"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+hyper = { version = "0.14", features = ["client", "http1", "http2", "stream"] }
+headers = "0.3"
+hyper-rustls = { version = "0.23", features = ["http2"] }
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_qs = "0.9"
+tracing = "0.1"
+async-trait = "0.1"
+url = "1"
+futures = "0.3"
+bytes = "1"
+async-stream = "0.3"
+tokio = { version = "1", features = ["sync"] }
+tokio-stream = { version = "0.1", features = ["sync"] }

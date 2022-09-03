@@ -13,7 +13,7 @@ run:
   cargo run --bin enseada-server
 
 watch:
-  cargo watch --clear --exec 'run --bin enseada-server'
+  cargo-watch --clear --exec 'run --bin enseada-server'
 
 build *args: fmt
   cargo build {{args}}

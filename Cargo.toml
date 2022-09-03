@@ -1,8 +1,11 @@
 [workspace]
 
 members = [
-    "futon",
     "server",
+    "server/auth",
+    "server/futon",
+    "server/libapi",
+    "server/cqrs",
 ]
 
 [profile.release]

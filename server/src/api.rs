@@ -1,5 +1,7 @@
 use axum::Router;
 
-pub fn routes() -> Router {
-    Router::new()
+use futon::Couch;
+
+pub fn routes(couch: &Couch) -> Router {
+    Router::new().nest("/auth", auth::routes(couch))
 }

@@ -6,6 +6,8 @@ use crate::logger::{LogFormat, LogLevel};
 
 #[derive(Debug, Parser)]
 pub struct Config {
+    #[clap(long, env = "ENSEADA_NODE_ID")]
+    node_id: Option<String>,
     #[clap(long, env = "ENSEADA_LOG_LEVEL", default_value = "info")]
     pub log_level: LogLevel,
     #[clap(long, env = "ENSEADA_LOG_FORMAT", default_value = "json")]
@@ -17,10 +19,16 @@ pub struct Config {
     pub http_port: i16,
 
     #[clap(long, env = "ENSEADA_COUCHDB_URL")]
-    pub couchdb_url: String,
+    pub couchdb_url: url::Url,
 }
 
 impl Config {
+    pub fn node_id(&self) -> String {
+        self.node_id
+            .clone()
+            .unwrap_or_else(|| std::env::var("HOSTNAME").unwrap())
+    }
+
     pub fn http_address(&self) -> SocketAddr {
         format!("{}:{}", self.http_host, self.http_port)
             .parse()
